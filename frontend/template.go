@@ -7,13 +7,38 @@ import (
     "strconv"
 )
 
+// Helper to check if the IP is valid
+func isIP(s string) bool {
+    return nil != net.ParseIP(s)
+}
+
+// Helper to check if the number is valid
+func isNumber(s string) bool {
+    _, err := strconv.Atoi(s)
+    return nil == err
+}
+
+// Print HTML header to the given http response
 func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
     path := r.URL.Path
-    if len(strings.Split(r.URL.Path, "/")) < 4 {
-        path = "/ipv4/summary/" + strings.Join(settingServers[:], "+") + "/"
+    split := strings.Split(r.URL.Path, "/")
+
+    // Mark if the URL is for a whois query
+    var isWhois bool = false
+    if len(split) >= 2 && split[1] == "whois" {
+        isWhois = true
     }
 
-    split := strings.Split(path, "/")
+    // Use a default URL if the request URL is too short
+    // The URL is for return to IPv4 summary page
+    if len(split) < 4 {
+        path = "/ipv4/summary/" + strings.Join(settingServers[:], "+") + "/"
+    } else if len(split) == 4 {
+        path += "/"
+    }
+
+    // Compose URLs for link in navbar
+    split = strings.Split(path, "/")
     split[1] = "ipv4"
     ipv4_url := strings.Join(split, "/")
 
@@ -25,12 +50,14 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
     split[3] = strings.Join(settingServers[:], "+")
     all_url := strings.Join(split, "/")
 
+    // Check if the "All Server" link should be marked as active
     split = strings.Split(path, "/")
     var serverAllActive string
     if split[3] == strings.Join(settingServers[:], "+") {
         serverAllActive = " active"
     }
 
+    // Print the IPv4, IPv6, All Servers link in navbar
     var serverNavigation string = `
         <li class="nav-item">
             <a class="nav-link" href="` + ipv4_url + `"> IPv4 </a>
@@ -43,6 +70,8 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
             <a class="nav-link` + serverAllActive + `" href="` + all_url + `"> All Servers </a>
         </li>
     `
+
+    // Add a link for each of the servers
     for _, server := range settingServers {
         split = strings.Split(path, "/")
         var serverActive string
@@ -59,6 +88,7 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
         `
     }
 
+    // Add the options in navbar form, and check if they are active
     var options string
     split = strings.Split(path, "/")
     if split[2] == "summary" {
@@ -76,14 +106,25 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
     } else {
         options += `<option value="route_all">show route for ... all</option>`
     }
-    if split[2] == "whois" {
+    if isWhois {
         options += `<option value="whois" selected>whois ...</option>`
     } else {
         options += `<option value="whois">whois ...</option>`
     }
+    if split[2] == "traceroute" {
+        options += `<option value="traceroute" selected>traceroute ...</option>`
+    } else {
+        options += `<option value="traceroute">traceroute ...</option>`
+    }
 
     var target string
-    if len(split) >= 5 {
+    if isWhois {
+        // This is a whois request, use original path URL instead of the modified one
+        // and extract the target
+        whoisSplit := strings.Split(r.URL.Path, "/")
+        target = whoisSplit[2]
+    } else if len(split) >= 5 {
+        // This is a normal request, just extract the target
         target = split[4]
     }
 
@@ -126,25 +167,17 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
     `))
 }
 
+// Print HTML footer to http response
 func templateFooter(w http.ResponseWriter) {
     w.Write([]byte(`
 </div>
-<!--<script data-no-instant src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
-<script data-no-instant src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.bundle.min.js"></script>-->
 </body>
 </html>
     `))
 }
 
-func isIP(s string) bool {
-    return nil != net.ParseIP(s)
-}
-
-func isNumber(s string) bool {
-    _, err := strconv.Atoi(s)
-    return nil == err
-}
-
+// Write the given text to http response, and add whois links for
+// ASNs and IP addresses
 func smartWriter(w http.ResponseWriter, s string) {
     w.Write([]byte("<pre>"))
     for _, line := range strings.Split(s, "\n") {
@@ -152,32 +185,46 @@ func smartWriter(w http.ResponseWriter, s string) {
         var isFirstWord bool = true
         var isASes bool = false
         for _, word := range strings.Split(line, " ") {
+            // Process each word
             if len(word) == 0 {
+                // Indicates that two spaces are connected together
+                // Replace this with a tab later
                 tabPending = true
             } else {
                 if isFirstWord {
+                    // Do not add space before the first word
                     isFirstWord = false
                 } else if tabPending {
+                    // A tab should be added; add it
                     w.Write([]byte("\t"))
                     tabPending = false
                 } else {
+                    // Two words separated by a space, just print the space
                     w.Write([]byte(" "))
                 }
 
                 if isIP(word) {
+                    // Add whois link to the IP, handles IPv4 and IPv6
                     w.Write([]byte("<a href=\"/whois/" + word + "\">" + word + "</a>"))
                 } else if len(strings.Split(word, "%")) == 2 && isIP(strings.Split(word, "%")[0]) {
+                    // IPv6 link-local with interface name, like fd00::1%eth0
+                    // Add whois link to address part
                     w.Write([]byte("<a href=\"/whois/" + strings.Split(word, "%")[0] + "\">" + strings.Split(word, "%")[0] + "</a>"))
                     w.Write([]byte("%" + strings.Split(word, "%")[1]))
                 } else if len(strings.Split(word, "/")) == 2 && isIP(strings.Split(word, "/")[0]) {
+                    // IP with a CIDR range, like 192.168.0.1/24
+                    // Add whois link to first part
                     w.Write([]byte("<a href=\"/whois/" + strings.Split(word, "/")[0] + "\">" + strings.Split(word, "/")[0] + "</a>"))
                     w.Write([]byte("/" + strings.Split(word, "/")[1]))
                 } else if word == "AS:" || word == "\tBGP.as_path:" {
+                    // Bird will output ASNs later
                     isASes = true
                     w.Write([]byte(word))
                 } else if isASes && isNumber(word) {
+                    // Bird is outputing ASNs, ass whois for them
                     w.Write([]byte("<a href=\"/whois/AS" + word + "\">" + word + "</a>"))
                 } else {
+                    // Just an ordinary word, print it and done
                     w.Write([]byte(word))
                 }
             }
@@ -187,6 +234,7 @@ func smartWriter(w http.ResponseWriter, s string) {
     w.Write([]byte("</pre>"))
 }
 
+// Output a table for the summary page
 func summaryTable(w http.ResponseWriter, isIPv6 bool, data string, serverName string) {
     w.Write([]byte("<table class=\"table table-striped table-bordered table-sm\">"))
     for lineId, line := range strings.Split(data, "\n") {
@@ -200,6 +248,7 @@ func summaryTable(w http.ResponseWriter, isIPv6 bool, data string, serverName st
                 if i == 0 {
                     tabPending = true
                 } else if tabPending {
+                    // Allow up to 6 columns in the table, any more is ignored
                     if tableCells < 5 {
                         tableCells++
                     } else {
@@ -213,26 +262,32 @@ func summaryTable(w http.ResponseWriter, isIPv6 bool, data string, serverName st
             }
         }
 
+        // Ignore empty lines
         if len(row[0]) == 0 {
             continue
         }
+
         if lineId == 0 {
+            // Draw the table head
             w.Write([]byte("<thead>"))
             for i := 0; i < 6; i++ {
                 w.Write([]byte("<th scope=\"col\">" + row[i] + "</th>"))
             }
             w.Write([]byte("</thead><tbody>"))
         } else {
+            // Draw the row in red if the link isn't up
             if row[3] == "up" {
                 w.Write([]byte("<tr>"))
             } else if lineId != 0 {
                 w.Write([]byte("<tr class=\"table-danger\">"))
             }
+            // Add link to detail for first column
             if isIPv6 {
                 w.Write([]byte("<td><a href=\"/ipv6/detail/" + serverName + "/" +  row[0] + "\">" + row[0] + "</a></td>"))
             } else {
                 w.Write([]byte("<td><a href=\"/ipv4/detail/" + serverName + "/" +  row[0] + "\">" + row[0] + "</a></td>"))
             }
+            // Draw the other cells
             for i := 1; i < 6; i++ {
                 w.Write([]byte("<td>" + row[i] + "</td>"))
             }

@@ -12,11 +12,14 @@ type channelData struct {
     data string
 }
 
+// Send commands to lgproxy instances in parallel, and retrieve their responses
 func batchRequest(servers []string, endpoint string, command string) []string {
+    // Channel and array for storing responses
     var ch chan channelData = make(chan channelData)
     var response_array []string = make([]string, len(servers))
 
     for i, server := range servers {
+        // Check if the server is in the valid server list passed at startup
         var isValidServer bool = false
         for _, validServer := range settingServers {
             if validServer == server {
@@ -24,11 +27,14 @@ func batchRequest(servers []string, endpoint string, command string) []string {
                 break
             }
         }
+
         if !isValidServer {
+            // If the server is not valid, create a dummy goroutine to return a failure
             go func (i int) {
                 ch <- channelData{i, "request failed: invalid server\n"}
             } (i)
         } else {
+            // Compose URL and send the request
             url := "http://" + server + "." + settingServersDomain + ":" + strconv.Itoa(settingServersPort) + "/" + url.PathEscape(endpoint) + "?q=" + url.QueryEscape(command)
             go func (url string, i int){
                 response, err := http.Get(url)
@@ -42,6 +48,7 @@ func batchRequest(servers []string, endpoint string, command string) []string {
         }
     }
 
+    // Sort the responses by their ids, to return data in order
     for range servers {
         var output channelData = <-ch
         response_array[output.id] = output.data

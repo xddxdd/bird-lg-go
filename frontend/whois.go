@@ -5,6 +5,7 @@ import (
     "io/ioutil"
 )
 
+// Send a whois request
 func whois(s string) string {
 	conn, err := net.Dial("tcp", settingWhoisServer + ":43")
 	if err != nil {
