@@ -1,9 +1,6 @@
 sudo: required
 services:
   - docker
-language: go
-go:
-  - "1.10"
 env:
   - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=i386
   - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=amd64
@@ -17,7 +14,6 @@ env:
 install:
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - sudo apt-get install -y upx
 
 script:
   - |
@@ -33,11 +29,6 @@ script:
     if [ "$IMAGE_ARCH" == "arm32v7" ]; then IMAGE_ARCH_GO=arm  ; fi
     if [ "$IMAGE_ARCH" == "arm64v8" ]; then IMAGE_ARCH_GO=arm64; fi
 
-    # Build Go binary
-    mkdir build
-    GOOS=linux GOARCH=$IMAGE_ARCH_GO go build -ldflags="-s -w -linkmode external -extldflags \"-static\"" -o build/$PROGRAM $PROGRAM/*.go
-    upx --best build/$PROGRAM
-
     # Build image
     docker build \
       -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH \
@@ -45,7 +36,7 @@ script:
       --build-arg IMAGE_ARCH=$IMAGE_ARCH \
       --build-arg IMAGE_ARCH_ALT=$IMAGE_ARCH_ALT \
       --build-arg IMAGE_ARCH_GO=$IMAGE_ARCH_GO \
-      .
+      $PROGRAM
 
     # Tag image :{arch} and :{arch}-build{build number}
     docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH-build$TRAVIS_BUILD_NUMBER
