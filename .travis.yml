@@ -5,18 +5,19 @@ language: go
 go:
   - "1.10"
 env:
-  - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=i386
+  # - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=i386
   - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=amd64
-  - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=arm32v7
-  - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=arm64v8
-  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=i386
-  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=amd64
-  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=arm32v7
-  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=arm64v8
+  # - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=arm32v7
+  # - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=arm64v8
+  # - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=i386
+  # - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=amd64
+  # - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=arm32v7
+  # - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=arm64v8
 
 install:
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - apt-get install -y upx
 
 script:
   - |
@@ -35,6 +36,7 @@ script:
     # Build Go binary
     mkdir build
     GOOS=linux GOARCH=$IMAGE_ARCH_GO go build -ldflags="-s -w" -o build/$PROGRAM $PROGRAM/*.go
+    upx --best build/$PROGRAM
 
     # Build image
     docker build \
@@ -43,7 +45,7 @@ script:
       --build-arg IMAGE_ARCH=$IMAGE_ARCH \
       --build-arg IMAGE_ARCH_ALT=$IMAGE_ARCH_ALT \
       --build-arg IMAGE_ARCH_GO=$IMAGE_ARCH_GO \
-      $IMAGE_NAME
+      .
 
     # Tag image :{arch} and :{arch}-build{build number}
     docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH-build$TRAVIS_BUILD_NUMBER
