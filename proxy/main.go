@@ -151,6 +151,18 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
         }
         instance := exec.Command(cmd, args...)
         output, err := instance.Output()
+        if err != nil && runtime.GOOS == "linux" {
+            // Standard traceroute utility failed, maybe system using busybox
+            // Run with less parameters
+            cmd = "traceroute"
+            if useIPv6 {
+                args = []string{"-6", "-q1", "-w1", "-m15", query}
+            } else {
+                args = []string{"-4", "-q1", "-w1", "-m15", query}
+            }
+            instance = exec.Command(cmd, args...)
+            output, err = instance.Output()
+        }
         if err != nil {
             httpW.WriteHeader(http.StatusInternalServerError)
             httpW.Write([]byte("Traceroute Execution Error: "))
