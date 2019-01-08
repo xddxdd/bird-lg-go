@@ -1,7 +1,9 @@
 sudo: required
 services:
   - docker
-language: bash
+language: go
+go:
+  - "1.10"
 env:
   - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=i386
   - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=amd64
@@ -31,7 +33,8 @@ script:
     if [ "$IMAGE_ARCH" == "arm64v8" ]; then IMAGE_ARCH_GO=arm64; fi
 
     # Build Go binary
-    GOOS=linux GOARCH=$IMAGE_ARCH_GO go build -ldflags="-s -w" -o $PROGRAM $PROGRAM/*.go
+    mkdir build
+    GOOS=linux GOARCH=$IMAGE_ARCH_GO go build -ldflags="-s -w" -o build/$PROGRAM $PROGRAM/*.go
 
     # Build image
     docker build \
