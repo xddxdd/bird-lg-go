@@ -1,0 +1,52 @@
+sudo: required
+services:
+  - docker
+language: bash
+env:
+  - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=i386
+  - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=amd64
+  - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=arm32v7
+  - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=arm64v8
+  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=i386
+  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=amd64
+  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=arm32v7
+  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=arm64v8
+
+install:
+  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+script:
+  - |
+    # Translate to alternative arch names used in multiarch images
+    if [ "$IMAGE_ARCH" == "amd64"   ]; then IMAGE_ARCH_ALT=amd64  ; fi
+    if [ "$IMAGE_ARCH" == "i386"    ]; then IMAGE_ARCH_ALT=i386   ; fi
+    if [ "$IMAGE_ARCH" == "arm32v7" ]; then IMAGE_ARCH_ALT=armhf  ; fi
+    if [ "$IMAGE_ARCH" == "arm64v8" ]; then IMAGE_ARCH_ALT=aarch64; fi
+
+    # Translate to alternative arch names used in golang
+    if [ "$IMAGE_ARCH" == "amd64"   ]; then IMAGE_ARCH_GO=amd64; fi
+    if [ "$IMAGE_ARCH" == "i386"    ]; then IMAGE_ARCH_GO=386  ; fi
+    if [ "$IMAGE_ARCH" == "arm32v7" ]; then IMAGE_ARCH_GO=arm  ; fi
+    if [ "$IMAGE_ARCH" == "arm64v8" ]; then IMAGE_ARCH_GO=arm64; fi
+
+    # Build Go binary
+    GOOS=linux GOARCH=$IMAGE_ARCH_GO go build -ldflags="-s -w" -o $PROGRAM $PROGRAM/*.go
+
+    # Build image
+    docker build \
+      -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH \
+      -f $PROGRAM/Dockerfile \
+      --build-arg IMAGE_ARCH=$IMAGE_ARCH \
+      --build-arg IMAGE_ARCH_ALT=$IMAGE_ARCH_ALT \
+      --build-arg IMAGE_ARCH_GO=$IMAGE_ARCH_GO \
+      $IMAGE_NAME
+
+    # Tag image :{arch} and :{arch}-build{build number}
+    docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH-build$TRAVIS_BUILD_NUMBER
+    if [ "$IMAGE_ARCH" = "amd64" ]; then
+      # Tag as latest for amd64 images
+      docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
+      docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:build$TRAVIS_BUILD_NUMBER
+    fi
+  - docker push $DOCKER_USERNAME/$IMAGE_NAME
