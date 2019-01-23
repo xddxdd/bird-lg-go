@@ -46,6 +46,26 @@ func webDispatcherIPv6RouteAll(w http.ResponseWriter, r *http.Request) {
     webHandler(w, r, "bird6", split[0], "show route for " + strings.Join(split[1:], "/") + " all")
 }
 
+func webDispatcherIPv4RouteWhere(w http.ResponseWriter, r *http.Request) {
+    split := strings.Split(r.URL.Path[len("/ipv4/route_where/"):], "/")
+    webHandler(w, r, "bird", split[0], "show route where net ~ [ " + strings.Join(split[1:], "/") + " ]")
+}
+
+func webDispatcherIPv6RouteWhere(w http.ResponseWriter, r *http.Request) {
+    split := strings.Split(r.URL.Path[len("/ipv6/route_where/"):], "/")
+    webHandler(w, r, "bird6", split[0], "show route where net ~ [ " + strings.Join(split[1:], "/") + " ]")
+}
+
+func webDispatcherIPv4RouteWhereAll(w http.ResponseWriter, r *http.Request) {
+    split := strings.Split(r.URL.Path[len("/ipv4/route_where_all/"):], "/")
+    webHandler(w, r, "bird", split[0], "show route where net ~ [ " + strings.Join(split[1:], "/") + " ] all")
+}
+
+func webDispatcherIPv6RouteWhereAll(w http.ResponseWriter, r *http.Request) {
+    split := strings.Split(r.URL.Path[len("/ipv6/route_where_all/"):], "/")
+    webHandler(w, r, "bird6", split[0], "show route where net ~ [ " + strings.Join(split[1:], "/") + " ] all")
+}
+
 func webDispatcherWhois(w http.ResponseWriter, r *http.Request) {
     var target string = r.URL.Path[len("/whois/"):]
 
@@ -112,6 +132,10 @@ func webServerStart() {
     http.HandleFunc("/ipv6/route/", webDispatcherIPv6Route)
     http.HandleFunc("/ipv4/route_all/", webDispatcherIPv4RouteAll)
     http.HandleFunc("/ipv6/route_all/", webDispatcherIPv6RouteAll)
+    http.HandleFunc("/ipv4/route_where/", webDispatcherIPv4RouteWhere)
+    http.HandleFunc("/ipv6/route_where/", webDispatcherIPv6RouteWhere)
+    http.HandleFunc("/ipv4/route_where_all/", webDispatcherIPv4RouteWhereAll)
+    http.HandleFunc("/ipv6/route_where_all/", webDispatcherIPv6RouteWhereAll)
     http.HandleFunc("/ipv4/traceroute/", webDispatcherIPv4Traceroute)
     http.HandleFunc("/ipv6/traceroute/", webDispatcherIPv6Traceroute)
     http.HandleFunc("/whois/", webDispatcherWhois)

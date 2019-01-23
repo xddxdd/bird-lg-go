@@ -106,6 +106,16 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
     } else {
         options += `<option value="route_all">show route for ... all</option>`
     }
+    if split[2] == "route_where" {
+        options += `<option value="route_where" selected>show route where net ~ [ ... ]</option>`
+    } else {
+        options += `<option value="route_where">show route where net ~ [ ... ]</option>`
+    }
+    if split[2] == "route_where_all" {
+        options += `<option value="route_where_all" selected>show route where net ~ [ ... ] all</option>`
+    } else {
+        options += `<option value="route_where_all">show route where net ~ [ ... ] all</option>`
+    }
     if isWhois {
         options += `<option value="whois" selected>whois ...</option>`
     } else {
@@ -122,10 +132,10 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
         // This is a whois request, use original path URL instead of the modified one
         // and extract the target
         whoisSplit := strings.Split(r.URL.Path, "/")
-        target = whoisSplit[2]
+        target = strings.Join(whoisSplit[2:], "/")
     } else if len(split) >= 5 {
         // This is a normal request, just extract the target
-        target = split[4]
+        target = strings.Join(split[4:], "/")
     }
 
     w.Write([]byte(`
