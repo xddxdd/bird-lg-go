@@ -95,7 +95,7 @@ func webHandler(w http.ResponseWriter, r *http.Request, endpoint string, serverQ
     var responses []string = batchRequest(servers, endpoint, command)
     for i, response := range responses {
         w.Write([]byte("<h2>" + html.EscapeString(servers[i]) + ": " + html.EscapeString(command) + "</h2>"))
-        if (endpoint == "bird" || endpoint == "bird6") && command == "show protocols" && response[0:4] == "name" {
+        if (endpoint == "bird" || endpoint == "bird6") && command == "show protocols" && strings.ToLower(response[0:4]) == "name" {
             var isIPv6 bool = endpoint[len(endpoint) - 1] == '6'
             summaryTable(w, isIPv6, response, servers[i])
         } else {
