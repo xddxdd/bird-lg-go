@@ -49,6 +49,35 @@ func webBackendCommunicator(w http.ResponseWriter, r *http.Request, endpoint str
 	templateFooter(w)
 }
 
+func webHandlerBGPMap(w http.ResponseWriter, r *http.Request, endpoint string, command string) {
+	split := strings.Split(r.URL.Path[1:], "/")
+	urlCommands := strings.Join(split[3:], "/")
+
+	command = (map[string]string{
+		"route_bgpmap":       "show route for " + urlCommands + " all",
+		"route_where_bgpmap": "show route where net ~ [ " + urlCommands + " ] all",
+	})[command]
+
+	templateHeader(w, r, "Bird-lg Go - "+html.EscapeString(endpoint+" "+command))
+
+	var servers []string = strings.Split(split[2], "+")
+
+	var responses []string = batchRequest(servers, endpoint, command)
+	w.Write([]byte(`
+	<script>
+	var viz = new Viz();
+	viz.renderSVGElement(` + "`" + birdRouteToGraphviz(servers, responses, urlCommands) + "`" + `)
+	.then(function(element) {
+		document.body.appendChild(element);
+	})
+	.catch(error => {
+		document.body.appendChild("<pre>"+error+"</pre>")
+	});
+	</script>`))
+
+	templateFooter(w)
+}
+
 func webHandlerNavbarFormRedirect(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	if query.Get("action") == "whois" {
@@ -73,10 +102,14 @@ func webServerStart() {
 	http.HandleFunc("/ipv6/route/", func(w http.ResponseWriter, r *http.Request) { webBackendCommunicator(w, r, "bird6", "route") })
 	http.HandleFunc("/ipv4/route_all/", func(w http.ResponseWriter, r *http.Request) { webBackendCommunicator(w, r, "bird", "route_all") })
 	http.HandleFunc("/ipv6/route_all/", func(w http.ResponseWriter, r *http.Request) { webBackendCommunicator(w, r, "bird6", "route_all") })
+	http.HandleFunc("/ipv4/route_bgpmap/", func(w http.ResponseWriter, r *http.Request) { webHandlerBGPMap(w, r, "bird", "route_bgpmap") })
+	http.HandleFunc("/ipv6/route_bgpmap/", func(w http.ResponseWriter, r *http.Request) { webHandlerBGPMap(w, r, "bird6", "route_bgpmap") })
 	http.HandleFunc("/ipv4/route_where/", func(w http.ResponseWriter, r *http.Request) { webBackendCommunicator(w, r, "bird", "route_where") })
 	http.HandleFunc("/ipv6/route_where/", func(w http.ResponseWriter, r *http.Request) { webBackendCommunicator(w, r, "bird6", "route_where") })
 	http.HandleFunc("/ipv4/route_where_all/", func(w http.ResponseWriter, r *http.Request) { webBackendCommunicator(w, r, "bird", "route_where_all") })
 	http.HandleFunc("/ipv6/route_where_all/", func(w http.ResponseWriter, r *http.Request) { webBackendCommunicator(w, r, "bird6", "route_where_all") })
+	http.HandleFunc("/ipv4/route_where_bgpmap/", func(w http.ResponseWriter, r *http.Request) { webHandlerBGPMap(w, r, "bird", "route_where_bgpmap") })
+	http.HandleFunc("/ipv6/route_where_bgpmap/", func(w http.ResponseWriter, r *http.Request) { webHandlerBGPMap(w, r, "bird6", "route_where_bgpmap") })
 	http.HandleFunc("/ipv4/traceroute/", func(w http.ResponseWriter, r *http.Request) { webBackendCommunicator(w, r, "traceroute", "traceroute") })
 	http.HandleFunc("/ipv6/traceroute/", func(w http.ResponseWriter, r *http.Request) {
 		webBackendCommunicator(w, r, "traceroute6", "traceroute")

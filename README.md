@@ -14,9 +14,6 @@ Features implemented:
 - Query route (`show route for ...`, `show route where net ~ [ ... ]`)
 - Whois and traceroute
 - Work with both Python proxy (lgproxy.py) and Go proxy (proxy dir of this project)
-
-Features not implemented yet:
-
 - Visualize AS paths as picture (bgpmap feature)
 
 Usage: all configuration is done via commandline parameters or environment variables, no config file.
@@ -33,15 +30,16 @@ Example: the following command starts the frontend with 2 BIRD nodes, with domai
 
 Example: the following docker-compose.yml entry does the same as above, but by starting a Docker container:
 
-    bird-lg:
-      image: xddxdd/bird-lg-go
-      container_name: bird-lg
-      restart: always
-      environment:
-        - BIRDLG_SERVERS=gigsgigscloud,hostdare
-        - BIRDLG_DOMAIN=dn42.lantian.pub
-      ports:
-        - "5000:5000"
+    services:
+      bird-lg:
+        image: xddxdd/bird-lg-go
+        container_name: bird-lg
+        restart: always
+        environment:
+          - BIRDLG_SERVERS=gigsgigscloud,hostdare
+          - BIRDLG_DOMAIN=dn42.lantian.pub
+        ports:
+          - "5000:5000"
 
 Demo: https://lg.lantian.pub
 
@@ -66,7 +64,7 @@ Usage: all configuration is done via commandline parameters or environment varia
 - --bird6 / BIRD6_SOCKET: socket file for bird6, set either in parameter or environment variable BIRD6_SOCKET (default "/var/run/bird/bird6.ctl")
 - --listen / BIRDLG_LISTEN: listen address, set either in parameter or environment variable BIRDLG_LISTEN (default ":8000")
 
-Example: start proxy with default configuration, should work "out of the box" on Debian 9:
+Example: start proxy with default configuration, should work "out of the box" on Debian 9 with BIRDv1:
 
     ./proxy
 

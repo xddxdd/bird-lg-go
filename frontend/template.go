@@ -69,14 +69,27 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
 	}
 
 	// Add the options in navbar form, and check if they are active
-	var optionKeys = []string{"summary", "detail", "route", "route_all", "route_where", "route_where_all", "whois", "traceroute"}
+	var optionKeys = []string{
+		"summary",
+		"detail",
+		"route",
+		"route_all",
+		"route_bgpmap",
+		"route_where",
+		"route_where_all",
+		"route_where_bgpmap",
+		"whois",
+		"traceroute",
+	}
 	var optionDisplays = []string{
 		"show protocol",
 		"show protocol all",
 		"show route for ...",
 		"show route for ... all",
+		"show route for ... (bgpmap)",
 		"show route where net ~ [ ... ]",
 		"show route where net ~ [ ... ] all",
+		"show route where net ~ [ ... ] (bgpmap)",
 		"whois ...",
 		"traceroute ...",
 	}
@@ -109,7 +122,9 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
 <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"/>
 <meta name="renderer" content="webkit"/>
 <title>` + title + `</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/viz.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/lite.render.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -143,6 +158,7 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
 func templateFooter(w http.ResponseWriter) {
 	w.Write([]byte(`
 </div>
+<div id="graphviz" class="overflow-auto"></div>
 </body>
 </html>
     `))
