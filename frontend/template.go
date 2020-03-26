@@ -158,7 +158,6 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
 func templateFooter(w http.ResponseWriter) {
 	w.Write([]byte(`
 </div>
-<div id="graphviz" class="overflow-auto"></div>
 </body>
 </html>
     `))
