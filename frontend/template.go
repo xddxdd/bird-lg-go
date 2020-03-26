@@ -47,8 +47,8 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
 
 	// Print the IPv4, IPv6, All Servers link in navbar
 	var serverNavigation string = `
-        <li class="nav-item"><a class="nav-link" href="` + ipv4URL + `"` + (map[bool]string{true: " active"})[strings.ToLower(split[0]) == "ipv4"] + `> IPv4 </a></li>
-        <li class="nav-item"><a class="nav-link" href="` + ipv6URL + `"` + (map[bool]string{true: " active"})[strings.ToLower(split[0]) == "ipv6"] + `> IPv6 </a></li>
+        <li class="nav-item"><a class="nav-link` + (map[bool]string{true: " active"})[strings.ToLower(split[0]) == "ipv4"] + `" href="` + ipv4URL + `"> IPv4 </a></li>
+        <li class="nav-item"><a class="nav-link` + (map[bool]string{true: " active"})[strings.ToLower(split[0]) == "ipv6"] + `" href="` + ipv6URL + `"> IPv6 </a></li>
         <span class="navbar-text">|</span>
         <li class="nav-item">
             <a class="nav-link` + (map[bool]string{true: " active"})[serverAllActive] + `" href="` + allURL + `"> All Servers </a>
