@@ -1,20 +1,42 @@
 package main
 
 import (
-	"sort"
 	"strings"
 )
 
 func birdRouteToGraphviz(servers []string, responses []string, target string) string {
-	var edges string
-	edges += "\"Target: " + target + "\" [color=red,shape=diamond];\n"
+	graph := make(map[string]string)
+	// Helper to add an edge
+	addEdge := func(src string, dest string, attr string) {
+		key := "\"" + src + "\" -> \"" + dest + "\""
+		_, present := graph[key]
+		// Do not remove edge's attributes if it's already present
+		if present && len(attr) == 0 {
+			return
+		}
+		graph[key] = attr
+	}
+	// Helper to set attribute for a point in graph
+	addPoint := func(name string, attr string) {
+		key := "\"" + name + "\""
+		_, present := graph[key]
+		// Do not remove point's attributes if it's already present
+		if present && len(attr) == 0 {
+			return
+		}
+		graph[key] = attr
+	}
+
+	addPoint("Target: "+target, "[color=red,shape=diamond]")
 	for serverID, server := range servers {
 		response := responses[serverID]
 		if len(response) == 0 {
 			continue
 		}
-		edges += "\"" + server + "\" [color=blue,shape=box];\n"
+		addPoint(server, "[color=blue,shape=box]")
+		// This is the best split point I can find for bird2
 		routes := strings.Split(response, "\tvia ")
+		routeFound := false
 		for routeIndex, route := range routes {
 			var routeNexthop string
 			var routeASPath string
@@ -28,7 +50,8 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 					routeASPath = strings.TrimPrefix(routeParameter, "\tBGP.as_path: ")
 				}
 			}
-			if len(routeNexthop) == 0 || len(routeASPath) == 0 {
+			if len(routeASPath) == 0 {
+				// Either this is not a BGP route, or the information is incomplete
 				continue
 			}
 
@@ -39,13 +62,15 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 			if len(paths) > 0 {
 				if len(routeNexthop) > 0 {
 					// Edge from originating server to nexthop
-					edges += "\"" + server + "\" -> \"Nexthop:\\n" + routeNexthop + "\"" + (map[bool]string{true: " [color=red]"})[routePreferred] + ";\n"
+					addEdge(server, "Nexthop:\\n"+routeNexthop, (map[bool]string{true: "[color=red]"})[routePreferred])
 					// and from nexthop to AS
-					edges += "\"Nexthop:\\n" + routeNexthop + "\" -> \"AS" + paths[0] + "\"" + (map[bool]string{true: " [color=red]"})[routePreferred] + ";\n"
-					edges += "\"Nexthop:\\n" + routeNexthop + "\" [shape=diamond];\n"
+					addEdge("Nexthop:\\n"+routeNexthop, "AS"+paths[0], (map[bool]string{true: "[color=red]"})[routePreferred])
+					addPoint("Nexthop:\\n"+routeNexthop, "[shape=diamond]")
+					routeFound = true
 				} else {
 					// Edge from originating server to AS
-					edges += "\"" + server + "\" -> \"AS" + paths[0] + "\"" + (map[bool]string{true: " [color=red]"})[routePreferred] + ";\n"
+					addEdge(server, "AS"+paths[0], (map[bool]string{true: "[color=red]"})[routePreferred])
+					routeFound = true
 				}
 			}
 
@@ -54,25 +79,22 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 				if pathIndex == 0 {
 					continue
 				}
-				edges += "\"AS" + paths[pathIndex-1] + "\" -> \"AS" + paths[pathIndex] + "\"" + (map[bool]string{true: " [color=red]"})[routePreferred] + ";\n"
+				addEdge("AS"+paths[pathIndex-1], "AS"+paths[pathIndex], (map[bool]string{true: "[color=red]"})[routePreferred])
 			}
 			// Last AS to destination
-			edges += "\"AS" + paths[len(paths)-1] + "\" -> \"Target: " + target + "\"" + (map[bool]string{true: " [color=red]"})[routePreferred] + ";\n"
+			addEdge("AS"+paths[len(paths)-1], "Target: "+target, (map[bool]string{true: "[color=red]"})[routePreferred])
 		}
-		if !strings.Contains(edges, "\""+server+"\" ->") {
-			// Cannot get path information from bird
-			edges += "\"" + server + "\" -> \"Target: " + target + "\" [color=gray,label=\"?\"]"
-		}
-	}
-	// Deduplication of edges: sort, then remove if current entry is prefix of next entry
-	var result string
-	edgesSorted := strings.Split(edges, ";\n")
-	sort.Strings(edgesSorted)
-	for edgeIndex, edge := range edgesSorted {
-		if edgeIndex >= len(edgesSorted)-1 || !strings.HasPrefix(edgesSorted[edgeIndex+1], edge) {
-			result += edge + ";\n"
+
+		if !routeFound {
+			// Cannot find a path starting from this server
+			addEdge(server, "Target: "+target, "[color=gray,label=\"?\"?]")
 		}
 	}
 
+	// Combine all graphviz commands
+	var result string
+	for edge, attr := range graph {
+		result += edge + " " + attr + ";\n"
+	}
 	return "digraph {\n" + result + "}\n"
 }
