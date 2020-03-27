@@ -5,9 +5,9 @@ LABEL Lan Tian "lantian@lantian.pub"
 ENV GOOS=linux GOARCH=${THIS_ARCH_GO}
 WORKDIR /root
 COPY . .
-RUN apk -q --no-cache add go build-base upx \
-  && cd /root && go build -o /frontend && upx /frontend \
+RUN apk -q --no-cache add go build-base \
+  && cd /root && go build -o /frontend \
   && cd / && rm -rf /root/* \
-  && apk del --purge go build-base upx
+  && apk del --purge go build-base
 
 ENTRYPOINT ["/frontend"]
