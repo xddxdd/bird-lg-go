@@ -8,37 +8,46 @@ import (
 )
 
 type settingType struct {
-	servers     []string
-	domain      string
-	proxyPort   int
-	whoisServer string
-	listen      string
+	servers      []string
+	domain       string
+	proxyPort    int
+	whoisServer  string
+	listen       string
+	dnsInterface string
 }
 
 var setting settingType
 
 func main() {
 	var settingDefault = settingType{
-		[]string{""}, "", 8000, "whois.verisign-grs.com", ":5000",
+		[]string{""},
+		"",
+		8000,
+		"whois.verisign-grs.com",
+		":5000",
+		"asn.cymru.com",
 	}
 
-	if serversEnv := os.Getenv("BIRDLG_SERVERS"); serversEnv != "" {
-		settingDefault.servers = strings.Split(serversEnv, ",")
+	if env := os.Getenv("BIRDLG_SERVERS"); env != "" {
+		settingDefault.servers = strings.Split(env, ",")
 	}
-	if domainEnv := os.Getenv("BIRDLG_DOMAIN"); domainEnv != "" {
-		settingDefault.domain = domainEnv
+	if env := os.Getenv("BIRDLG_DOMAIN"); env != "" {
+		settingDefault.domain = env
 	}
-	if proxyPortEnv := os.Getenv("BIRDLG_PROXY_PORT"); proxyPortEnv != "" {
+	if env := os.Getenv("BIRDLG_PROXY_PORT"); env != "" {
 		var err error
-		if settingDefault.proxyPort, err = strconv.Atoi(proxyPortEnv); err != nil {
+		if settingDefault.proxyPort, err = strconv.Atoi(env); err != nil {
 			panic(err)
 		}
 	}
-	if whoisEnv := os.Getenv("BIRDLG_WHOIS"); whoisEnv != "" {
-		settingDefault.whoisServer = whoisEnv
+	if env := os.Getenv("BIRDLG_WHOIS"); env != "" {
+		settingDefault.whoisServer = env
 	}
-	if listenEnv := os.Getenv("BIRDLG_LISTEN"); listenEnv != "" {
-		settingDefault.listen = listenEnv
+	if env := os.Getenv("BIRDLG_LISTEN"); env != "" {
+		settingDefault.listen = env
+	}
+	if env := os.Getenv("BIRDLG_DNS_INTERFACE"); env != "" {
+		settingDefault.dnsInterface = env
 	}
 
 	serversPtr := flag.String("servers", strings.Join(settingDefault.servers, ","), "server name prefixes, separated by comma")
@@ -46,6 +55,7 @@ func main() {
 	proxyPortPtr := flag.Int("proxy-port", settingDefault.proxyPort, "port bird-lgproxy is running on")
 	whoisPtr := flag.String("whois", settingDefault.whoisServer, "whois server for queries")
 	listenPtr := flag.String("listen", settingDefault.listen, "address bird-lg is listening on")
+	dnsInterfacePtr := flag.String("dns-interface", settingDefault.dnsInterface, "dns zone to query ASN information")
 	flag.Parse()
 
 	if *serversPtr == "" {
@@ -60,6 +70,7 @@ func main() {
 		*proxyPortPtr,
 		*whoisPtr,
 		*listenPtr,
+		*dnsInterfacePtr,
 	}
 
 	webServerStart()

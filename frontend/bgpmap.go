@@ -1,8 +1,18 @@
 package main
 
 import (
+	"fmt"
+	"net"
 	"strings"
 )
+
+func getASNRepresentation(asn string) string {
+	if records, err := net.LookupTXT(fmt.Sprintf("AS%s.%s", asn, setting.dnsInterface)); err != nil {
+		return fmt.Sprintf("AS%s", asn)
+	} else {
+		return fmt.Sprintf("AS%s\\n%s", asn, strings.Join(records, " "))
+	}
+}
 
 func birdRouteToGraphviz(servers []string, responses []string, target string) string {
 	graph := make(map[string]string)
@@ -64,12 +74,12 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 					// Edge from originating server to nexthop
 					addEdge(server, "Nexthop:\\n"+routeNexthop, (map[bool]string{true: "[color=red]"})[routePreferred])
 					// and from nexthop to AS
-					addEdge("Nexthop:\\n"+routeNexthop, "AS"+paths[0], (map[bool]string{true: "[color=red]"})[routePreferred])
+					addEdge("Nexthop:\\n"+routeNexthop, getASNRepresentation(paths[0]), (map[bool]string{true: "[color=red]"})[routePreferred])
 					addPoint("Nexthop:\\n"+routeNexthop, "[shape=diamond]")
 					routeFound = true
 				} else {
 					// Edge from originating server to AS
-					addEdge(server, "AS"+paths[0], (map[bool]string{true: "[color=red]"})[routePreferred])
+					addEdge(server, getASNRepresentation(paths[0]), (map[bool]string{true: "[color=red]"})[routePreferred])
 					routeFound = true
 				}
 			}
@@ -79,10 +89,10 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 				if pathIndex == 0 {
 					continue
 				}
-				addEdge("AS"+paths[pathIndex-1], "AS"+paths[pathIndex], (map[bool]string{true: "[color=red]"})[routePreferred])
+				addEdge(getASNRepresentation(paths[pathIndex-1]), getASNRepresentation(paths[pathIndex]), (map[bool]string{true: "[color=red]"})[routePreferred])
 			}
 			// Last AS to destination
-			addEdge("AS"+paths[len(paths)-1], "Target: "+target, (map[bool]string{true: "[color=red]"})[routePreferred])
+			addEdge(getASNRepresentation(paths[len(paths)-1]), "Target: "+target, (map[bool]string{true: "[color=red]"})[routePreferred])
 		}
 
 		if !routeFound {
