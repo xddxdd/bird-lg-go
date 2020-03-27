@@ -10,7 +10,11 @@ func getASNRepresentation(asn string) string {
 	if records, err := net.LookupTXT(fmt.Sprintf("AS%s.%s", asn, setting.dnsInterface)); err != nil {
 		return fmt.Sprintf("AS%s", asn)
 	} else {
-		return fmt.Sprintf("AS%s\\n%s", asn, strings.Join(records, " "))
+		result := strings.Join(records, " ")
+		if resultSplit := strings.Split(result, " | "); len(resultSplit) > 1 {
+			result = strings.Join(resultSplit[1:], "\\n")
+		}
+		return fmt.Sprintf("AS%s\\n%s", asn, result)
 	}
 }
 
