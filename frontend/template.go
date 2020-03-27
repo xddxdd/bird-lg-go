@@ -256,9 +256,10 @@ func summaryTable(w http.ResponseWriter, isIPv6 bool, data string, serverName st
 		} else {
 			// Draw the row in red if the link isn't up
 			w.Write([]byte("<tr class=\"" + (map[string]string{
-				"up":    "table-success",
-				"down":  "table-danger",
-				"start": "table-danger",
+				"up":      "table-success",
+				"down":    "table-secondary",
+				"start":   "table-danger",
+				"passive": "table-info",
 			})[row[3]] + "\">"))
 			// Add link to detail for first column
 			if isIPv6 {
