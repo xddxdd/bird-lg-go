@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -47,7 +48,7 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 			}
 		} else {
 			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte("Traceroute Not Supported\n"))
+			httpW.Write([]byte("traceroute binary not installed on this node.\n"))
 			return
 		}
 		instance := exec.Command(cmd, args...)
@@ -66,8 +67,7 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 		}
 		if err != nil {
 			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte("Traceroute Execution Error: "))
-			httpW.Write([]byte(err.Error() + "\n"))
+			httpW.Write([]byte(fmt.Sprintln("traceroute returned error:", err.Error(), ", please check if IPv4/IPv6 is selected correctly on top.")))
 			return
 		}
 		httpW.Write(output)
