@@ -119,7 +119,7 @@ func webHandlerNavbarFormRedirect(w http.ResponseWriter, r *http.Request) {
 func webServerStart() {
 	// Start HTTP server
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/ipv4/summary/"+strings.Join(settingServers[:], "+"), 302)
+		http.Redirect(w, r, "/ipv4/summary/"+strings.Join(setting.servers, "+"), 302)
 	})
 	http.HandleFunc("/ipv4/summary/", webBackendCommunicator("bird", "summary"))
 	http.HandleFunc("/ipv6/summary/", webBackendCommunicator("bird6", "summary"))
@@ -141,5 +141,5 @@ func webServerStart() {
 	http.HandleFunc("/ipv6/traceroute/", webBackendCommunicator("traceroute6", "traceroute"))
 	http.HandleFunc("/whois/", webHandlerWhois)
 	http.HandleFunc("/redir/", webHandlerNavbarFormRedirect)
-	http.ListenAndServe(settingListen, nil)
+	http.ListenAndServe(setting.listen, nil)
 }

@@ -30,7 +30,7 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
 	// Use a default URL if the request URL is too short
 	// The URL is for return to IPv4 summary page
 	if len(split) < 3 {
-		path = "ipv4/summary/" + strings.Join(settingServers[:], "+") + "/"
+		path = "ipv4/summary/" + strings.Join(setting.servers, "+") + "/"
 	} else if len(split) == 3 {
 		path += "/"
 	}
@@ -40,10 +40,10 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
 	// Compose URLs for link in navbar
 	ipv4URL := "/" + strings.Join([]string{"ipv4", split[1], split[2], strings.Join(split[3:], "/")}, "/")
 	ipv6URL := "/" + strings.Join([]string{"ipv6", split[1], split[2], strings.Join(split[3:], "/")}, "/")
-	allURL := "/" + strings.Join([]string{split[0], split[1], strings.Join(settingServers[:], "+"), strings.Join(split[3:], "/")}, "/")
+	allURL := "/" + strings.Join([]string{split[0], split[1], strings.Join(setting.servers, "+"), strings.Join(split[3:], "/")}, "/")
 
 	// Check if the "All Server" link should be marked as active
-	var serverAllActive bool = strings.ToLower(split[2]) == strings.ToLower(strings.Join(settingServers[:], "+"))
+	var serverAllActive bool = strings.ToLower(split[2]) == strings.ToLower(strings.Join(setting.servers, "+"))
 
 	// Print the IPv4, IPv6, All Servers link in navbar
 	var serverNavigation string = `
@@ -55,7 +55,7 @@ func templateHeader(w http.ResponseWriter, r *http.Request, title string) {
         </li>`
 
 	// Add a link for each of the servers
-	for _, server := range settingServers {
+	for _, server := range setting.servers {
 		var serverActive string
 		if split[2] == server {
 			serverActive = " active"
