@@ -50,7 +50,8 @@ The proxy directory contains the code for the "proxy" for bird commands and trac
 
 Features implemented:
 
-- Sending queries to BIRD and BIRD6 (only BIRDv1 is tested)
+- Sending queries to BIRD and BIRD6
+  - If you are using BIRDv2, simply point both `--bird` and `--bird6` to the only socket file of BIRDv2
 - Sending "restrict" command to BIRD to prevent unauthorized changes
 - Executing traceroute command on Linux, FreeBSD and OpenBSD
 
