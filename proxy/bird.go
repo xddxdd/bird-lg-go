@@ -4,16 +4,7 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"sync"
 )
-
-// BIRDv4 connection & mutex lock
-var bird net.Conn
-var birdMutex = &sync.Mutex{}
-
-// BIRDv6 connection & mutex lock
-var bird6 net.Conn
-var bird6Mutex = &sync.Mutex{}
 
 // Read a line from bird socket, removing preceding status number, output it.
 // Returns if there are more lines.
@@ -83,10 +74,16 @@ func birdHandler(httpW http.ResponseWriter, httpR *http.Request) {
 	if query == "" {
 		invalidHandler(httpW, httpR)
 	} else {
-		birdMutex.Lock()
-		defer birdMutex.Unlock()
+		// Initialize BIRDv4 socket
+		bird, err := net.Dial("unix", setting.birdSocket)
+		if err != nil {
+			panic(err)
+		}
+		defer bird.Close()
 
-		println(query)
+		birdReadln(bird, nil)
+		birdWriteln(bird, "restrict")
+		birdReadln(bird, nil)
 		birdWriteln(bird, query)
 		for birdReadln(bird, httpW) {
 		}
@@ -99,10 +96,16 @@ func bird6Handler(httpW http.ResponseWriter, httpR *http.Request) {
 	if query == "" {
 		invalidHandler(httpW, httpR)
 	} else {
-		bird6Mutex.Lock()
-		defer bird6Mutex.Unlock()
+		// Initialize BIRDv6 socket
+		bird6, err := net.Dial("unix", setting.bird6Socket)
+		if err != nil {
+			panic(err)
+		}
+		defer bird6.Close()
 
-		println(query)
+		birdReadln(bird6, nil)
+		birdWriteln(bird6, "restrict")
+		birdReadln(bird6, nil)
 		birdWriteln(bird6, query)
 		for birdReadln(bird6, httpW) {
 		}

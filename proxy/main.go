@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"net"
 	"net/http"
 	"os"
 )
@@ -28,8 +27,6 @@ var setting settingType
 
 // Wrapper of tracer
 func main() {
-	var err error
-
 	// Prepare default socket paths, use environment variable if possible
 	var settingDefault = settingType{
 		"/var/run/bird/bird.ctl",
@@ -53,27 +50,9 @@ func main() {
 	listenParam := flag.String("listen", settingDefault.listen, "listen address, set either in parameter or environment variable BIRDLG_LISTEN")
 	flag.Parse()
 
-	// Initialize BIRDv4 socket
-	bird, err = net.Dial("unix", *birdParam)
-	if err != nil {
-		panic(err)
-	}
-	defer bird.Close()
-
-	birdReadln(bird, nil)
-	birdWriteln(bird, "restrict")
-	birdReadln(bird, nil)
-
-	// Initialize BIRDv6 socket
-	bird6, err = net.Dial("unix", *bird6Param)
-	if err != nil {
-		panic(err)
-	}
-	defer bird6.Close()
-
-	birdReadln(bird6, nil)
-	birdWriteln(bird6, "restrict")
-	birdReadln(bird6, nil)
+	setting.birdSocket = *birdParam
+	setting.bird6Socket = *bird6Param
+	setting.listen = *listenParam
 
 	// Start HTTP server
 	http.HandleFunc("/", invalidHandler)
