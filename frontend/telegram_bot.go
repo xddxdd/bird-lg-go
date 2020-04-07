@@ -7,11 +7,11 @@ import (
 )
 
 type tgChat struct {
-	ID int `json:"id"`
+	ID int64 `json:"id"`
 }
 
 type tgMessage struct {
-	MessageID int    `json:"message_id"`
+	MessageID int64  `json:"message_id"`
 	Chat      tgChat `json:"chat"`
 	Text      string `json:"text"`
 }
@@ -21,9 +21,11 @@ type tgWebhookRequest struct {
 }
 
 type tgWebhookResponse struct {
-	Method string `json:"method"`
-	ChatID int    `json:"chat_id"`
-	Text   string `json:"text"`
+	Method           string `json:"method"`
+	ChatID           int64  `json:"chat_id"`
+	Text             string `json:"text"`
+	ReplyToMessageID int64  `json:"reply_to_message_id"`
+	ParseMode        string `json:"parse_mode"`
 }
 
 func telegramIsCommand(message string, command string) bool {
@@ -43,6 +45,9 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 		println(err.Error())
 		return
 	}
+
+	s, _ := json.Marshal(request)
+	println(s)
 
 	// Do not respond if not a tg Bot command (starting with /)
 	if len(request.Message.Text) == 0 || request.Message.Text[0] != '/' {
@@ -105,9 +110,11 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 	// Create a JSON response
 	w.Header().Add("Content-Type", "application/json")
 	response := &tgWebhookResponse{
-		Method: "sendMessage",
-		ChatID: request.Message.Chat.ID,
-		Text:   strings.TrimSpace(commandResult),
+		Method:           "sendMessage",
+		ChatID:           request.Message.Chat.ID,
+		Text:             "```\n" + strings.TrimSpace(commandResult) + "\n```",
+		ReplyToMessageID: request.Message.MessageID,
+		ParseMode:        "Markdown",
 	}
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
