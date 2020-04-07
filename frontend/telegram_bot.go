@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -37,17 +39,17 @@ func telegramIsCommand(message string, command string) bool {
 }
 
 func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
+	bodyBuffer, _ := ioutil.ReadAll(r.Body)
+	println(string(bodyBuffer))
+
 	// Parse only needed fields of incoming JSON body
 	var err error
 	var request tgWebhookRequest
-	err = json.NewDecoder(r.Body).Decode(&request)
+	err = json.NewDecoder(bytes.NewReader(bodyBuffer)).Decode(&request)
 	if err != nil {
 		println(err.Error())
 		return
 	}
-
-	s, _ := json.Marshal(request)
-	println(s)
 
 	// Do not respond if not a tg Bot command (starting with /)
 	if len(request.Message.Text) == 0 || request.Message.Text[0] != '/' {
