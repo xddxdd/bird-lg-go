@@ -94,28 +94,10 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 
 	} else if telegramIsCommand(request.Message.Text, "whois") {
 		tempResult := whois(target)
-
-		// Filter out some long (and useless) keys
-		filteredPrefix := []string{
-			"descr:", "remarks:", "ds-rdata:", "auth:", "country:",
-			"nserver:", "status:", "pgp-fingerprint:", "mp-import:", "mp-export:",
-			"members:", "key:", "inetnum:", "inet6num:", "%",
-		}
-		for _, s := range strings.Split(tempResult, "\n") {
-			if len(s) == 0 {
-				continue
-			}
-			shouldSkip := false
-			for _, filtered := range filteredPrefix {
-				if strings.HasPrefix(s, filtered) {
-					shouldSkip = true
-				}
-			}
-			if shouldSkip {
-				continue
-			}
-
-			commandResult += s + "\n"
+		if setting.netSpecificMode == "dn42" {
+			commandResult = dn42WhoisFilter(tempResult)
+		} else {
+			commandResult = tempResult
 		}
 
 	} else if telegramIsCommand(request.Message.Text, "help") {

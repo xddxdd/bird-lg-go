@@ -8,12 +8,13 @@ import (
 )
 
 type settingType struct {
-	servers      []string
-	domain       string
-	proxyPort    int
-	whoisServer  string
-	listen       string
-	dnsInterface string
+	servers         []string
+	domain          string
+	proxyPort       int
+	whoisServer     string
+	listen          string
+	dnsInterface    string
+	netSpecificMode string
 }
 
 var setting settingType
@@ -26,6 +27,7 @@ func main() {
 		"whois.verisign-grs.com",
 		":5000",
 		"asn.cymru.com",
+		"",
 	}
 
 	if env := os.Getenv("BIRDLG_SERVERS"); env != "" {
@@ -50,12 +52,17 @@ func main() {
 		settingDefault.dnsInterface = env
 	}
 
+	if env := os.Getenv("BIRDLG_NET_SPECIFIC_MODE"); env != "" {
+		settingDefault.netSpecificMode = env
+	}
+
 	serversPtr := flag.String("servers", strings.Join(settingDefault.servers, ","), "server name prefixes, separated by comma")
 	domainPtr := flag.String("domain", settingDefault.domain, "server name domain suffixes")
 	proxyPortPtr := flag.Int("proxy-port", settingDefault.proxyPort, "port bird-lgproxy is running on")
 	whoisPtr := flag.String("whois", settingDefault.whoisServer, "whois server for queries")
 	listenPtr := flag.String("listen", settingDefault.listen, "address bird-lg is listening on")
 	dnsInterfacePtr := flag.String("dns-interface", settingDefault.dnsInterface, "dns zone to query ASN information")
+	netSpecificModePtr := flag.String("net-specific-mode", settingDefault.netSpecificMode, "network specific operation mode, [(none)|dn42]")
 	flag.Parse()
 
 	if *serversPtr == "" {
@@ -71,6 +78,7 @@ func main() {
 		*whoisPtr,
 		*listenPtr,
 		*dnsInterfacePtr,
+		strings.ToLower(*netSpecificModePtr),
 	}
 
 	webServerStart()
