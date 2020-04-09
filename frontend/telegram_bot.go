@@ -129,18 +129,23 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 		`
 	}
 
-	// Create a JSON response
-	w.Header().Add("Content-Type", "application/json")
-	response := &tgWebhookResponse{
-		Method:           "sendMessage",
-		ChatID:           request.Message.Chat.ID,
-		Text:             "```\n" + strings.TrimSpace(commandResult) + "\n```",
-		ReplyToMessageID: request.Message.MessageID,
-		ParseMode:        "Markdown",
-	}
-	err = json.NewEncoder(w).Encode(response)
-	if err != nil {
-		println(err.Error())
-		return
+	commandResult = strings.TrimSpace(commandResult)
+	if len(commandResult) > 0 {
+		// Create a JSON response
+		w.Header().Add("Content-Type", "application/json")
+		response := &tgWebhookResponse{
+			Method:           "sendMessage",
+			ChatID:           request.Message.Chat.ID,
+			Text:             "```\n" + strings.TrimSpace(commandResult) + "\n```",
+			ReplyToMessageID: request.Message.MessageID,
+			ParseMode:        "Markdown",
+		}
+		data, err := json.Marshal(response)
+		if err != nil {
+			println(err.Error())
+			return
+		}
+		println(string(data))
+		w.Write(data)
 	}
 }
