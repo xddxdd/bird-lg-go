@@ -36,6 +36,20 @@ func telegramIsCommand(message string, command string) bool {
 	return b
 }
 
+func telegramDefaultPostProcess(s string) string {
+	return strings.TrimSpace(s)
+}
+
+func telegramBatchRequestFormat(servers []string, endpoint string, command string, postProcess func(string) string) string {
+	results := batchRequest(servers, endpoint, command)
+	result := ""
+	for i, r := range results {
+		result += servers[i] + "\n"
+		result += postProcess(r) + "\n\n"
+	}
+	return result
+}
+
 func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 	// Parse only needed fields of incoming JSON body
 	var err error
@@ -52,9 +66,11 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Select only one server based on webhook URL
-	server := r.URL.Path[len("/telegram/"):]
-	if len(server) == 0 {
-		server = setting.servers[0]
+	var servers []string
+	if len(r.URL.Path[len("/telegram/"):]) == 0 {
+		servers = setting.servers
+	} else {
+		servers = strings.Split(r.URL.Path[len("/telegram/"):], "+")
 	}
 
 	// Parse target
@@ -68,29 +84,33 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 
 	// - traceroute
 	if telegramIsCommand(request.Message.Text, "trace") || telegramIsCommand(request.Message.Text, "trace4") {
-		commandResult = strings.Join(batchRequest([]string{server}, "traceroute", target), "")
+		commandResult = telegramBatchRequestFormat(servers, "traceroute", target, telegramDefaultPostProcess)
 	} else if telegramIsCommand(request.Message.Text, "trace6") {
-		commandResult = strings.Join(batchRequest([]string{server}, "traceroute6", target), "")
+		commandResult = telegramBatchRequestFormat(servers, "traceroute6", target, telegramDefaultPostProcess)
 
 	} else if telegramIsCommand(request.Message.Text, "route") || telegramIsCommand(request.Message.Text, "route4") {
-		commandResult = strings.Join(batchRequest([]string{server}, "bird", "show route for "+target+" primary"), "")
+		commandResult = telegramBatchRequestFormat(servers, "bird", "show route for "+target+" primary", telegramDefaultPostProcess)
 	} else if telegramIsCommand(request.Message.Text, "route6") {
-		commandResult = strings.Join(batchRequest([]string{server}, "bird6", "show route for "+target+" primary"), "")
+		commandResult = telegramBatchRequestFormat(servers, "bird6", "show route for "+target+" primary", telegramDefaultPostProcess)
 
 	} else if telegramIsCommand(request.Message.Text, "path") || telegramIsCommand(request.Message.Text, "path4") {
-		tempResult := strings.Join(batchRequest([]string{server}, "bird", "show route for "+target+" all primary"), "")
-		for _, s := range strings.Split(tempResult, "\n") {
-			if strings.Contains(s, "BGP.as_path: ") {
-				commandResult = strings.Split(s, ":")[1]
+		commandResult = telegramBatchRequestFormat(servers, "bird", "show route for "+target+" all primary", func(result string) string {
+			for _, s := range strings.Split(result, "\n") {
+				if strings.Contains(s, "BGP.as_path: ") {
+					return strings.TrimSpace(strings.Split(s, ":")[1])
+				}
 			}
-		}
+			return ""
+		})
 	} else if telegramIsCommand(request.Message.Text, "path6") {
-		tempResult := strings.Join(batchRequest([]string{server}, "bird6", "show route for "+target+" all primary"), "")
-		for _, s := range strings.Split(tempResult, "\n") {
-			if strings.Contains(s, "BGP.as_path: ") {
-				commandResult = strings.Split(s, ":")[1]
+		commandResult = telegramBatchRequestFormat(servers, "bird6", "show route for "+target+" all primary", func(result string) string {
+			for _, s := range strings.Split(result, "\n") {
+				if strings.Contains(s, "BGP.as_path: ") {
+					return strings.TrimSpace(strings.Split(s, ":")[1])
+				}
 			}
-		}
+			return ""
+		})
 
 	} else if telegramIsCommand(request.Message.Text, "whois") {
 		tempResult := whois(target)
