@@ -1,4 +1,4 @@
-FROM arm64v8/debian:buster
+FROM multiarch/debian-debootstrap:arm64-buster
 
 LABEL Lan Tian "lantian@lantian.pub"
 ENV GOOS=linux GOARCH=arm64
