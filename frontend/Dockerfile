@@ -1,13 +1,14 @@
 ARG THIS_ARCH_ALT=amd64
-FROM multiarch/alpine:${THIS_ARCH_ALT}-edge
+FROM ${THIS_ARCH}/debian:buster
 
 LABEL Lan Tian "lantian@lantian.pub"
 ENV GOOS=linux GOARCH=${THIS_ARCH_GO}
 WORKDIR /root
 COPY . .
-RUN apk -q --no-cache add go build-base \
+RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y golang \
   && cd /root && go build -o /frontend \
   && cd / && rm -rf /root/* \
-  && apk del --purge go build-base
+  && apt-get -qq purge -y golang \
+  && apt-get -qq autoremove --purge -y && apt-get clean && rm -rf /var/lib/apt/lists
 
 ENTRYPOINT ["/frontend"]
