@@ -145,7 +145,7 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 			println(err.Error())
 			return
 		}
-		println(string(data))
+		// println(string(data))
 		w.Write(data)
 	}
 }
