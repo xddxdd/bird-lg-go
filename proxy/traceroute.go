@@ -17,59 +17,117 @@ func tracerouteIPv6Wrapper(httpW http.ResponseWriter, httpR *http.Request) {
 	tracerouteRealHandler(true, httpW, httpR)
 }
 
+func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, error) {
+	var output []byte
+	var err error
+	for i := range cmd {
+		instance := exec.Command(cmd[i], args[i]...)
+		output, err = instance.Output()
+		if err == nil {
+			return output, err
+		}
+	}
+	return output, err
+}
+
 // Real handler of traceroute requests
 func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.Request) {
 	query := string(httpR.URL.Query().Get("q"))
 	if query == "" {
 		invalidHandler(httpW, httpR)
 	} else {
-		var cmd string
-		var args []string
+		var result []byte
+		var err error
 		if runtime.GOOS == "freebsd" || runtime.GOOS == "netbsd" {
 			if useIPv6 {
-				cmd = "traceroute6"
+				result, err = tracerouteTryExecute(
+					[]string{
+						"traceroute6",
+						"traceroute",
+					},
+					[][]string{
+						{"-a", "-q1", "-w1", query},
+						{"-a", "-q1", "-w1", query},
+					},
+				)
 			} else {
-				cmd = "traceroute"
+				result, err = tracerouteTryExecute(
+					[]string{
+						"traceroute",
+						"traceroute6",
+					},
+					[][]string{
+						{"-a", "-q1", "-w1", query},
+						{"-a", "-q1", "-w1", query},
+					},
+				)
 			}
-			args = []string{"-a", "-q1", "-w1", "-m15", query}
 		} else if runtime.GOOS == "openbsd" {
 			if useIPv6 {
-				cmd = "traceroute6"
+				result, err = tracerouteTryExecute(
+					[]string{
+						"traceroute6",
+						"traceroute",
+					},
+					[][]string{
+						{"-A", "-q1", "-w1", query},
+						{"-A", "-q1", "-w1", query},
+					},
+				)
 			} else {
-				cmd = "traceroute"
+				result, err = tracerouteTryExecute(
+					[]string{
+						"traceroute",
+						"traceroute6",
+					},
+					[][]string{
+						{"-A", "-q1", "-w1", query},
+						{"-A", "-q1", "-w1", query},
+					},
+				)
 			}
-			args = []string{"-A", "-q1", "-w1", "-m15", query}
 		} else if runtime.GOOS == "linux" {
-			cmd = "traceroute"
 			if useIPv6 {
-				args = []string{"-6", "-A", "-q1", "-N32", "-w1", "-m15", query}
+				result, err = tracerouteTryExecute(
+					[]string{
+						"traceroute",
+						"traceroute",
+						"traceroute",
+						"traceroute",
+					},
+					[][]string{
+						{"-6", "-A", "-q1", "-N32", "-w1", query},
+						{"-4", "-A", "-q1", "-N32", "-w1", query},
+						{"-6", "-q1", "-w1", query},
+						{"-4", "-q1", "-w1", query},
+					},
+				)
 			} else {
-				args = []string{"-4", "-A", "-q1", "-N32", "-w1", "-m15", query}
+				result, err = tracerouteTryExecute(
+					[]string{
+						"traceroute",
+						"traceroute",
+						"traceroute",
+						"traceroute",
+					},
+					[][]string{
+						{"-4", "-A", "-q1", "-N32", "-w1", query},
+						{"-6", "-A", "-q1", "-N32", "-w1", query},
+						{"-4", "-q1", "-w1", query},
+						{"-6", "-q1", "-w1", query},
+					},
+				)
 			}
 		} else {
 			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte("traceroute binary not installed on this node.\n"))
+			httpW.Write([]byte("traceroute not supported on this node.\n"))
 			return
-		}
-		instance := exec.Command(cmd, args...)
-		output, err := instance.Output()
-		if err != nil && runtime.GOOS == "linux" {
-			// Standard traceroute utility failed, maybe system using busybox
-			// Run with less parameters
-			cmd = "traceroute"
-			if useIPv6 {
-				args = []string{"-6", "-q1", "-w1", "-m15", query}
-			} else {
-				args = []string{"-4", "-q1", "-w1", "-m15", query}
-			}
-			instance = exec.Command(cmd, args...)
-			output, err = instance.Output()
 		}
 		if err != nil {
 			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte(fmt.Sprintln("traceroute returned error:", err.Error(), ", please check if IPv4/IPv6 is selected correctly on top.")))
+			httpW.Write([]byte(fmt.Sprintln("traceroute returned error:", err.Error(), ", please check if IPv4/IPv6 is selected correctly.")))
 			return
 		}
-		httpW.Write(output)
+		httpW.Write(result)
 	}
 }
