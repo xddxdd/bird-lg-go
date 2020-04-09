@@ -1,8 +1,7 @@
-ARG THIS_ARCH_ALT=amd64
-FROM ${THIS_ARCH}/debian:buster
+FROM amd64/debian:buster
 
 LABEL Lan Tian "lantian@lantian.pub"
-ENV GOOS=linux GOARCH=${THIS_ARCH_GO}
+ENV GOOS=linux GOARCH=amd64
 WORKDIR /root
 COPY . .
 RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y golang \

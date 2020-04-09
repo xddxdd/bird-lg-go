@@ -17,25 +17,10 @@ install:
 
 script:
   - |
-    # Translate to alternative arch names used in multiarch images
-    if [ "$IMAGE_ARCH" == "amd64"   ]; then IMAGE_ARCH_ALT=amd64  ; fi
-    if [ "$IMAGE_ARCH" == "i386"    ]; then IMAGE_ARCH_ALT=i386   ; fi
-    if [ "$IMAGE_ARCH" == "arm32v7" ]; then IMAGE_ARCH_ALT=armhf  ; fi
-    if [ "$IMAGE_ARCH" == "arm64v8" ]; then IMAGE_ARCH_ALT=aarch64; fi
-
-    # Translate to alternative arch names used in golang
-    if [ "$IMAGE_ARCH" == "amd64"   ]; then IMAGE_ARCH_GO=amd64; fi
-    if [ "$IMAGE_ARCH" == "i386"    ]; then IMAGE_ARCH_GO=386  ; fi
-    if [ "$IMAGE_ARCH" == "arm32v7" ]; then IMAGE_ARCH_GO=arm  ; fi
-    if [ "$IMAGE_ARCH" == "arm64v8" ]; then IMAGE_ARCH_GO=arm64; fi
-
     # Build image
     docker build \
       -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH \
-      -f $PROGRAM/Dockerfile \
-      --build-arg IMAGE_ARCH=$IMAGE_ARCH \
-      --build-arg IMAGE_ARCH_ALT=$IMAGE_ARCH_ALT \
-      --build-arg IMAGE_ARCH_GO=$IMAGE_ARCH_GO \
+      -f $PROGRAM/Dockerfile.$IMAGE_ARCH \
       $PROGRAM
 
     # Tag image :{arch} and :{arch}-build{build number}
