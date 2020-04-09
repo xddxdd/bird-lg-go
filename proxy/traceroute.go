@@ -46,8 +46,8 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 						"traceroute",
 					},
 					[][]string{
-						{"-a", "-q1", "-w1", query},
-						{"-a", "-q1", "-w1", query},
+						{"-q1", "-w1", query},
+						{"-q1", "-w1", query},
 					},
 				)
 			} else {
@@ -57,8 +57,8 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 						"traceroute6",
 					},
 					[][]string{
-						{"-a", "-q1", "-w1", query},
-						{"-a", "-q1", "-w1", query},
+						{"-q1", "-w1", query},
+						{"-q1", "-w1", query},
 					},
 				)
 			}
@@ -70,8 +70,8 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 						"traceroute",
 					},
 					[][]string{
-						{"-A", "-q1", "-w1", query},
-						{"-A", "-q1", "-w1", query},
+						{"-q1", "-w1", query},
+						{"-q1", "-w1", query},
 					},
 				)
 			} else {
@@ -92,14 +92,14 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 					[]string{
 						"traceroute",
 						"traceroute",
-						"traceroute",
-						"traceroute",
+						"busybox",
+						"busybox",
 					},
 					[][]string{
-						{"-6", "-A", "-q1", "-N32", "-w1", query},
-						{"-4", "-A", "-q1", "-N32", "-w1", query},
-						{"-6", "-q1", "-w1", query},
-						{"-4", "-q1", "-w1", query},
+						{"-6", "-q1", "-N32", "-w1", query},
+						{"-4", "-q1", "-N32", "-w1", query},
+						{"traceroute", "-6", "-q1", "-w1", query},
+						{"traceroute", "-4", "-q1", "-w1", query},
 					},
 				)
 			} else {
@@ -107,14 +107,14 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 					[]string{
 						"traceroute",
 						"traceroute",
-						"traceroute",
-						"traceroute",
+						"busybox",
+						"busybox",
 					},
 					[][]string{
-						{"-4", "-A", "-q1", "-N32", "-w1", query},
-						{"-6", "-A", "-q1", "-N32", "-w1", query},
-						{"-4", "-q1", "-w1", query},
-						{"-6", "-q1", "-w1", query},
+						{"-4", "-q1", "-N32", "-w1", query},
+						{"-6", "-q1", "-N32", "-w1", query},
+						{"traceroute", "-4", "-q1", "-w1", query},
+						{"traceroute", "-6", "-q1", "-w1", query},
 					},
 				)
 			}
