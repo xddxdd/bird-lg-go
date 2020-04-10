@@ -119,7 +119,9 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 			if err == nil {
 				if targetNumber < 10000 {
 					targetNumber += 4242420000
-					target = strconv.FormatUint(targetNumber, 10)
+					target = "AS" + strconv.FormatUint(targetNumber, 10)
+				} else {
+					target = "AS" + target
 				}
 			}
 		}
