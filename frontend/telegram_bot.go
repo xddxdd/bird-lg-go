@@ -115,11 +115,11 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 
 	} else if telegramIsCommand(request.Message.Text, "whois") {
 		if setting.netSpecificMode == "dn42" {
-			targetNumber, err := strconv.Atoi(target)
+			targetNumber, err := strconv.ParseUint(target, 10, 64)
 			if err == nil {
 				if targetNumber < 10000 {
 					targetNumber += 4242420000
-					target = strconv.Itoa(targetNumber)
+					target = strconv.FormatUint(targetNumber, 10)
 				}
 			}
 		}
