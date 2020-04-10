@@ -22,7 +22,7 @@ func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, error) {
 	var err error
 	for i := range cmd {
 		instance := exec.Command(cmd[i], args[i]...)
-		output, err = instance.Output()
+		output, err = instance.CombinedOutput()
 		if err == nil {
 			return output, err
 		}
