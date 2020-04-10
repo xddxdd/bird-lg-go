@@ -14,7 +14,7 @@ func dn42WhoisFilter(whois string) string {
 	filteredPrefix := []string{
 		"descr:", "remarks:", "ds-rdata:", "auth:", "country:",
 		"nserver:", "status:", "pgp-fingerprint:", "mp-import:", "mp-export:",
-		"members:", "key:", "inetnum:", "inet6num:", "%",
+		"members:", "key:", "inetnum:", "inet6num:",
 	}
 	for _, s := range strings.Split(whois, "\n") {
 		if len(s) == 0 {

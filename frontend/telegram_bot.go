@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -113,6 +114,15 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 		})
 
 	} else if telegramIsCommand(request.Message.Text, "whois") {
+		if setting.netSpecificMode == "dn42" {
+			targetNumber, err := strconv.Atoi(target)
+			if err == nil {
+				if targetNumber < 10000 {
+					targetNumber += 4242420000
+					target = strconv.Itoa(targetNumber)
+				}
+			}
+		}
 		tempResult := whois(target)
 		if setting.netSpecificMode == "dn42" {
 			commandResult = dn42WhoisFilter(tempResult)
