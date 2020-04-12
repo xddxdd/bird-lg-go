@@ -96,8 +96,8 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 						"busybox",
 					},
 					[][]string{
-						{"-6", "-q1", "-N32", "-w1", "-m255", query},
-						{"-4", "-q1", "-N32", "-w1", "-m255", query},
+						{"-6", "-q1", "-N32", "-w1", query},
+						{"-4", "-q1", "-N32", "-w1", query},
 						{"traceroute", "-6", "-q1", "-w1", query},
 						{"traceroute", "-4", "-q1", "-w1", query},
 					},
@@ -111,8 +111,8 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 						"busybox",
 					},
 					[][]string{
-						{"-4", "-q1", "-N32", "-w1", "-m255", query},
-						{"-6", "-q1", "-N32", "-w1", "-m255", query},
+						{"-4", "-q1", "-N32", "-w1", query},
+						{"-6", "-q1", "-N32", "-w1", query},
 						{"traceroute", "-4", "-q1", "-w1", query},
 						{"traceroute", "-6", "-q1", "-w1", query},
 					},
