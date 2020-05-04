@@ -201,9 +201,11 @@ func smartWriter(w http.ResponseWriter, s string) {
 				// Bird will output ASNs later
 				isASes = true
 				lineFormatted += word
-			} else if isASes && isNumber(word) {
-				// Bird is outputing ASNs, ass whois for them
-				lineFormatted += "<a href=\"/whois/AS" + word + "\">" + word + "</a>"
+			} else if isASes && isNumber(strings.Trim(word, "()")) {
+				// Remove brackets in path caused by confederation
+				wordNum := strings.Trim(word, "()")
+				// Bird is outputing ASNs, add whois for them
+				lineFormatted += "<a href=\"/whois/AS" + wordNum + "\">" + word + "</a>"
 			} else {
 				// Just an ordinary word, print it and done
 				lineFormatted += word
