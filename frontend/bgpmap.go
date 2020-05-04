@@ -74,6 +74,11 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 			// Connect each node on AS path
 			paths := strings.Split(strings.TrimSpace(routeASPath), " ")
 
+			for pathIndex := range paths {
+				paths[pathIndex] = strings.TrimPrefix(paths[pathIndex], "(")
+				paths[pathIndex] = strings.TrimSuffix(paths[pathIndex], ")")
+			}
+
 			// First step starting from originating server
 			if len(paths) > 0 {
 				if len(routeNexthop) > 0 {
