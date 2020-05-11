@@ -3,6 +3,7 @@ package main
 import (
 	"net"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -219,6 +220,14 @@ func smartWriter(w http.ResponseWriter, s string) {
 
 // Output a table for the summary page
 func summaryTable(w http.ResponseWriter, isIPv6 bool, data string, serverName string) {
+	// Sort the table, excluding title row
+	stringsSplitted := strings.Split(data, "\n")
+	if len(stringsSplitted) > 1 {
+		stringsWithoutTitle := stringsSplitted[1:]
+		sort.Strings(stringsWithoutTitle)
+		data = stringsSplitted[0] + "\n" + strings.Join(stringsWithoutTitle, "\n")
+	}
+
 	// w.Write([]byte("<pre>" + data + "</pre>"))
 	w.Write([]byte("<table class=\"table table-striped table-bordered table-sm\">"))
 	for lineID, line := range strings.Split(data, "\n") {
