@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 // Wrapper of traceroute, IPv4
@@ -33,6 +34,7 @@ func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, error) {
 // Real handler of traceroute requests
 func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.Request) {
 	query := string(httpR.URL.Query().Get("q"))
+	query = strings.TrimSpace(query)
 	if query == "" {
 		invalidHandler(httpW, httpR)
 	} else {

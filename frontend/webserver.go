@@ -43,6 +43,7 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 		} else {
 			backendCommand = backendCommandPrimitive
 		}
+		backendCommand = strings.TrimSpace(backendCommand)
 
 		templateHeader(w, r, "Bird-lg Go - "+html.EscapeString(endpoint+" "+backendCommand))
 

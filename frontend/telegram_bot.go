@@ -78,6 +78,7 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 	target := ""
 	if strings.Contains(request.Message.Text, " ") {
 		target = strings.Join(strings.Split(request.Message.Text, " ")[1:], " ")
+		target = strings.TrimSpace(target)
 	}
 
 	// Execute command
