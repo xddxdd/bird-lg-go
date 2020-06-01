@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/gorilla/handlers"
 )
 
 func webHandlerWhois(w http.ResponseWriter, r *http.Request) {
@@ -145,5 +148,5 @@ func webServerStart() {
 	http.HandleFunc("/whois/", webHandlerWhois)
 	http.HandleFunc("/redir", webHandlerNavbarFormRedirect)
 	http.HandleFunc("/telegram/", webHandlerTelegramBot)
-	http.ListenAndServe(setting.listen, nil)
+	http.ListenAndServe(setting.listen, handlers.LoggingHandler(os.Stdout, http.DefaultServeMux))
 }
