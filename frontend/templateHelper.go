@@ -78,54 +78,54 @@ func smartFormatter(s string) string {
 	return result
 }
 
+type summaryTableArguments struct {
+	Headers []string
+	Lines   [][]string
+}
+
 // Output a table for the summary page
 func summaryTable(isIPv6 bool, data string, serverName string) string {
 	var result string
 
 	// Sort the table, excluding title row
-	stringsSplitted := strings.Split(data, "\n")
-	if len(stringsSplitted) > 1 {
-		stringsWithoutTitle := stringsSplitted[1:]
-		sort.Strings(stringsWithoutTitle)
-		data = stringsSplitted[0] + "\n" + strings.Join(stringsWithoutTitle, "\n")
-	}
-
-	result += "<table class=\"table table-striped table-bordered table-sm\">"
-	for lineID, line := range strings.Split(data, "\n") {
-		var row [6]string
-		var rowIndex int = 0
-
-		words := strings.Split(line, " ")
-		for wordID, word := range words {
-			if len(word) == 0 {
+	stringsSplitted := strings.Split(strings.TrimSpace(data), "\n")
+	if len(stringsSplitted) <= 1 {
+		// Likely backend returned an error message
+		result = "<pre>" + strings.TrimSpace(data) + "</pre>"
+	} else {
+		// Draw the table head
+		result += "<table class=\"table table-striped table-bordered table-sm\">"
+		result += "<thead>"
+		for _, col := range strings.Split(stringsSplitted[0], " ") {
+			colTrimmed := strings.TrimSpace(col)
+			if len(colTrimmed) == 0 {
 				continue
 			}
-			if rowIndex < 4 {
-				row[rowIndex] += word
-				rowIndex++
-			} else if len(words[wordID-1]) == 0 && rowIndex < len(row)-1 {
-				if len(row[rowIndex]) > 0 {
-					rowIndex++
-				}
-				row[rowIndex] += word
-			} else {
-				row[rowIndex] += " " + word
-			}
+			result += "<th scope=\"col\">" + colTrimmed + "</th>"
 		}
+		result += "</thead><tbody>"
 
-		// Ignore empty lines
-		if len(row[0]) == 0 {
-			continue
-		}
+		stringsWithoutTitle := stringsSplitted[1:]
+		sort.Strings(stringsWithoutTitle)
 
-		if lineID == 0 {
-			// Draw the table head
-			result += "<thead>"
-			for i := 0; i < 6; i++ {
-				result += "<th scope=\"col\">" + row[i] + "</th>"
+		for _, line := range stringsWithoutTitle {
+			// Ignore empty lines
+			line = strings.TrimSpace(line)
+			if len(line) == 0 {
+				continue
 			}
-			result += "</thead><tbody>"
-		} else {
+
+			// Parse a total of 6 columns from bird summary
+			lineSplitted := regexp.MustCompile(`(\w+)(\s+)(\w+)(\s+)([\w-]+)(\s+)(\w+)(\s+)([0-9\- :]+)(.*)`).FindStringSubmatch(line)
+			var row = [6]string{
+				strings.TrimSpace(lineSplitted[1]),
+				strings.TrimSpace(lineSplitted[3]),
+				strings.TrimSpace(lineSplitted[5]),
+				strings.TrimSpace(lineSplitted[7]),
+				strings.TrimSpace(lineSplitted[9]),
+				strings.TrimSpace(lineSplitted[10]),
+			}
+
 			// Draw the row in red if the link isn't up
 			result += "<tr class=\"" + (map[string]string{
 				"up":      "table-success",
@@ -145,7 +145,9 @@ func summaryTable(isIPv6 bool, data string, serverName string) string {
 			}
 			result += "</tr>"
 		}
+		result += "</tbody></table>"
+		result += "<!==" + data + "-->"
 	}
-	result += "</tbody></table>"
+
 	return result
 }
