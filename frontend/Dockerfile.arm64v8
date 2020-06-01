@@ -4,10 +4,10 @@ LABEL Lan Tian "lantian@lantian.pub"
 ENV GOOS=linux GOARCH=arm64
 WORKDIR /root
 COPY . .
-RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y golang \
+RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y golang git \
   && cd /root && go get github.com/gorilla/handlers && go build -o /frontend \
   && cd / && rm -rf /root/* \
-  && apt-get -qq purge -y golang \
+  && apt-get -qq purge -y golang git \
   && apt-get -qq autoremove --purge -y && apt-get clean && rm -rf /var/lib/apt/lists
 
 ENTRYPOINT ["/frontend"]
