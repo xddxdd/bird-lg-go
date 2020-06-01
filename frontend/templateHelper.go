@@ -1,23 +1,11 @@
 package main
 
 import (
-	"net"
 	"net/http"
+	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 )
-
-// Helper to check if the IP is valid
-func isIP(s string) bool {
-	return nil != net.ParseIP(s)
-}
-
-// Helper to check if the number is valid
-func isNumber(s string) bool {
-	_, err := strconv.Atoi(s)
-	return nil == err
-}
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, title string, content string) {
 	path := r.URL.Path[1:]
@@ -75,51 +63,16 @@ func smartFormatter(s string) string {
 	var result string
 	result += "<pre>"
 	for _, line := range strings.Split(s, "\n") {
-		var isASes bool = false
-
 		var lineFormatted string
-		words := strings.Split(line, " ")
-
-		for wordID, word := range words {
-			if len(word) == 0 {
-				continue
-			}
-			if wordID > 0 && (len(words[wordID-1]) == 0 || words[wordID-1][len(words[wordID-1])-1] == ':') {
-				// Insert TAB if there are multiple spaces before this word
-				lineFormatted += "\t"
-			} else {
-				lineFormatted += " "
-			}
-
-			if isIP(word) {
-				// Add whois link to the IP, handles IPv4 and IPv6
-				lineFormatted += "<a href=\"/whois/" + word + "\">" + word + "</a>"
-			} else if len(strings.Split(word, "%")) == 2 && isIP(strings.Split(word, "%")[0]) {
-				// IPv6 link-local with interface name, like fd00::1%eth0
-				// Add whois link to address part
-				lineFormatted += "<a href=\"/whois/" + strings.Split(word, "%")[0] + "\">" + strings.Split(word, "%")[0] + "</a>"
-				lineFormatted += "%" + strings.Split(word, "%")[1]
-			} else if len(strings.Split(word, "/")) == 2 && isIP(strings.Split(word, "/")[0]) {
-				// IP with a CIDR range, like 192.168.0.1/24
-				// Add whois link to first part
-				lineFormatted += "<a href=\"/whois/" + strings.Split(word, "/")[0] + "\">" + strings.Split(word, "/")[0] + "</a>"
-				lineFormatted += "/" + strings.Split(word, "/")[1]
-			} else if word == "AS:" || word == "\tBGP.as_path:" {
-				// Bird will output ASNs later
-				isASes = true
-				lineFormatted += word
-			} else if isASes && isNumber(strings.Trim(word, "()")) {
-				// Remove brackets in path caused by confederation
-				wordNum := strings.Trim(word, "()")
-				// Bird is outputing ASNs, add whois for them
-				lineFormatted += "<a href=\"/whois/AS" + wordNum + "\">" + word + "</a>"
-			} else {
-				// Just an ordinary word, print it and done
-				lineFormatted += word
-			}
+		if strings.HasPrefix(strings.TrimSpace(line), "BGP.as_path:") || strings.HasPrefix(strings.TrimSpace(line), "Neighbor AS:") || strings.HasPrefix(strings.TrimSpace(line), "Local AS:") {
+			lineFormatted = regexp.MustCompile(`(\d+)`).ReplaceAllString(line, `<a href="/whois/${1}" class="whois">${1}</a>`)
+		} else {
+			lineFormatted = regexp.MustCompile(`([a-zA-Z0-9\-]*\.([a-zA-Z]{2,3}){1,2})(\s|$)`).ReplaceAllString(line, `<a href="/whois/${1}" class="whois">${1}</a>${3}`)
+			lineFormatted = regexp.MustCompile(`\[AS(\d+)`).ReplaceAllString(lineFormatted, `[<a href="/whois/${1}" class="whois">AS${1}</a>`)
+			lineFormatted = regexp.MustCompile(`(\d+\.\d+\.\d+\.\d+)`).ReplaceAllString(lineFormatted, `<a href="/whois/${1}" class="whois">${1}</a>`)
+			lineFormatted = regexp.MustCompile(`(?i)(([a-f\d]{0,4}:){3,10}[a-f\d]{0,4})`).ReplaceAllString(lineFormatted, `<a href="/whois/${1}" class="whois">${1}</a>`)
 		}
-		lineFormatted += "\n"
-		result += lineFormatted
+		result += lineFormatted + "\n"
 	}
 	result += "</pre>"
 	return result
