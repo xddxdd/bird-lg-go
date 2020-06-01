@@ -4,12 +4,12 @@ LABEL Lan Tian "lantian@lantian.pub"
 ENV GOOS=linux GOARCH=arm64
 WORKDIR /root
 COPY . .
-RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y golang traceroute locales busybox \
-  && cd /root && go build -o /proxy \
+RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y golang git traceroute locales busybox \
+  && cd /root && go get github.com/gorilla/handlers && go build -o /proxy \
   && cd / && rm -rf /root/* \
   && printf "en_US.UTF-8 UTF-8\nzh_CN.UTF-8 UTF-8\n" > /etc/locale.gen \
   && locale-gen \
-  && apt-get -qq purge -y golang \
+  && apt-get -qq purge -y golang git \
   && apt-get -qq autoremove --purge -y && apt-get clean && rm -rf /var/lib/apt/lists
 
 ENTRYPOINT ["/proxy"]

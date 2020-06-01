@@ -4,6 +4,8 @@ import (
 	"flag"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/handlers"
 )
 
 // Check if a byte is character for number
@@ -60,5 +62,5 @@ func main() {
 	http.HandleFunc("/bird6", bird6Handler)
 	http.HandleFunc("/traceroute", tracerouteIPv4Wrapper)
 	http.HandleFunc("/traceroute6", tracerouteIPv6Wrapper)
-	http.ListenAndServe(*listenParam, nil)
+	http.ListenAndServe(*listenParam, handlers.LoggingHandler(os.Stdout, http.DefaultServeMux))
 }
