@@ -10,12 +10,11 @@ import (
 func webHandlerWhois(w http.ResponseWriter, r *http.Request) {
 	var target string = r.URL.Path[len("/whois/"):]
 
-	templateHeader(w, r, "Bird-lg Go - whois "+html.EscapeString(target))
-
-	w.Write([]byte("<h2>whois " + html.EscapeString(target) + "</h2>"))
-	smartWriter(w, whois(target))
-
-	templateFooter(w)
+	renderTemplate(
+		w, r,
+		"Bird-lg Go - whois "+html.EscapeString(target),
+		"<h2>whois "+html.EscapeString(target)+"</h2>"+smartFormatter(whois(target)),
+	)
 }
 
 func webBackendCommunicator(endpoint string, command string) func(w http.ResponseWriter, r *http.Request) {
@@ -34,8 +33,11 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		split := strings.Split(r.URL.Path[1:], "/")
-		urlCommands := strings.Join(split[3:], "/")
+		split := strings.SplitN(r.URL.Path[1:], "/", 4)
+		var urlCommands string
+		if len(split) >= 4 {
+			urlCommands = split[3]
+		}
 
 		var backendCommand string
 		if strings.Contains(backendCommandPrimitive, "%") {
@@ -45,22 +47,24 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 		}
 		backendCommand = strings.TrimSpace(backendCommand)
 
-		templateHeader(w, r, "Bird-lg Go - "+html.EscapeString(endpoint+" "+backendCommand))
-
 		var servers []string = strings.Split(split[2], "+")
-
 		var responses []string = batchRequest(servers, endpoint, backendCommand)
+		var result string
 		for i, response := range responses {
-			w.Write([]byte("<h2>" + html.EscapeString(servers[i]) + ": " + html.EscapeString(backendCommand) + "</h2>"))
+			result += "<h2>" + html.EscapeString(servers[i]) + ": " + html.EscapeString(backendCommand) + "</h2>"
 			if (endpoint == "bird" || endpoint == "bird6") && backendCommand == "show protocols" && len(response) > 4 && strings.ToLower(response[0:4]) == "name" {
 				var isIPv6 bool = endpoint[len(endpoint)-1] == '6'
-				summaryTable(w, isIPv6, response, servers[i])
+				result += summaryTable(isIPv6, response, servers[i])
 			} else {
-				smartWriter(w, response)
+				result += smartFormatter(response)
 			}
 		}
 
-		templateFooter(w)
+		renderTemplate(
+			w, r,
+			"Bird-lg Go - "+html.EscapeString(endpoint+" "+backendCommand),
+			result,
+		)
 	}
 }
 
@@ -85,24 +89,22 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 			backendCommand = backendCommandPrimitive
 		}
 
-		templateHeader(w, r, "Bird-lg Go - "+html.EscapeString(endpoint+" "+backendCommand))
-
 		var servers []string = strings.Split(split[2], "+")
-
 		var responses []string = batchRequest(servers, endpoint, backendCommand)
-		w.Write([]byte(`
-		<script>
-		var viz = new Viz();
-		viz.renderSVGElement(` + "`" + birdRouteToGraphviz(servers, responses, urlCommands) + "`" + `)
-		.then(function(element) {
-			document.body.appendChild(element);
-		})
-		.catch(error => {
-			document.body.appendChild("<pre>"+error+"</pre>")
-		});
-		</script>`))
-
-		templateFooter(w)
+		renderTemplate(
+			w, r,
+			"Bird-lg Go - "+html.EscapeString(endpoint+" "+backendCommand),
+			`<script>
+			var viz = new Viz();
+			viz.renderSVGElement(`+"`"+birdRouteToGraphviz(servers, responses, urlCommands)+"`"+`)
+			.then(function(element) {
+				document.body.appendChild(element);
+			})
+			.catch(error => {
+				document.body.appendChild("<pre>"+error+"</pre>")
+			});
+			</script>`,
+		)
 	}
 }
 
@@ -141,7 +143,7 @@ func webServerStart() {
 	http.HandleFunc("/ipv4/traceroute/", webBackendCommunicator("traceroute", "traceroute"))
 	http.HandleFunc("/ipv6/traceroute/", webBackendCommunicator("traceroute6", "traceroute"))
 	http.HandleFunc("/whois/", webHandlerWhois)
-	http.HandleFunc("/redir/", webHandlerNavbarFormRedirect)
+	http.HandleFunc("/redir", webHandlerNavbarFormRedirect)
 	http.HandleFunc("/telegram/", webHandlerTelegramBot)
 	http.ListenAndServe(setting.listen, nil)
 }
