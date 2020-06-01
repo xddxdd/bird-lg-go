@@ -108,7 +108,7 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 
 		if !routeFound {
 			// Cannot find a path starting from this server
-			addEdge(server, "Target: "+target, "[color=gray,label=\"?\"?]")
+			addEdge(server, "Target: "+target, "[color=gray,label=\"?\"]")
 		}
 	}
 

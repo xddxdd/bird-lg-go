@@ -97,11 +97,11 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 			`<script>
 			var viz = new Viz();
 			viz.renderSVGElement(`+"`"+birdRouteToGraphviz(servers, responses, urlCommands)+"`"+`)
-			.then(function(element) {
+			.then(element => {
 				document.body.appendChild(element);
 			})
 			.catch(error => {
-				document.body.appendChild("<pre>"+error+"</pre>")
+				document.body.innerHTML = "<pre>"+error+"</pre>"
 			});
 			</script>`,
 		)
