@@ -34,6 +34,8 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, title string, conten
 		"route_where":        "show route where net ~ [ ... ]",
 		"route_where_all":    "show route where net ~ [ ... ] all",
 		"route_where_bgpmap": "show route where net ~ [ ... ] (bgpmap)",
+		"route_generic":      "show route ...",
+		"generic":            "show ...",
 		"whois":              "whois ...",
 		"traceroute":         "traceroute ...",
 	}

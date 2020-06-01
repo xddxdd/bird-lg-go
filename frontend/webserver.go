@@ -28,6 +28,8 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 		"route_all":       "show route for %s all",
 		"route_where":     "show route where net ~ [ %s ]",
 		"route_where_all": "show route where net ~ [ %s ] all",
+		"route_generic":   "show route %s",
+		"generic":         "show %s",
 		"traceroute":      "%s",
 	})[command]
 
@@ -143,6 +145,10 @@ func webServerStart() {
 	http.HandleFunc("/ipv6/route_where_all/", webBackendCommunicator("bird6", "route_where_all"))
 	http.HandleFunc("/ipv4/route_where_bgpmap/", webHandlerBGPMap("bird", "route_where_bgpmap"))
 	http.HandleFunc("/ipv6/route_where_bgpmap/", webHandlerBGPMap("bird6", "route_where_bgpmap"))
+	http.HandleFunc("/ipv4/route_generic/", webBackendCommunicator("bird", "route_generic"))
+	http.HandleFunc("/ipv6/route_generic/", webBackendCommunicator("bird6", "route_generic"))
+	http.HandleFunc("/ipv4/generic/", webBackendCommunicator("bird", "generic"))
+	http.HandleFunc("/ipv6/generic/", webBackendCommunicator("bird6", "generic"))
 	http.HandleFunc("/ipv4/traceroute/", webBackendCommunicator("traceroute", "traceroute"))
 	http.HandleFunc("/ipv6/traceroute/", webBackendCommunicator("traceroute6", "traceroute"))
 	http.HandleFunc("/whois/", webHandlerWhois)
