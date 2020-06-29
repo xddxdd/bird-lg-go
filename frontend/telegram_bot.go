@@ -45,7 +45,9 @@ func telegramBatchRequestFormat(servers []string, endpoint string, command strin
 	results := batchRequest(servers, endpoint, command)
 	result := ""
 	for i, r := range results {
-		result += servers[i] + "\n"
+		if len(servers) > 1 {
+			result += servers[i] + "\n"
+		}
 		result += postProcess(r) + "\n\n"
 	}
 	return result
@@ -149,7 +151,7 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 		response := &tgWebhookResponse{
 			Method:           "sendMessage",
 			ChatID:           request.Message.Chat.ID,
-			Text:             "```\n" + strings.TrimSpace(commandResult) + "\n```",
+			Text:             "```\n" + commandResult + "\n```",
 			ReplyToMessageID: request.Message.MessageID,
 			ParseMode:        "Markdown",
 		}

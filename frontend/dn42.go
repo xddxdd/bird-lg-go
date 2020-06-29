@@ -43,5 +43,9 @@ func dn42WhoisFilter(whois string) string {
 		commandResult += s + "\n"
 	}
 
-	return commandResult + fmt.Sprintf("\n%d line(s) skipped.\n", skippedLines)
+	if skippedLines > 0 {
+		return commandResult + fmt.Sprintf("\n%d line(s) skipped.\n", skippedLines)
+	} else {
+		return commandResult
+	}
 }
