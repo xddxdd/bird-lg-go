@@ -43,9 +43,6 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 					return
 				}
 				text, _ := ioutil.ReadAll(response.Body)
-				if len(text) == 0 {
-					text = []byte("node returned empty response, please refresh to try again.")
-				}
 				ch <- channelData{i, string(text)}
 			}(url, i)
 		}
@@ -55,6 +52,9 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 	for range servers {
 		var output channelData = <-ch
 		responseArray[output.id] = output.data
+		if len(responseArray[output.id]) == 0 {
+			responseArray[output.id] = "node returned empty response, please refresh to try again."
+		}
 	}
 
 	return responseArray
