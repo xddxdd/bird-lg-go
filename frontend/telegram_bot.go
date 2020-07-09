@@ -145,7 +145,7 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	commandResult = strings.TrimSpace(commandResult)
-	if len(commandResult) < 0 {
+	if len(commandResult) <= 0 {
 		commandResult = "empty result"
 	}
 
