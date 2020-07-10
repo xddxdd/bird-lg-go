@@ -142,6 +142,8 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 /[trace|trace6] <IP>
 /whois <Target>
 		`
+	} else {
+		return
 	}
 
 	commandResult = strings.TrimSpace(commandResult)
