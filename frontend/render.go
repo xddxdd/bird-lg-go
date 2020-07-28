@@ -26,8 +26,8 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, title string, conten
 
 	var args tmplArguments
 	args.Options = map[string]string{
-		"summary":            "show protocol",
-		"detail":             "show protocol all",
+		"summary":            "show protocols",
+		"detail":             "show protocols all",
 		"route":              "show route for ...",
 		"route_all":          "show route for ... all",
 		"route_bgpmap":       "show route for ... (bgpmap)",
@@ -96,16 +96,16 @@ func summaryTable(isIPv6 bool, data string, serverName string) string {
 		result = "<pre>" + strings.TrimSpace(data) + "</pre>"
 	} else {
 		// Draw the table head
-		result += "<table class=\"table table-striped table-bordered table-sm\">"
-		result += "<thead>"
+		result += `<table class="table table-striped table-bordered table-sm">`
+		result += `<thead>`
 		for _, col := range strings.Split(stringsSplitted[0], " ") {
 			colTrimmed := strings.TrimSpace(col)
 			if len(colTrimmed) == 0 {
 				continue
 			}
-			result += "<th scope=\"col\">" + colTrimmed + "</th>"
+			result += `<th scope="col">` + colTrimmed + `</th>`
 		}
-		result += "</thead><tbody>"
+		result += `</thead><tbody>`
 
 		stringsWithoutTitle := stringsSplitted[1:]
 		sort.Strings(stringsWithoutTitle)
@@ -129,17 +129,17 @@ func summaryTable(isIPv6 bool, data string, serverName string) string {
 			}
 
 			// Draw the row in red if the link isn't up
-			result += "<tr class=\"" + (map[string]string{
+			result += `<tr class="` + (map[string]string{
 				"up":      "table-success",
 				"down":    "table-secondary",
 				"start":   "table-danger",
 				"passive": "table-info",
-			})[row[3]] + "\">"
+			})[row[3]] + `">`
 			// Add link to detail for first column
 			if isIPv6 {
-				result += "<td><a href=\"/ipv6/detail/" + serverName + "/" + row[0] + "\">" + row[0] + "</a></td>"
+				result += `<td><a href="/ipv6/detail/` + serverName + `/` + row[0] + `">` + row[0] + `</a></td>`
 			} else {
-				result += "<td><a href=\"/ipv4/detail/" + serverName + "/" + row[0] + "\">" + row[0] + "</a></td>"
+				result += `<td><a href="/ipv4/detail/` + serverName + `/` + row[0] + `">` + row[0] + `</a></td>`
 			}
 			// Draw the other cells
 			for i := 1; i < 6; i++ {

@@ -12,6 +12,7 @@ type tmplArguments struct {
 	// Parameters related to current request
 	AllServersLinkActive bool
 	AllServersURL        string
+
 	// Whois specific handling (for its unique URL)
 	IsWhois     bool
 	WhoisTarget string
@@ -42,12 +43,12 @@ var tmpl = template.Must(template.New("tmpl").Parse(`
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="/">Bird-lg Go</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+	<a class="navbar-brand" href="/">Bird-lg Go</a>
+	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+	<div class="collapse navbar-collapse" id="navbarSupportedContent">
 		<ul class="navbar-nav mr-auto">
 			<li class="nav-item"><a class="nav-link{{ if eq "ipv4" .URLProto }} active{{ end }}" href="/ipv4/{{ .URLOption }}/{{ .URLServer }}/{{ .URLCommand }}"> IPv4 </a></li>
 			<li class="nav-item"><a class="nav-link{{ if eq "ipv6" .URLProto }} active{{ end }}" href="/ipv6/{{ .URLOption }}/{{ .URLServer }}/{{ .URLCommand }}"> IPv6 </a></li>
@@ -57,7 +58,7 @@ var tmpl = template.Must(template.New("tmpl").Parse(`
 			</li>
 			{{ range $k, $v := .Servers }}
 			<li class="nav-item">
-                <a class="nav-link{{ if eq $.URLServer $v }} active{{ end }}" href="/{{ $.URLProto }}/{{ $.URLOption }}/{{ $v }}/{{ $.URLCommand }}">{{ $v }}</a>
+				<a class="nav-link{{ if eq $.URLServer $v }} active{{ end }}" href="/{{ $.URLProto }}/{{ $.URLOption }}/{{ $v }}/{{ $.URLCommand }}">{{ $v }}</a>
 			</li>
 			{{ end }}
 		</ul>
@@ -67,26 +68,26 @@ var tmpl = template.Must(template.New("tmpl").Parse(`
 			{{ $option = "whois" }}
 			{{ $target = .WhoisTarget }}
 		{{ end }}
-        <form class="form-inline" action="/redir" method="GET">
-            <div class="input-group">
+		<form class="form-inline" action="/redir" method="GET">
+			<div class="input-group">
 				<select name="action" class="form-control">
 					{{ range $k, $v := .Options }}
 					<option value="{{ $k }}"{{ if eq $k $option }} selected{{end}}>{{ $v }}</option>
 					{{ end }}
 				</select>
-                <input name="proto" class="d-none" value="{{ .URLProto }}">
-                <input name="server" class="d-none" value="{{ .URLServer }}">
-                <input name="target" class="form-control" placeholder="Target" aria-label="Target" value="{{ $target }}">
-                <div class="input-group-append">
-                    <button class="btn btn-outline-success" type="submit">&raquo;</button>
-                </div>
-            </div>
-        </form>
-    </div>
+				<input name="proto" class="d-none" value="{{ .URLProto }}">
+				<input name="server" class="d-none" value="{{ .URLServer }}">
+				<input name="target" class="form-control" placeholder="Target" aria-label="Target" value="{{ $target }}">
+				<div class="input-group-append">
+					<button class="btn btn-outline-success" type="submit">&raquo;</button>
+				</div>
+			</div>
+		</form>
+	</div>
 </nav>
 
 <div class="container">
-{{ .Content }}
+	{{ .Content }}
 </div>
 </body>
 </html>
