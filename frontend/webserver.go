@@ -99,7 +99,10 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 		renderTemplate(
 			w, r,
 			"Bird-lg Go - "+html.EscapeString(endpoint+" "+backendCommand),
-			`<script>
+			`
+			<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/viz.min.js" crossorigin="anonymous"></script>
+			<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/lite.render.js" crossorigin="anonymous"></script>
+			<script>
 			var viz = new Viz();
 			viz.renderSVGElement(`+"`"+birdRouteToGraphviz(servers, responses, urlCommands)+"`"+`)
 			.then(element => {

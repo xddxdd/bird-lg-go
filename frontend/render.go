@@ -148,7 +148,7 @@ func summaryTable(isIPv6 bool, data string, serverName string) string {
 			result += "</tr>"
 		}
 		result += "</tbody></table>"
-		result += "<!==" + data + "-->"
+		result += "<!--" + data + "-->"
 	}
 
 	return result
