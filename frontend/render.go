@@ -50,7 +50,8 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, title string, conten
 	args.URLServer = strings.ToLower(split[2])
 	args.URLCommand = split[3]
 
-	args.Title = title
+	args.Title = setting.titleBrand + title
+	args.Brand = setting.navBarBrand
 	args.Content = content
 
 	err := tmpl.Execute(w, args)

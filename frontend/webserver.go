@@ -15,7 +15,7 @@ func webHandlerWhois(w http.ResponseWriter, r *http.Request) {
 
 	renderTemplate(
 		w, r,
-		"Bird-lg Go - whois "+html.EscapeString(target),
+		" - whois "+html.EscapeString(target),
 		"<h2>whois "+html.EscapeString(target)+"</h2>"+smartFormatter(whois(target)),
 	)
 }
@@ -67,7 +67,7 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 
 		renderTemplate(
 			w, r,
-			"Bird-lg Go - "+html.EscapeString(endpoint+" "+backendCommand),
+			" - "+html.EscapeString(endpoint+" "+backendCommand),
 			result,
 		)
 	}
@@ -98,7 +98,7 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 		var responses []string = batchRequest(servers, endpoint, backendCommand)
 		renderTemplate(
 			w, r,
-			"Bird-lg Go - "+html.EscapeString(endpoint+" "+backendCommand),
+			" - "+html.EscapeString(endpoint+" "+backendCommand),
 			`
 			<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/viz.min.js" crossorigin="anonymous"></script>
 			<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/lite.render.js" crossorigin="anonymous"></script>
