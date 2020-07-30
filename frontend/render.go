@@ -119,7 +119,7 @@ func summaryTable(isIPv6 bool, data string, serverName string) string {
 			}
 
 			// Parse a total of 6 columns from bird summary
-			lineSplitted := regexp.MustCompile(`(\w+)(\s+)(\w+)(\s+)([\w-]+)(\s+)(\w+)(\s+)([0-9\- :]+)(.*)`).FindStringSubmatch(line)
+			lineSplitted := regexp.MustCompile(`(\w+)(\s+)(\w+)(\s+)([\w-]+)(\s+)(\w+)(\s+)([0-9\-\. :]+)(.*)`).FindStringSubmatch(line)
 			var row = [6]string{
 				strings.TrimSpace(lineSplitted[1]),
 				strings.TrimSpace(lineSplitted[3]),
