@@ -94,14 +94,15 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 					[]string{
 						"traceroute",
 						"traceroute",
-						"busybox",
-						"busybox",
+						"traceroute",
+						"traceroute",
 					},
 					[][]string{
 						{"-6", "-q1", "-N32", "-w1", query},
 						{"-4", "-q1", "-N32", "-w1", query},
-						{"traceroute", "-6", "-q1", "-w1", query},
-						{"traceroute", "-4", "-q1", "-w1", query},
+						// For Busybox traceroute which doesn't support simultaneous requests
+						{"-6", "-q1", "-w1", query},
+						{"-4", "-q1", "-w1", query},
 					},
 				)
 			} else {
@@ -109,14 +110,15 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 					[]string{
 						"traceroute",
 						"traceroute",
-						"busybox",
-						"busybox",
+						"traceroute",
+						"traceroute",
 					},
 					[][]string{
 						{"-4", "-q1", "-N32", "-w1", query},
 						{"-6", "-q1", "-N32", "-w1", query},
-						{"traceroute", "-4", "-q1", "-w1", query},
-						{"traceroute", "-6", "-q1", "-w1", query},
+						// For Busybox traceroute which doesn't support simultaneous requests
+						{"-4", "-q1", "-w1", query},
+						{"-6", "-q1", "-w1", query},
 					},
 				)
 			}
