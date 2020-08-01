@@ -127,8 +127,7 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 		}
 		if err != nil {
 			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte(fmt.Sprintln("traceroute returned error:", err.Error(), ", please check if IPv4/IPv6 is selected correctly.")))
-			return
+			httpW.Write([]byte(fmt.Sprintln("traceroute returned error:", err.Error(), ".")))
 		}
 		httpW.Write(result)
 	}
