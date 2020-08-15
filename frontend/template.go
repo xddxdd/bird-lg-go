@@ -38,6 +38,7 @@ var tmpl = template.Must(template.New("tmpl").Parse(`
 <meta name="renderer" content="webkit">
 <title>{{ .Title }}</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta name="robots" content="noindex, nofollow">
 </head>
 <body>
 
