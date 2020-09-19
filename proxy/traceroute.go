@@ -18,17 +18,21 @@ func tracerouteIPv6Wrapper(httpW http.ResponseWriter, httpR *http.Request) {
 	tracerouteRealHandler(true, httpW, httpR)
 }
 
-func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, error) {
+func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, string) {
 	var output []byte
-	var err error
+	var errString = ""
 	for i := range cmd {
+		var err error
+		var cmdCombined = cmd[i] + " " + strings.Join(args[i], " ")
+
 		instance := exec.Command(cmd[i], args[i]...)
 		output, err = instance.CombinedOutput()
 		if err == nil {
-			return output, err
+			return output, ""
 		}
+		errString += fmt.Sprintf("+ (Try %d) %s\n%s\n\n", (i + 1), cmdCombined, err.Error())
 	}
-	return output, err
+	return output, errString
 }
 
 // Real handler of traceroute requests
@@ -39,10 +43,10 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 		invalidHandler(httpW, httpR)
 	} else {
 		var result []byte
-		var err error
+		var errString string
 		if runtime.GOOS == "freebsd" || runtime.GOOS == "netbsd" {
 			if useIPv6 {
-				result, err = tracerouteTryExecute(
+				result, errString = tracerouteTryExecute(
 					[]string{
 						"traceroute6",
 						"traceroute",
@@ -53,7 +57,7 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 					},
 				)
 			} else {
-				result, err = tracerouteTryExecute(
+				result, errString = tracerouteTryExecute(
 					[]string{
 						"traceroute",
 						"traceroute6",
@@ -66,7 +70,7 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 			}
 		} else if runtime.GOOS == "openbsd" {
 			if useIPv6 {
-				result, err = tracerouteTryExecute(
+				result, errString = tracerouteTryExecute(
 					[]string{
 						"traceroute6",
 						"traceroute",
@@ -77,7 +81,7 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 					},
 				)
 			} else {
-				result, err = tracerouteTryExecute(
+				result, errString = tracerouteTryExecute(
 					[]string{
 						"traceroute",
 						"traceroute6",
@@ -90,7 +94,7 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 			}
 		} else if runtime.GOOS == "linux" {
 			if useIPv6 {
-				result, err = tracerouteTryExecute(
+				result, errString = tracerouteTryExecute(
 					[]string{
 						"traceroute",
 						"traceroute",
@@ -106,7 +110,7 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 					},
 				)
 			} else {
-				result, err = tracerouteTryExecute(
+				result, errString = tracerouteTryExecute(
 					[]string{
 						"traceroute",
 						"traceroute",
@@ -127,9 +131,9 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 			httpW.Write([]byte("traceroute not supported on this node.\n"))
 			return
 		}
-		if err != nil {
+		if errString != "" {
 			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte(fmt.Sprintln("traceroute returned error:", err.Error(), ".")))
+			httpW.Write([]byte("traceroute returned error:\n" + errString))
 		}
 		httpW.Write(result)
 	}
