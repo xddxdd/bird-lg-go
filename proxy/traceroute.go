@@ -30,9 +30,9 @@ func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, string) {
 		if err == nil {
 			return output, ""
 		}
-		errString += fmt.Sprintf("+ (Try %d) %s\n%s\n\n", (i + 1), cmdCombined, err.Error())
+		errString += fmt.Sprintf("+ (Try %d) %s\n%s\n\n", (i + 1), cmdCombined, output)
 	}
-	return output, errString
+	return nil, errString
 }
 
 // Real handler of traceroute requests
@@ -133,8 +133,10 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 		}
 		if errString != "" {
 			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte("traceroute returned error:\n" + errString))
+			httpW.Write([]byte("traceroute returned error:\n\n" + errString))
 		}
-		httpW.Write(result)
+		if result != nil {
+			httpW.Write(result)
+		}
 	}
 }
