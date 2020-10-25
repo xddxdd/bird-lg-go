@@ -54,13 +54,11 @@ Features implemented:
   - If you are using BIRDv2, simply point both `--bird` and `--bird6` to the only socket file of BIRDv2
 - Sending "restrict" command to BIRD to prevent unauthorized changes
 - Executing traceroute command on Linux, FreeBSD and OpenBSD
-
-Features not implemented yet:
-
 - Source IP restriction
 
 Usage: all configuration is done via commandline parameters or environment variables, no config file.
 
+- --allowed / ALLOWED_IPS: IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "")
 - --bird / BIRD_SOCKET: socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl")
 - --bird6 / BIRD6_SOCKET: socket file for bird6, set either in parameter or environment variable BIRD6_SOCKET (default "/var/run/bird/bird6.ctl")
 - --listen / BIRDLG_LISTEN: listen address, set either in parameter or environment variable BIRDLG_LISTEN (default ":8000")
@@ -85,7 +83,7 @@ Example: the following docker-compose.yml entry does the same as above, but by s
       ports:
         - "192.168.0.1:8000:8000"
 
-(As the proxy doesn't have source IP restriction yet, you should only bind the proxy to a specific interface, or use external firewall for security)
+You can use source IP restriction to increase security. You should also bind the proxy to a specific interface and use an external firewall/iptables for added security.
 
 Credits
 -------
@@ -97,3 +95,4 @@ License
 -------
 
 GPL 3.0
+
