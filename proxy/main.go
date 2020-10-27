@@ -27,6 +27,7 @@ func accessHandler(next http.Handler) http.Handler {
 		// setting.allowedIPs will always have at least one element because of how it's defined
 		if setting.allowedIPs[0] == "" {
 			next.ServeHTTP(httpW, httpR)
+			return
 		}
 
 		IPPort := httpR.RemoteAddr
