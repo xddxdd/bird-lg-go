@@ -120,13 +120,28 @@ func summaryTable(isIPv6 bool, data string, serverName string) string {
 
 			// Parse a total of 6 columns from bird summary
 			lineSplitted := regexp.MustCompile(`(\w+)(\s+)(\w+)(\s+)([\w-]+)(\s+)(\w+)(\s+)([0-9\-\. :]+)(.*)`).FindStringSubmatch(line)
-			var row = [6]string{
-				strings.TrimSpace(lineSplitted[1]),
-				strings.TrimSpace(lineSplitted[3]),
-				strings.TrimSpace(lineSplitted[5]),
-				strings.TrimSpace(lineSplitted[7]),
-				strings.TrimSpace(lineSplitted[9]),
-				strings.TrimSpace(lineSplitted[10]),
+			if lineSplitted == nil {
+				continue
+			}
+
+			var row [6]string
+			if len(lineSplitted) >= 2 {
+				row[0] = strings.TrimSpace(lineSplitted[1])
+			}
+			if len(lineSplitted) >= 4 {
+				row[1] = strings.TrimSpace(lineSplitted[3])
+			}
+			if len(lineSplitted) >= 6 {
+				row[2] = strings.TrimSpace(lineSplitted[5])
+			}
+			if len(lineSplitted) >= 8 {
+				row[3] = strings.TrimSpace(lineSplitted[7])
+			}
+			if len(lineSplitted) >= 10 {
+				row[4] = strings.TrimSpace(lineSplitted[9])
+			}
+			if len(lineSplitted) >= 11 {
+				row[5] = strings.TrimSpace(lineSplitted[10])
 			}
 
 			// Draw the row in red if the link isn't up
