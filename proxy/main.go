@@ -25,7 +25,7 @@ func accessHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(httpW http.ResponseWriter, httpR *http.Request) {
 
 		// setting.allowedIPs will always have at least one element because of how it's defined
-		if setting.allowedIPs[0] == ""  {
+		if setting.allowedIPs[0] == "" {
 			next.ServeHTTP(httpW, httpR)
 		}
 
@@ -39,6 +39,7 @@ func accessHandler(next http.Handler) http.Handler {
 		for _, allowedIP := range setting.allowedIPs {
 			if requestIp == allowedIP {
 				next.ServeHTTP(httpW, httpR)
+				return
 			}
 		}
 
@@ -51,7 +52,7 @@ type settingType struct {
 	birdSocket  string
 	bird6Socket string
 	listen      string
-	allowedIPs	[]string
+	allowedIPs  []string
 }
 
 var setting settingType
@@ -99,4 +100,3 @@ func main() {
 	http.HandleFunc("/traceroute6", tracerouteIPv6Wrapper)
 	http.ListenAndServe(*listenParam, handlers.LoggingHandler(os.Stdout, accessHandler(http.DefaultServeMux)))
 }
-
