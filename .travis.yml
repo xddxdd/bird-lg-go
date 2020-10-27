@@ -1,4 +1,6 @@
-sudo: required
+language: minimal
+os: linux
+dist: focal
 services:
   - docker
 env:
