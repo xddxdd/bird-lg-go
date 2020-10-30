@@ -68,7 +68,7 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 		}
 		if result != nil {
 			errString = string(result)
-			errString = regexp.MustCompile(`\s*(\d*)\s*\*\n`).ReplaceAllStringFunc(errString, func(w string) string {
+			errString = regexp.MustCompile(`(?m)^\s*(\d*)\s*\*\n`).ReplaceAllStringFunc(errString, func(w string) string {
 				skippedCounter++
 				return ""
 			})
