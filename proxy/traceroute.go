@@ -4,19 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"os/exec"
+	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 )
-
-// Wrapper of traceroute, IPv4
-func tracerouteIPv4Wrapper(httpW http.ResponseWriter, httpR *http.Request) {
-	tracerouteRealHandler(false, httpW, httpR)
-}
-
-// Wrapper of traceroute, IPv6
-func tracerouteIPv6Wrapper(httpW http.ResponseWriter, httpR *http.Request) {
-	tracerouteRealHandler(true, httpW, httpR)
-}
 
 func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, string) {
 	var output []byte
@@ -35,8 +27,7 @@ func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, string) {
 	return nil, errString
 }
 
-// Real handler of traceroute requests
-func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.Request) {
+func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 	query := string(httpR.URL.Query().Get("q"))
 	query = strings.TrimSpace(query)
 	if query == "" {
@@ -44,88 +35,28 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 	} else {
 		var result []byte
 		var errString string
-		if runtime.GOOS == "freebsd" || runtime.GOOS == "netbsd" {
-			if useIPv6 {
-				result, errString = tracerouteTryExecute(
-					[]string{
-						"traceroute6",
-						"traceroute",
-					},
-					[][]string{
-						{"-q1", "-w1", query},
-						{"-q1", "-w1", query},
-					},
-				)
-			} else {
-				result, errString = tracerouteTryExecute(
-					[]string{
-						"traceroute",
-						"traceroute6",
-					},
-					[][]string{
-						{"-q1", "-w1", query},
-						{"-q1", "-w1", query},
-					},
-				)
-			}
-		} else if runtime.GOOS == "openbsd" {
-			if useIPv6 {
-				result, errString = tracerouteTryExecute(
-					[]string{
-						"traceroute6",
-						"traceroute",
-					},
-					[][]string{
-						{"-q1", "-w1", query},
-						{"-q1", "-w1", query},
-					},
-				)
-			} else {
-				result, errString = tracerouteTryExecute(
-					[]string{
-						"traceroute",
-						"traceroute6",
-					},
-					[][]string{
-						{"-A", "-q1", "-w1", query},
-						{"-A", "-q1", "-w1", query},
-					},
-				)
-			}
+		skippedCounter := 0
+
+		if runtime.GOOS == "freebsd" || runtime.GOOS == "netbsd" || runtime.GOOS == "openbsd" {
+			result, errString = tracerouteTryExecute(
+				[]string{
+					"traceroute",
+				},
+				[][]string{
+					{"-q1", "-w1", query},
+				},
+			)
 		} else if runtime.GOOS == "linux" {
-			if useIPv6 {
-				result, errString = tracerouteTryExecute(
-					[]string{
-						"traceroute",
-						"traceroute",
-						"traceroute",
-						"traceroute",
-					},
-					[][]string{
-						{"-6", "-q1", "-N32", "-w1", query},
-						{"-4", "-q1", "-N32", "-w1", query},
-						// For Busybox traceroute which doesn't support simultaneous requests
-						{"-6", "-q1", "-w1", query},
-						{"-4", "-q1", "-w1", query},
-					},
-				)
-			} else {
-				result, errString = tracerouteTryExecute(
-					[]string{
-						"traceroute",
-						"traceroute",
-						"traceroute",
-						"traceroute",
-					},
-					[][]string{
-						{"-4", "-q1", "-N32", "-w1", query},
-						{"-6", "-q1", "-N32", "-w1", query},
-						// For Busybox traceroute which doesn't support simultaneous requests
-						{"-4", "-q1", "-w1", query},
-						{"-6", "-q1", "-w1", query},
-					},
-				)
-			}
+			result, errString = tracerouteTryExecute(
+				[]string{
+					"traceroute",
+					"traceroute",
+				},
+				[][]string{
+					{"-q1", "-N32", "-w1", query},
+					{"-q1", "-w1", query},
+				},
+			)
 		} else {
 			httpW.WriteHeader(http.StatusInternalServerError)
 			httpW.Write([]byte("traceroute not supported on this node.\n"))
@@ -133,10 +64,18 @@ func tracerouteRealHandler(useIPv6 bool, httpW http.ResponseWriter, httpR *http.
 		}
 		if errString != "" {
 			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte("traceroute returned error:\n\n" + errString))
+			httpW.Write([]byte(errString))
 		}
 		if result != nil {
-			httpW.Write(result)
+			errString = string(result)
+			errString = regexp.MustCompile(`\s*(\d*)\s*\*\n`).ReplaceAllStringFunc(errString, func(w string) string {
+				skippedCounter++
+				return ""
+			})
+			httpW.Write([]byte(strings.TrimSpace(errString)))
+			if skippedCounter > 0 {
+				httpW.Write([]byte("\n\n" + strconv.Itoa(skippedCounter) + " hops not responding."))
+			}
 		}
 	}
 }

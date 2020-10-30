@@ -9,20 +9,20 @@ import (
 
 func renderTemplate(w http.ResponseWriter, r *http.Request, title string, content string) {
 	path := r.URL.Path[1:]
-	split := strings.SplitN(path, "/", 4)
+	split := strings.SplitN(path, "/", 3)
 
 	isWhois := strings.ToLower(split[0]) == "whois"
 	whoisTarget := strings.Join(split[1:], "/")
 
 	// Use a default URL if the request URL is too short
-	// The URL is for return to IPv4 summary page
-	if len(split) < 3 {
-		path = "ipv4/summary/" + strings.Join(setting.servers, "+") + "/"
-	} else if len(split) == 3 {
+	// The URL is for return to summary page
+	if len(split) < 2 {
+		path = "summary/" + strings.Join(setting.servers, "+") + "/"
+	} else if len(split) == 2 {
 		path += "/"
 	}
 
-	split = strings.SplitN(path, "/", 4)
+	split = strings.SplitN(path, "/", 3)
 
 	var args tmplArguments
 	args.Options = map[string]string{
@@ -40,24 +40,20 @@ func renderTemplate(w http.ResponseWriter, r *http.Request, title string, conten
 		"traceroute":         "traceroute ...",
 	}
 	args.Servers = setting.servers
-	args.AllServersLinkActive = strings.ToLower(split[2]) == strings.ToLower(strings.Join(setting.servers, "+"))
+	args.AllServersLinkActive = strings.ToLower(split[1]) == strings.ToLower(strings.Join(setting.servers, "+"))
 	args.AllServersURL = strings.Join(setting.servers, "+")
 	args.IsWhois = isWhois
 	args.WhoisTarget = whoisTarget
 
-	args.URLProto = strings.ToLower(split[0])
-	args.URLOption = strings.ToLower(split[1])
-	args.URLServer = strings.ToLower(split[2])
-	args.URLCommand = split[3]
+	args.URLOption = strings.ToLower(split[0])
+	args.URLServer = strings.ToLower(split[1])
+	args.URLCommand = split[2]
 
 	args.Title = setting.titleBrand + title
 	args.Brand = setting.navBarBrand
 	args.Content = content
 
-	err := tmpl.Execute(w, args)
-	if err != nil {
-		panic(err)
-	}
+	tmpl.Execute(w, args)
 }
 
 // Write the given text to http response, and add whois links for
@@ -87,7 +83,7 @@ type summaryTableArguments struct {
 }
 
 // Output a table for the summary page
-func summaryTable(isIPv6 bool, data string, serverName string) string {
+func summaryTable(data string, serverName string) string {
 	var result string
 
 	// Sort the table, excluding title row
@@ -152,11 +148,7 @@ func summaryTable(isIPv6 bool, data string, serverName string) string {
 				"passive": "table-info",
 			})[row[3]] + `">`
 			// Add link to detail for first column
-			if isIPv6 {
-				result += `<td><a href="/ipv6/detail/` + serverName + `/` + row[0] + `">` + row[0] + `</a></td>`
-			} else {
-				result += `<td><a href="/ipv4/detail/` + serverName + `/` + row[0] + `">` + row[0] + `</a></td>`
-			}
+			result += `<td><a href="/detail/` + serverName + `/` + row[0] + `">` + row[0] + `</a></td>`
 			// Draw the other cells
 			for i := 1; i < 6; i++ {
 				result += "<td>" + row[i] + "</td>"

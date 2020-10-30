@@ -87,27 +87,14 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 	commandResult := ""
 
 	// - traceroute
-	if telegramIsCommand(request.Message.Text, "trace") || telegramIsCommand(request.Message.Text, "trace4") {
+	if telegramIsCommand(request.Message.Text, "trace") {
 		commandResult = telegramBatchRequestFormat(servers, "traceroute", target, telegramDefaultPostProcess)
-	} else if telegramIsCommand(request.Message.Text, "trace6") {
-		commandResult = telegramBatchRequestFormat(servers, "traceroute6", target, telegramDefaultPostProcess)
 
-	} else if telegramIsCommand(request.Message.Text, "route") || telegramIsCommand(request.Message.Text, "route4") {
+	} else if telegramIsCommand(request.Message.Text, "route") {
 		commandResult = telegramBatchRequestFormat(servers, "bird", "show route for "+target+" primary", telegramDefaultPostProcess)
-	} else if telegramIsCommand(request.Message.Text, "route6") {
-		commandResult = telegramBatchRequestFormat(servers, "bird6", "show route for "+target+" primary", telegramDefaultPostProcess)
 
-	} else if telegramIsCommand(request.Message.Text, "path") || telegramIsCommand(request.Message.Text, "path4") {
+	} else if telegramIsCommand(request.Message.Text, "path") {
 		commandResult = telegramBatchRequestFormat(servers, "bird", "show route for "+target+" all primary", func(result string) string {
-			for _, s := range strings.Split(result, "\n") {
-				if strings.Contains(s, "BGP.as_path: ") {
-					return strings.TrimSpace(strings.Split(s, ":")[1])
-				}
-			}
-			return ""
-		})
-	} else if telegramIsCommand(request.Message.Text, "path6") {
-		commandResult = telegramBatchRequestFormat(servers, "bird6", "show route for "+target+" all primary", func(result string) string {
 			for _, s := range strings.Split(result, "\n") {
 				if strings.Contains(s, "BGP.as_path: ") {
 					return strings.TrimSpace(strings.Split(s, ":")[1])
@@ -137,9 +124,9 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 
 	} else if telegramIsCommand(request.Message.Text, "help") {
 		commandResult = `
-/[path|path6] <IP>
-/[route|route6] <IP>
-/[trace|trace6] <IP>
+/path <IP>
+/route <IP>
+/trace <IP>
 /whois <Target>
 		`
 	} else {

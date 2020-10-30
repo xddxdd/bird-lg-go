@@ -17,7 +17,6 @@ type tmplArguments struct {
 	IsWhois     bool
 	WhoisTarget string
 
-	URLProto   string
 	URLOption  string
 	URLServer  string
 	URLCommand string
@@ -49,34 +48,37 @@ var tmpl = template.Must(template.New("tmpl").Parse(`
 	</button>
 
 	<div class="collapse navbar-collapse" id="navbarSupportedContent">
+		{{ $option := .URLOption }}
+		{{ $server := .URLServer }}
+		{{ $target := .URLCommand }}
+		{{ if .IsWhois }}
+			{{ $option = "summary" }}
+			{{ $server = .AllServersURL }}
+			{{ $target = "" }}
+		{{ end }}
 		<ul class="navbar-nav mr-auto">
-			<li class="nav-item"><a class="nav-link{{ if eq "ipv4" .URLProto }} active{{ end }}" href="/ipv4/{{ .URLOption }}/{{ .URLServer }}/{{ .URLCommand }}"> IPv4 </a></li>
-			<li class="nav-item"><a class="nav-link{{ if eq "ipv6" .URLProto }} active{{ end }}" href="/ipv6/{{ .URLOption }}/{{ .URLServer }}/{{ .URLCommand }}"> IPv6 </a></li>
-			<span class="navbar-text">|</span>
 			<li class="nav-item">
-				<a class="nav-link{{ if .AllServersLinkActive }} active{{ end }}" href="/{{ .URLProto }}/{{ .URLOption }}/{{ .AllServersURL }}/{{ .URLCommand }}"> All Servers </a>
+				<a class="nav-link{{ if .AllServersLinkActive }} active{{ end }}"
+					href="/{{ $option }}/{{ .AllServersURL }}/{{ $target }}"> All Servers </a>
 			</li>
 			{{ range $k, $v := .Servers }}
 			<li class="nav-item">
-				<a class="nav-link{{ if eq $.URLServer $v }} active{{ end }}" href="/{{ $.URLProto }}/{{ $.URLOption }}/{{ $v }}/{{ $.URLCommand }}">{{ $v }}</a>
+				<a class="nav-link{{ if eq $server $v }} active{{ end }}"
+					href="/{{ $option }}/{{ $v }}/{{ $target }}">{{ $v }}</a>
 			</li>
 			{{ end }}
 		</ul>
-		{{ $option := .URLOption }}
-		{{ $target := .URLCommand }}
 		{{ if .IsWhois }}
-			{{ $option = "whois" }}
 			{{ $target = .WhoisTarget }}
 		{{ end }}
 		<form class="form-inline" action="/redir" method="GET">
 			<div class="input-group">
 				<select name="action" class="form-control">
 					{{ range $k, $v := .Options }}
-					<option value="{{ $k }}"{{ if eq $k $option }} selected{{end}}>{{ $v }}</option>
+					<option value="{{ $k }}"{{ if eq $k $.URLOption }} selected{{end}}>{{ $v }}</option>
 					{{ end }}
 				</select>
-				<input name="proto" class="d-none" value="{{ .URLProto }}">
-				<input name="server" class="d-none" value="{{ .URLServer }}">
+				<input name="server" class="d-none" value="{{ $server }}">
 				<input name="target" class="form-control" placeholder="Target" aria-label="Target" value="{{ $target }}">
 				<div class="input-group-append">
 					<button class="btn btn-outline-success" type="submit">&raquo;</button>

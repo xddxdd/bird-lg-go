@@ -89,25 +89,3 @@ func birdHandler(httpW http.ResponseWriter, httpR *http.Request) {
 		}
 	}
 }
-
-// Handles BIRDv6 queries
-func bird6Handler(httpW http.ResponseWriter, httpR *http.Request) {
-	query := string(httpR.URL.Query().Get("q"))
-	if query == "" {
-		invalidHandler(httpW, httpR)
-	} else {
-		// Initialize BIRDv6 socket
-		bird6, err := net.Dial("unix", setting.bird6Socket)
-		if err != nil {
-			panic(err)
-		}
-		defer bird6.Close()
-
-		birdReadln(bird6, nil)
-		birdWriteln(bird6, "restrict")
-		birdReadln(bird6, nil)
-		birdWriteln(bird6, query)
-		for birdReadln(bird6, httpW) {
-		}
-	}
-}

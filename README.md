@@ -3,6 +3,8 @@ Bird-lg-go
 
 An alternative implementation for [bird-lg](https://github.com/sileht/bird-lg) written in Go. Both frontend and backend (proxy) are implemented, and can work with either the original Python implementation or the Go implementation.
 
+> The code on master branch no longer support BIRDv1. Branch "bird1" is the last version that supports BIRDv1.
+
 Frontend
 --------
 
@@ -18,11 +20,16 @@ Features implemented:
 
 Usage: all configuration is done via commandline parameters or environment variables, no config file.
 
-- --servers / BIRDLG_SERVERS: server name prefixes, separated by comma
-- --domain / BIRDLG_DOMAIN: server name domain suffixes
-- --listen / BIRDLG_LISTEN: address bird-lg is listening on (default ":5000")
-- --proxy-port / BIRDLG_PROXY_PORT: port bird-lgproxy is running on (default 8000)
-- --whois / BIRDLG_WHOIS: whois server for queries (default "whois.verisign-grs.com")
+| Parameter | Environment Variable | Description |
+| --------- | -------------------- | ----------- |
+| --servers | BIRDLG_SERVERS | server name prefixes, separated by comma |
+| --domain | BIRDLG_DOMAIN | server name domain suffixes |
+| --listen | BIRDLG_LISTEN | address bird-lg is listening on (default ":5000") |
+| --proxy-port | BIRDLG_PROXY_PORT | port bird-lgproxy is running on (default 8000) |
+| --whois | BIRDLG_WHOIS | whois server for queries (default "whois.verisign-grs.com") |
+| --dns-interface | BIRDLG_DNS_INTERFACE | dns zone to query ASN information (default "asn.cymru.com") |
+| --title-brand | BIRDLG_TITLE_BRAND | prefix of page titles in browser tabs (default "Bird-lg Go") |
+| --navbar-brand | BIRDLG_NAVBAR_BRAND | brand to show in the navigation bar (default "Bird-lg Go") |
 
 Example: the following command starts the frontend with 2 BIRD nodes, with domain name "gigsgigscloud.dn42.lantian.pub" and "hostdare.dn42.lantian.pub", and proxies are running on port 8000 on both nodes.
 
@@ -50,18 +57,18 @@ The proxy directory contains the code for the "proxy" for bird commands and trac
 
 Features implemented:
 
-- Sending queries to BIRD and BIRD6
-  - If you are using BIRDv2, simply point both `--bird` and `--bird6` to the only socket file of BIRDv2
+- Sending queries to BIRD
 - Sending "restrict" command to BIRD to prevent unauthorized changes
 - Executing traceroute command on Linux, FreeBSD and OpenBSD
 - Source IP restriction
 
 Usage: all configuration is done via commandline parameters or environment variables, no config file.
 
-- --allowed / ALLOWED_IPS: IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "")
-- --bird / BIRD_SOCKET: socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl")
-- --bird6 / BIRD6_SOCKET: socket file for bird6, set either in parameter or environment variable BIRD6_SOCKET (default "/var/run/bird/bird6.ctl")
-- --listen / BIRDLG_LISTEN: listen address, set either in parameter or environment variable BIRDLG_LISTEN (default ":8000")
+| Parameter | Environment Variable | Description |
+| --------- | -------------------- | ----------- |
+| --allowed | ALLOWED_IPS | IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "") |
+| --bird | BIRD_SOCKET | socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl") |
+| --listen | BIRDLG_LISTEN | listen address, set either in parameter or environment variable BIRDLG_LISTEN (default ":8000") |
 
 Example: start proxy with default configuration, should work "out of the box" on Debian 9 with BIRDv1:
 
@@ -69,7 +76,7 @@ Example: start proxy with default configuration, should work "out of the box" on
 
 Example: start proxy with custom bird socket location:
 
-    ./proxy --bird /run/bird.ctl --bird6 /run/bird6.ctl
+    ./proxy --bird /run/bird.ctl
 
 Example: the following docker-compose.yml entry does the same as above, but by starting a Docker container:
 
@@ -79,7 +86,6 @@ Example: the following docker-compose.yml entry does the same as above, but by s
       restart: always
       volumes:
         - "/run/bird.ctl:/var/run/bird/bird.ctl"
-        - "/run/bird6.ctl:/var/run/bird/bird6.ctl"
       ports:
         - "192.168.0.1:8000:8000"
 
@@ -88,6 +94,7 @@ You can use source IP restriction to increase security. You should also bind the
 Credits
 -------
 
+- Everyone who contributed to this project (see Contributors section on the right)
 - Mehdi Abaakouk for creating [the original bird-lg project](https://github.com/sileht/bird-lg)
 - [Bootstrap](https://getbootstrap.com/) as web UI framework
 
@@ -95,4 +102,3 @@ License
 -------
 
 GPL 3.0
-
