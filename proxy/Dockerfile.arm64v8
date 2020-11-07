@@ -1,15 +1,23 @@
-FROM multiarch/debian-debootstrap:arm64-buster
-
-LABEL Lan Tian "lantian@lantian.pub"
-ENV GOOS=linux GOARCH=arm64
+FROM golang:buster AS step_0
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on
 WORKDIR /root
 COPY . .
-RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y golang git traceroute locales busybox \
-  && cd /root && go get github.com/gorilla/handlers && go build -o /proxy \
-  && cd / && rm -rf /root/* \
-  && printf "en_US.UTF-8 UTF-8\nzh_CN.UTF-8 UTF-8\n" > /etc/locale.gen \
-  && locale-gen \
-  && apt-get -qq purge -y golang git \
-  && apt-get -qq autoremove --purge -y && apt-get clean && rm -rf /var/lib/apt/lists
+RUN go build -o /proxy
 
+FROM arm64v8/debian:sid AS step_1
+ENV TARGET_ARCH=arm64
+WORKDIR /root
+RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \
+        build-essential musl-dev musl-tools tar wget git
+RUN git clone https://github.com/sabotage-linux/kernel-headers.git
+RUN wget https://sourceforge.net/projects/traceroute/files/traceroute/traceroute-2.1.0/traceroute-2.1.0.tar.gz/download \
+        -O traceroute-2.1.0.tar.gz
+RUN tar xvf traceroute-2.1.0.tar.gz \
+    && cd traceroute-2.1.0 \
+    && make -j4 CC=musl-gcc CFLAGS="-I/root/kernel-headers/${TARGET_ARCH}/include" LDFLAGS="-static"
+
+FROM scratch AS step_2
+ENV PATH=/
+COPY --from=step_0 /proxy /
+COPY --from=step_1 /root/traceroute-2.1.0/traceroute/traceroute /
 ENTRYPOINT ["/proxy"]
