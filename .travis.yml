@@ -8,10 +8,14 @@ env:
   - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=amd64
   - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=arm32v7
   - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=arm64v8
+  - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=ppc64le
+  - PROGRAM=frontend    IMAGE_NAME=bird-lg-go       IMAGE_ARCH=s390x
   - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=i386
   - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=amd64
   - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=arm32v7
   - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=arm64v8
+  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=ppc64le
+  - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=s390x
 
 install:
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset
