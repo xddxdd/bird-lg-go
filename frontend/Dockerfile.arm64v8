@@ -1,13 +1,9 @@
-FROM multiarch/debian-debootstrap:arm64-buster
-
-LABEL Lan Tian "lantian@lantian.pub"
-ENV GOOS=linux GOARCH=arm64
+FROM golang:buster AS step_0
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on
 WORKDIR /root
 COPY . .
-RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y golang git \
-  && cd /root && go get github.com/gorilla/handlers && go build -o /frontend \
-  && cd / && rm -rf /root/* \
-  && apt-get -qq purge -y golang git \
-  && apt-get -qq autoremove --purge -y && apt-get clean && rm -rf /var/lib/apt/lists
+RUN go build -o /frontend
 
+FROM scratch AS step_1
+COPY --from=step_0 /frontend /
 ENTRYPOINT ["/frontend"]
