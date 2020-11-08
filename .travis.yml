@@ -17,8 +17,14 @@ env:
   - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=ppc64le
   - PROGRAM=proxy       IMAGE_NAME=bird-lgproxy-go  IMAGE_ARCH=s390x
 
+addons:
+  apt:
+    update: true
+    packages:
+      - qemu-user-static
+      - binfmt-support
+
 install:
-  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 script:
