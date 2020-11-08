@@ -4,7 +4,7 @@ WORKDIR /root
 COPY . .
 RUN go build -o /proxy
 
-FROM ppc64le/debian:sid AS step_1
+FROM ppc64le/debian AS step_1
 ENV TARGET_ARCH=ppc64le
 WORKDIR /root
 RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \

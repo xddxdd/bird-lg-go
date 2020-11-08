@@ -4,7 +4,7 @@ WORKDIR /root
 COPY . .
 RUN go build -o /proxy
 
-FROM amd64/debian:sid AS step_1
+FROM amd64/debian AS step_1
 ENV TARGET_ARCH=x86_64
 WORKDIR /root
 RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \

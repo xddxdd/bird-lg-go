@@ -4,7 +4,7 @@ WORKDIR /root
 COPY . .
 RUN go build -o /proxy
 
-FROM arm32v7/debian:sid AS step_1
+FROM arm32v7/debian AS step_1
 ENV TARGET_ARCH=arm
 WORKDIR /root
 RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \

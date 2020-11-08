@@ -4,7 +4,7 @@ WORKDIR /root
 COPY . .
 RUN go build -o /proxy
 
-FROM s390x/debian:sid AS step_1
+FROM s390x/debian AS step_1
 ENV TARGET_ARCH=s390
 WORKDIR /root
 RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \
