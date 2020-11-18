@@ -30,34 +30,16 @@ func birdReadln(bird io.Reader, w io.Writer) bool {
 	// print(string(c[:]))
 
 	// Remove preceding status number, different situations
-	if pos < 4 {
-		// Line is too short to have a status number
-		if w != nil {
-			pos = 0
-			for c[pos] == byte(' ') {
-				pos++
-			}
-			w.Write(c[pos:])
-		}
-		return true
-	} else if isNumeric(c[0]) && isNumeric(c[1]) && isNumeric(c[2]) && isNumeric(c[3]) {
+	if pos > 4 && isNumeric(c[0]) && isNumeric(c[1]) && isNumeric(c[2]) && isNumeric(c[3]) {
 		// There is a status number at beginning, remove first 5 bytes
 		if w != nil && pos > 6 {
 			pos = 5
-			for c[pos] == byte(' ') {
-				pos++
-			}
 			w.Write(c[pos:])
 		}
 		return c[0] != byte('0') && c[0] != byte('8') && c[0] != byte('9')
 	} else {
-		// There is no status number, only remove preceding spaces
 		if w != nil {
-			pos = 0
-			for c[pos] == byte(' ') {
-				pos++
-			}
-			w.Write(c[pos:])
+			w.Write(c[1:])
 		}
 		return true
 	}
