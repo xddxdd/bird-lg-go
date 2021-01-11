@@ -1,38 +1,68 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"html"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
+	"github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/handlers"
 )
 
-func webHandlerWhois(w http.ResponseWriter, r *http.Request) {
-	var target string = r.URL.Path[len("/whois/"):]
+var primitiveMap = map[string]string{
+	"summary":         "show protocols",
+	"detail":          "show protocols all %s",
+	"route":           "show route for %s",
+	"route_all":       "show route for %s all",
+	"route_where":     "show route where net ~ [ %s ]",
+	"route_where_all": "show route where net ~ [ %s ] all",
+	"route_generic":   "show route %s",
+	"generic":         "show %s",
+	"traceroute":      "%s",
+}
 
-	renderTemplate(
+// serve up a generic error
+func serverError(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte("500 Internal Server Error"))
+}
+
+// WHOIS pages
+func webHandlerWhois(w http.ResponseWriter, r *http.Request) {
+	target, err := url.PathUnescape(r.URL.Path[len("/whois/"):])
+	if err != nil {
+		serverError(w, r)
+		return
+	}
+
+	// render the whois template
+	args := TemplateWhois{
+		Target: target,
+		Result: smartFormatter(whois(target)),
+	}
+
+	tmpl := TemplateLibrary["whois"]
+	var buffer bytes.Buffer
+	err = tmpl.Execute(&buffer, args)
+	if err != nil {
+		fmt.Println("Error rendering whois template:", err.Error())
+	}
+
+	renderPageTemplate(
 		w, r,
 		" - whois "+html.EscapeString(target),
-		"<h2>whois "+html.EscapeString(target)+"</h2>"+smartFormatter(whois(target)),
+		buffer.String(),
 	)
 }
 
+// serve up results from bird
 func webBackendCommunicator(endpoint string, command string) func(w http.ResponseWriter, r *http.Request) {
-	backendCommandPrimitive, commandPresent := (map[string]string{
-		"summary":         "show protocols",
-		"detail":          "show protocols all %s",
-		"route":           "show route for %s",
-		"route_all":       "show route for %s all",
-		"route_where":     "show route where net ~ [ %s ]",
-		"route_where_all": "show route where net ~ [ %s ] all",
-		"route_generic":   "show route %s",
-		"generic":         "show %s",
-		"traceroute":      "%s",
-	})[command]
 
+	backendCommandPrimitive, commandPresent := primitiveMap[command]
 	if !commandPresent {
 		panic("invalid command: " + command)
 	}
@@ -41,7 +71,12 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 		split := strings.SplitN(r.URL.Path[1:], "/", 3)
 		var urlCommands string
 		if len(split) >= 3 {
-			urlCommands = split[2]
+			tmp, err := url.PathUnescape(split[2])
+			if err != nil {
+				serverError(w, r)
+				return
+			}
+			urlCommands = tmp
 		}
 
 		var backendCommand string
@@ -52,26 +87,50 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 		}
 		backendCommand = strings.TrimSpace(backendCommand)
 
-		var servers []string = strings.Split(split[1], "+")
+		escapedServers, err := url.PathUnescape(split[1])
+		if err != nil {
+			serverError(w, r)
+			return
+		}
+		servers := strings.Split(escapedServers, "+")
+
 		var responses []string = batchRequest(servers, endpoint, backendCommand)
-		var result string
+		var content string
 		for i, response := range responses {
-			result += "<h2>" + html.EscapeString(servers[i]) + ": " + html.EscapeString(backendCommand) + "</h2>"
+
+			var result string
 			if (endpoint == "bird") && backendCommand == "show protocols" && len(response) > 4 && strings.ToLower(response[0:4]) == "name" {
-				result += summaryTable(response, servers[i])
+				result = summaryTable(response, servers[i])
 			} else {
-				result += smartFormatter(response)
+				result = smartFormatter(response)
 			}
+
+			// render the bird result template
+			args := TemplateBird{
+				ServerName: servers[i],
+				Target:     backendCommand,
+				Result:     result,
+			}
+
+			tmpl := TemplateLibrary["bird"]
+			var buffer bytes.Buffer
+			err := tmpl.Execute(&buffer, args)
+			if err != nil {
+				fmt.Println("Error rendering bird template:", err.Error())
+			}
+
+			content += buffer.String()
 		}
 
-		renderTemplate(
+		renderPageTemplate(
 			w, r,
 			" - "+html.EscapeString(endpoint+" "+backendCommand),
-			result,
+			content,
 		)
 	}
 }
 
+// bgpmap result
 func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWriter, r *http.Request) {
 	backendCommandPrimitive, commandPresent := (map[string]string{
 		"route_bgpmap":       "show route for %s all",
@@ -95,51 +154,70 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 
 		var servers []string = strings.Split(split[1], "+")
 		var responses []string = batchRequest(servers, endpoint, backendCommand)
-		renderTemplate(
+
+		// render the bgpmap result template
+		args := TemplateBGPmap{
+			Servers: servers,
+			Target:  backendCommand,
+			Result:  birdRouteToGraphviz(servers, responses, urlCommands),
+		}
+
+		tmpl := TemplateLibrary["bgpmap"]
+		var buffer bytes.Buffer
+		err := tmpl.Execute(&buffer, args)
+		if err != nil {
+			fmt.Println("Error rendering bgpmap template:", err.Error())
+		}
+
+		renderPageTemplate(
 			w, r,
 			" - "+html.EscapeString(endpoint+" "+backendCommand),
-			`
-			<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/viz.min.js" crossorigin="anonymous"></script>
-			<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/lite.render.js" crossorigin="anonymous"></script>
-			<script>
-			var viz = new Viz();
-			viz.renderSVGElement(`+"`"+birdRouteToGraphviz(servers, responses, urlCommands)+"`"+`)
-			.then(element => {
-				document.body.appendChild(element);
-			})
-			.catch(error => {
-				document.body.innerHTML = "<pre>"+error+"</pre>"
-			});
-			</script>`,
+			buffer.String(),
 		)
 	}
 }
 
+// redirect from the form input to a path style query
 func webHandlerNavbarFormRedirect(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	if query.Get("action") == "whois" {
-		http.Redirect(w, r, "/"+query.Get("action")+"/"+query.Get("target"), 302)
-	} else if query.Get("action") == "summary" {
-		http.Redirect(w, r, "/"+query.Get("action")+"/"+query.Get("server")+"/", 302)
-	} else {
-		http.Redirect(w, r, "/"+query.Get("action")+"/"+query.Get("server")+"/"+query.Get("target"), 302)
+
+	action := query.Get("action")
+
+	switch action {
+	case "whois":
+		target := url.PathEscape(query.Get("target"))
+		http.Redirect(w, r, "/"+action+"/"+target, 302)
+	case "summary":
+		server := url.PathEscape(query.Get("server"))
+		http.Redirect(w, r, "/"+action+"/"+server+"/", 302)
+	default:
+		server := url.PathEscape(query.Get("server"))
+		target := url.PathEscape(query.Get("target"))
+		http.Redirect(w, r, "/"+action+"/"+server+"/"+target, 302)
 	}
 }
 
-func webHandlerRobotsTxt(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("User-agent: *\nDisallow: /\n"))
-}
-
-func webHandler404(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("404 not found\n"))
-}
-
+// set up routing paths and start webserver
 func webServerStart() {
-	// Start HTTP server
+
+	// redirect main page to all server summary
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/summary/"+strings.Join(setting.servers, "+"), 302)
 	})
+
+	// serve static pages using the AssetFS and bindata
+	fs := http.FileServer(&assetfs.AssetFS{
+		Asset:     Asset,
+		AssetDir:  AssetDir,
+		AssetInfo: AssetInfo,
+		Prefix:    "",
+	})
+
+	http.Handle("/static/", fs)
+	http.Handle("/robots.txt", fs)
+	http.Handle("/favicon.ico", fs)
+
+	// backend routes
 	http.HandleFunc("/summary/", webBackendCommunicator("bird", "summary"))
 	http.HandleFunc("/detail/", webBackendCommunicator("bird", "detail"))
 	http.HandleFunc("/route/", webBackendCommunicator("bird", "route"))
@@ -154,7 +232,7 @@ func webServerStart() {
 	http.HandleFunc("/whois/", webHandlerWhois)
 	http.HandleFunc("/redir", webHandlerNavbarFormRedirect)
 	http.HandleFunc("/telegram/", webHandlerTelegramBot)
-	http.HandleFunc("/robots.txt", webHandlerRobotsTxt)
-	http.HandleFunc("/favicon.ico", webHandler404)
+
+	// Start HTTP server
 	http.ListenAndServe(setting.listen, handlers.LoggingHandler(os.Stdout, http.DefaultServeMux))
 }

@@ -17,3 +17,6 @@
 .DS_Store
 frontend/frontend
 proxy/proxy
+
+# don't include generated bindata file
+frontend/bindata.go
