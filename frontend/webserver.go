@@ -38,7 +38,7 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		split := strings.SplitN(r.URL.Path[1:], "/", 4)
+		split := strings.SplitN(r.URL.Path[1:], "/", 3)
 		var urlCommands string
 		if len(split) >= 3 {
 			urlCommands = split[2]
