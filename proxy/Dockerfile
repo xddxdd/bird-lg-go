@@ -1,11 +1,16 @@
 FROM golang:buster AS step_0
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GO111MODULE=on
+#
+# IMAGE_ARCH is the binary format of the final output
+#
+ARG IMAGE_ARCH=amd64
+#
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=$IMAGE_ARCH GO111MODULE=on
 WORKDIR /root
 COPY . .
-RUN go build -o /proxy
+RUN go build -ldflags "-w -s" -o /proxy
 
-FROM arm64v8/debian AS step_1
-ENV TARGET_ARCH=arm64
+FROM amd64/debian AS step_1
+ENV TARGET_ARCH=x86_64
 WORKDIR /root
 RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y \
         build-essential musl-dev musl-tools tar wget git

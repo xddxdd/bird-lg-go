@@ -31,8 +31,9 @@ script:
   - |
     # Build image
     docker build \
+      --build-arg IMAGE_ARCH=$IMAGE_ARCH \
       -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH \
-      -f $PROGRAM/Dockerfile.$IMAGE_ARCH \
+      -f $PROGRAM/Dockerfile \
       $PROGRAM
 
     # Tag image :{arch} and :{arch}-build{build number}
