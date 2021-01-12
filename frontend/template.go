@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"text/template"
 )
 
@@ -40,6 +41,16 @@ type SummaryRowData struct {
 	MappedState string
 	Since       string
 	Info        string
+}
+
+// utility functions to allow filtering of results in the template
+
+func (r SummaryRowData) NameHasPrefix(prefix string) bool {
+	return strings.HasPrefix(r.Name, prefix)
+}
+
+func (r SummaryRowData) NameContains(prefix string) bool {
+	return strings.Contains(r.Name, prefix)
 }
 
 type TemplateSummary struct {
@@ -94,7 +105,7 @@ func ImportTemplates() {
 	for _, tmpl := range requiredTemplates {
 
 		// extract the template definition from the bindata
-		def := MustAssetString("templates/" + tmpl)
+		def := MustAssetString("templates/" + tmpl + ".tpl")
 
 		// and add it to the template library
 		template, err := template.New(tmpl).Parse(def)
