@@ -1,0 +1,66 @@
+version: 2.1
+
+workflows:
+  docker:
+    jobs:
+      - build
+      - deploy:
+          context:
+            - docker
+          requires:
+            - build
+          matrix:
+            parameters:
+              program: [frontend, proxy]
+              image_arch: [i386, amd64, arm32v7, arm64v8, ppc64le, s390x]
+          filters:
+            branches:
+              only: master
+
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.15
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run: go get -v -t -d ./...
+      - run: go test -v ./...
+  deploy:
+    docker:
+      - image: circleci/golang:1.15
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    parameters:
+      image_arch:
+        type: string
+      program:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Build Docker image
+          environment:
+            IMAGE_ARCH: << parameters.image_arch >>
+            PROGRAM: << parameters.program >>
+          command: |
+            if [ "$PROGRAM" = "frontend" ]; then
+              export IMAGE_NAME="bird-lg-go"
+            else
+              export IMAGE_NAME="bird-lgproxy-go"
+            fi
+
+            docker build \
+              --build-arg IMAGE_ARCH=$IMAGE_ARCH \
+              -t $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH \
+              -f $PROGRAM/Dockerfile \
+              $PROGRAM
+
+            # Tag image :{arch} and :{arch}-build{build number}
+            docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH-build$CIRCLE_BUILD_NUM
+            if [ "$IMAGE_ARCH" = "amd64" ]; then
+              # Tag as latest for amd64 images
+              docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
+              docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:build$CIRCLE_BUILD_NUM
+            fi
+
+            docker push $DOCKER_USERNAME/$IMAGE_NAME
