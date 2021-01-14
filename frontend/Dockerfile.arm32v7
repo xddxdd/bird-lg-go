@@ -1,9 +1,0 @@
-FROM golang:buster AS step_0
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=arm GO111MODULE=on
-WORKDIR /root
-COPY . .
-RUN go build -o /frontend
-
-FROM scratch AS step_1
-COPY --from=step_0 /frontend /
-ENTRYPOINT ["/frontend"]
