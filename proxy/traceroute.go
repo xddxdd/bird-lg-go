@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"net/http"
 	"os/exec"
 	"regexp"
@@ -30,6 +31,7 @@ func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, string) {
 func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 	query := string(httpR.URL.Query().Get("q"))
 	query = strings.TrimSpace(query)
+	query = html.EscapeString(query)
 	if query == "" {
 		invalidHandler(httpW, httpR)
 	} else {
