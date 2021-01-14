@@ -25,6 +25,8 @@ jobs:
     steps:
       - checkout
       - run: go get -v -t -d ./...
+      - run: go get -u github.com/kevinburke/go-bindata/...
+      - run: cd frontend && go generate
       - run: go test -v ./...
   deploy:
     docker:
@@ -37,6 +39,8 @@ jobs:
         type: string
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 19.03.13
       - run:
           name: Build Docker image
           environment:
@@ -55,12 +59,16 @@ jobs:
               -f $PROGRAM/Dockerfile \
               $PROGRAM
 
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
             # Tag image :{arch} and :{arch}-build{build number}
+            docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH
             docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH-build$CIRCLE_BUILD_NUM
+            docker push $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH-build$CIRCLE_BUILD_NUM
             if [ "$IMAGE_ARCH" = "amd64" ]; then
               # Tag as latest for amd64 images
               docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:latest
+              docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
               docker tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_ARCH $DOCKER_USERNAME/$IMAGE_NAME:build$CIRCLE_BUILD_NUM
+              docker push $DOCKER_USERNAME/$IMAGE_NAME:latest
             fi
-
-            docker push $DOCKER_USERNAME/$IMAGE_NAME
