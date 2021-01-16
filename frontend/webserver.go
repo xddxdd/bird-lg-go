@@ -177,26 +177,6 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 	}
 }
 
-// redirect from the form input to a path style query
-func webHandlerNavbarFormRedirect(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-
-	action := query.Get("action")
-
-	switch action {
-	case "whois":
-		target := url.PathEscape(query.Get("target"))
-		http.Redirect(w, r, "/"+action+"/"+target, 302)
-	case "summary":
-		server := url.PathEscape(query.Get("server"))
-		http.Redirect(w, r, "/"+action+"/"+server+"/", 302)
-	default:
-		server := url.PathEscape(query.Get("server"))
-		target := url.PathEscape(query.Get("target"))
-		http.Redirect(w, r, "/"+action+"/"+server+"/"+target, 302)
-	}
-}
-
 // set up routing paths and start webserver
 func webServerStart() {
 
@@ -230,7 +210,6 @@ func webServerStart() {
 	http.HandleFunc("/generic/", webBackendCommunicator("bird", "generic"))
 	http.HandleFunc("/traceroute/", webBackendCommunicator("traceroute", "traceroute"))
 	http.HandleFunc("/whois/", webHandlerWhois)
-	http.HandleFunc("/redir", webHandlerNavbarFormRedirect)
 	http.HandleFunc("/telegram/", webHandlerTelegramBot)
 
 	// Start HTTP server

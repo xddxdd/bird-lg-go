@@ -41,7 +41,7 @@
 		{{ if .IsWhois }}
 			{{ $target = .WhoisTarget }}
 		{{ end }}
-		<form class="form-inline" action="/redir" method="GET">
+		<form name="goto" class="form-inline" action="javascript:goto();">
 			<div class="input-group">
 				<select name="action" class="form-control">
 					{{ range $k, $v := .Options }}
@@ -64,5 +64,24 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.1/dist/js/bootstrap.min.js" integrity="sha256-0IiaoZCI++9oAAvmCb5Y0r93XkuhvJpRalZLffQXLok=" crossorigin="anonymous"></script>
+
+<script>
+function goto() {
+	let action = encodeURIComponent($('[name="action"]').val());
+	let server = encodeURIComponent($('[name="server"]').val());
+	let target = encodeURIComponent($('[name="target"]').val());
+	let url = "";
+
+	if (action == "whois") {
+		url = "/" + action + "/" + target;
+	} else if (action == "summary") {
+		url = "/" + action + "/" + server + "/";
+	} else {
+		url = "/" + action + "/" + server + "/" + target;
+	}
+
+	window.location.href = url;
+}
+</script>
 </body>
 </html>
