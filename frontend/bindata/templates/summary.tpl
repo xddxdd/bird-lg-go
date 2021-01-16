@@ -9,12 +9,12 @@
   <tbody>
 {{ range .Rows }}
     <tr class="table-{{ .MappedState }}">
-      <td><a href="/detail/{{ $ServerName }}/{{ urlquery .Name }}">{{ html .Name }}</a></td>
-      <td>{{ .Proto }}</td>
-      <td>{{ .Table }}</td>
-      <td>{{ .State }}</td>
-      <td>{{ .Since }}</td>
-      <td>{{ .Info  }}</td>
+      <td><a href="/detail/{{ urlquery $ServerName }}/{{ urlquery .Name }}">{{ html .Name }}</a></td>
+      <td>{{ html .Proto }}</td>
+      <td>{{ html .Table }}</td>
+      <td>{{ html .State }}</td>
+      <td>{{ html .Since }}</td>
+      <td>{{ html .Info  }}</td>
     </tr>
 {{ end }}
   </tbody>

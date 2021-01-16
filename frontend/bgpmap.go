@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"net"
 	"strings"
 )
@@ -24,7 +25,7 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 	graph := make(map[string]string)
 	// Helper to add an edge
 	addEdge := func(src string, dest string, attr string) {
-		key := "\"" + src + "\" -> \"" + dest + "\""
+		key := "\"" + html.EscapeString(src) + "\" -> \"" + html.EscapeString(dest) + "\""
 		_, present := graph[key]
 		// Do not remove edge's attributes if it's already present
 		if present && len(attr) == 0 {
@@ -34,7 +35,7 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 	}
 	// Helper to set attribute for a point in graph
 	addPoint := func(name string, attr string) {
-		key := "\"" + name + "\""
+		key := "\"" + html.EscapeString(name) + "\""
 		_, present := graph[key]
 		// Do not remove point's attributes if it's already present
 		if present && len(attr) == 0 {

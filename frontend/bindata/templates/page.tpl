@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="renderer" content="webkit">
-<title>{{ .Title }}</title>
+<title>{{ html .Title }}</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.1/dist/css/bootstrap.min.css" integrity="sha256-VoFZSlmyTXsegReQCNmbXrS4hBBUl/cexZvPmPWoJsY=" crossorigin="anonymous">
 <meta name="robots" content="noindex, nofollow">
 </head>
@@ -29,12 +29,12 @@
 		<ul class="navbar-nav mr-auto">
 			<li class="nav-item">
 				<a class="nav-link{{ if .AllServersLinkActive }} active{{ end }}"
-					href="/{{ $option }}/{{ .AllServersURL }}/{{ $target }}"> All Servers </a>
+					href="/{{ urlquery $option }}/{{ urlquery .AllServersURL }}/{{ urlquery $target }}"> All Servers </a>
 			</li>
 			{{ range $k, $v := .Servers }}
 			<li class="nav-item">
 				<a class="nav-link{{ if eq $server $v }} active{{ end }}"
-					href="/{{ $option }}/{{ $v }}/{{ $target }}">{{ $v }}</a>
+					href="/{{ urlquery $option }}/{{ urlquery $v }}/{{ urlquery $target }}">{{ html $v }}</a>
 			</li>
 			{{ end }}
 		</ul>
@@ -45,11 +45,11 @@
 			<div class="input-group">
 				<select name="action" class="form-control">
 					{{ range $k, $v := .Options }}
-					<option value="{{ $k }}"{{ if eq $k $.URLOption }} selected{{end}}>{{ $v }}</option>
+					<option value="{{ html $k }}"{{ if eq $k $.URLOption }} selected{{end}}>{{ html $v }}</option>
 					{{ end }}
 				</select>
-				<input name="server" class="d-none" value="{{ $server }}">
-				<input name="target" class="form-control" placeholder="Target" aria-label="Target" value="{{ $target }}">
+				<input name="server" class="d-none" value="{{ html $server }}">
+				<input name="target" class="form-control" placeholder="Target" aria-label="Target" value="{{ html $target }}">
 				<div class="input-group-append">
 					<button class="btn btn-outline-success" type="submit">&raquo;</button>
 				</div>

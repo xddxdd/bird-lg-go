@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"text/template"
 )
 
 // static options map
@@ -81,6 +82,7 @@ func renderPageTemplate(w http.ResponseWriter, r *http.Request, title string, co
 func smartFormatter(s string) string {
 	var result string
 	result += "<pre>"
+	s = template.HTMLEscapeString(s)
 	for _, line := range strings.Split(s, "\n") {
 		var lineFormatted string
 		if strings.HasPrefix(strings.TrimSpace(line), "BGP.as_path:") || strings.HasPrefix(strings.TrimSpace(line), "Neighbor AS:") || strings.HasPrefix(strings.TrimSpace(line), "Local AS:") {
@@ -103,7 +105,7 @@ func summaryTable(data string, serverName string) string {
 	lines := strings.Split(strings.TrimSpace(data), "\n")
 	if len(lines) <= 1 {
 		// Likely backend returned an error message
-		return "<pre>" + strings.TrimSpace(data) + "</pre>"
+		return "<pre>" + template.HTMLEscapeString(strings.TrimSpace(data)) + "</pre>"
 	}
 
 	args := TemplateSummary{

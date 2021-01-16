@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/elazarl/go-bindata-assetfs"
+	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/handlers"
 )
 
@@ -124,7 +124,7 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 
 		renderPageTemplate(
 			w, r,
-			" - "+html.EscapeString(endpoint+" "+backendCommand),
+			" - "+endpoint+" "+backendCommand,
 			content,
 		)
 	}
