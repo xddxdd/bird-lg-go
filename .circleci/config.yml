@@ -21,7 +21,7 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.15
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/xddxdd/bird-lg-go
     steps:
       - checkout
       - run: go get -v -t -d ./...
@@ -31,7 +31,7 @@ jobs:
   deploy:
     docker:
       - image: circleci/golang:1.15
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/xddxdd/bird-lg-go
     parameters:
       image_arch:
         type: string
