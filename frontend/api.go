@@ -28,10 +28,11 @@ type apiResponse struct {
 }
 
 var apiHandlerMap = map[string](func(request apiRequest) apiResponse){
-	"summary":    apiSummaryHandler,
-	"bird":       apiGenericHandlerFactory("bird"),
-	"traceroute": apiGenericHandlerFactory("traceroute"),
-	"whois":      apiWhoisHandler,
+	"summary":     apiSummaryHandler,
+	"bird":        apiGenericHandlerFactory("bird"),
+	"traceroute":  apiGenericHandlerFactory("traceroute"),
+	"whois":       apiWhoisHandler,
+	"server_list": apiServerListHandler,
 }
 
 func apiGenericHandlerFactory(endpoint string) func(request apiRequest) apiResponse {
@@ -48,6 +49,18 @@ func apiGenericHandlerFactory(endpoint string) func(request apiRequest) apiRespo
 
 		return response
 	}
+}
+
+func apiServerListHandler(request apiRequest) apiResponse {
+	var response apiResponse
+
+	for _, server := range setting.servers {
+		response.Result = append(response.Result, apiGenericResultPair{
+			Server: server,
+		})
+	}
+
+	return response
 }
 
 func apiSummaryHandler(request apiRequest) apiResponse {
