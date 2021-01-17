@@ -1,12 +1,34 @@
-Bird-lg-go
-==========
+# Bird-lg-go
 
 An alternative implementation for [bird-lg](https://github.com/sileht/bird-lg) written in Go. Both frontend and backend (proxy) are implemented, and can work with either the original Python implementation or the Go implementation.
 
 > The code on master branch no longer support BIRDv1. Branch "bird1" is the last version that supports BIRDv1.
 
-Frontend
---------
+## Table of Contents
+
+   * [Bird-lg-go](#bird-lg-go)
+      * [Table of Contents](#table-of-contents)
+      * [Frontend](#frontend)
+      * [Proxy](#proxy)
+      * [Advanced Features](#advanced-features)
+         * [API](#api)
+            * [Request fields](#request-fields)
+            * [Response fields (when type is summary)](#response-fields-when-type-is-summary)
+               * [Fields for apiSummaryResultPair](#fields-for-apisummaryresultpair)
+               * [Fields for SummaryRowData](#fields-for-summaryrowdata)
+               * [Example response](#example-response)
+            * [Response fields (when type is bird, traceroute or whois)](#response-fields-when-type-is-bird-traceroute-or-whois)
+               * [Fields for apiGenericResultPair](#fields-for-apigenericresultpair)
+               * [Example response](#example-response-1)
+         * [Telegram Bot Webhook](#telegram-bot-webhook)
+            * [Example of setting the webhook](#example-of-setting-the-webhook)
+            * [Supported commands](#supported-commands)
+      * [Credits](#credits)
+      * [License](#license)
+
+Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
+## Frontend
 
 The frontend directory contains the code for the web frontend, where users see BGP states, do traceroutes and whois, etc. It's a replacement for "lg.py" in original bird-lg project.
 
@@ -50,8 +72,7 @@ Example: the following docker-compose.yml entry does the same as above, but by s
 
 Demo: https://lg.lantian.pub
 
-Proxy
------
+## Proxy
 
 The proxy directory contains the code for the "proxy" for bird commands and traceroutes. It's a replacement for "lgproxy.py" in original bird-lg project.
 
@@ -91,14 +112,185 @@ Example: the following docker-compose.yml entry does the same as above, but by s
 
 You can use source IP restriction to increase security. You should also bind the proxy to a specific interface and use an external firewall/iptables for added security.
 
-Credits
--------
+## Advanced Features
+
+### API
+
+The frontend provides an API for running BIRD/traceroute/whois queries.
+
+API Endpoint: `https://your.frontend.com:5000/api/` (the last slash must not be omitted!)
+
+Requests are sent as POSTS with JSON bodies.
+
+#### Request fields
+
+| Name | Type | Value |
+| ---- | ---- | -------- |
+| `servers` | `[]string` | List of servers to be queried |
+| `type` | `string` | Can be `summary`, `bird`, `traceroute` or `whois` |
+| `args` | `string` | Arguments to be passed, see below |
+
+Argument examples for each type:
+
+- `summary`: `args` is ignored. Recommended to set to empty string.
+- `bird`: `args` is the command to be passed to bird, e.g. `show route for 8.8.8.8`
+- `traceroute`: `args` is the traceroute target, e.g. `8.8.8.8` or `google.com`
+- `whois`: `args` is the whois target, e.g. `8.8.8.8` or `google.com`
+
+Example request:
+
+```json
+{
+    "servers": [
+        "alpha"
+    ],
+    "type": "bird",
+    "args": "show route for 8.8.8.8"
+}
+```
+
+#### Response fields (when `type` is `summary`)
+
+| Name | Type | Value |
+| ---- | ---- | -------- |
+| `error` | `string` | Error message when something is wrong. Empty when everything good |
+| `result` | array of `apiSummaryResultPair` | See below |
+
+##### Fields for `apiSummaryResultPair`
+
+| Name | Type | Value |
+| ---- | ---- | -------- |
+| `server` | `string` | Name of the server |
+| `data` | array of `SummaryRowData` | Summaries of the server, see below |
+
+##### Fields for `SummaryRowData`
+
+All fields below is 1:1 correspondent to the output of `birdc show protocols`.
+
+| Name | Type |
+| ---- | ---- |
+| `name` | `string` |
+| `proto` | `string` |
+| `table` | `string` |
+| `state` | `string` |
+| `since` | `string` |
+| `info` | `string` |
+
+##### Example response
+
+Request:
+```json
+{
+    "servers": [
+        "alpha"
+    ],
+    "type": "summary",
+    "args": ""
+}
+```
+
+Response:
+
+```json
+{
+    "error": "",
+    "result": [
+        {
+            "server": "alpha",
+            "data": [
+                {
+                    "name": "bgp1",
+                    "proto": "BGP",
+                    "table": "---",
+                    "state": "start",
+                    "since": "2021-01-15 22:40:01",
+                    "info": "Active        Socket: Operation timed out"
+                },
+                {
+                    "name": "bgp2",
+                    "proto": "BGP",
+                    "table": "---",
+                    "state": "start",
+                    "since": "2021-01-03 08:15:48",
+                    "info": "Established"
+                }
+            ]
+        }
+    ]
+}
+```
+
+#### Response fields (when `type` is `bird`, `traceroute` or `whois`)
+
+| Name | Type | Value |
+| ---- | ---- | -------- |
+| `error` | `string` | Error message, empty when everything is good |
+| `result` | array of `apiGenericResultPair` | See below |
+
+##### Fields for `apiGenericResultPair`
+
+| Name | Type | Value |
+| ---- | ---- | -------- |
+| `server` | `string` | Name of the server; is empty when type is `whois` |
+| `data` | `string` | Result from the server |
+
+##### Example response
+
+Request:
+
+```json
+{
+    "servers": [
+        "alpha"
+    ],
+    "type": "bird",
+    "args": "show status"
+}
+```
+
+Response:
+
+```json
+{
+    "error": "",
+    "result": [
+        {
+            "server": "alpha",
+            "data": "BIRD v2.0.7-137-g61dae32b\nRouter ID is 1.2.3.4\nCurrent server time is 2021-01-17 04:21:14.792\nLast reboot on 2021-01-03 08:15:48.494\nLast reconfiguration on 2021-01-17 00:49:10.573\nDaemon is up and running\n"
+        }
+    ]
+}
+```
+
+### Telegram Bot Webhook
+
+The frontend can act as a Telegram Bot webhook endpoint, to add BGP route/traceroute/whois lookup functionality to your tech group.
+
+There is no configuration necessary on the frontend, just start it up normally.
+
+Set your Telegram Bot webhook URL to `https://your.frontend.com:5000/telegram/alpha+beta+gamma`, where `alpha+beta+gamma` is the list of servers to be queried on Telegram commands, separated by `+`.
+
+You may omit `alpha+beta+gamma` to use all your servers, but it is not recommended when you have lots of servers, or the message would be too long and hard to read.
+
+#### Example of setting the webhook
+
+```bash
+curl "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=https://your.frontend.com:5000/telegram/alpha+beta+gamma"
+```
+
+#### Supported commands
+
+- `path`: Show bird's ASN path to target IP
+- `route`: Show bird's preferred route to target IP
+- `trace`: Traceroute to target IP/domain
+- `whois`: Whois query
+
+## Credits
 
 - Everyone who contributed to this project (see Contributors section on the right)
 - Mehdi Abaakouk for creating [the original bird-lg project](https://github.com/sileht/bird-lg)
 - [Bootstrap](https://getbootstrap.com/) as web UI framework
 
-License
--------
+## License
 
 GPL 3.0

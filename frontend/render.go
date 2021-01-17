@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -99,18 +100,17 @@ func smartFormatter(s string) string {
 	return result
 }
 
-// Output a table for the summary page
-func summaryTable(data string, serverName string) string {
+// Parse bird show protocols result
+func summaryParse(data string, serverName string) (TemplateSummary, error) {
+	args := TemplateSummary{
+		ServerName: serverName,
+		Raw:        data,
+	}
 
 	lines := strings.Split(strings.TrimSpace(data), "\n")
 	if len(lines) <= 1 {
 		// Likely backend returned an error message
-		return "<pre>" + template.HTMLEscapeString(strings.TrimSpace(data)) + "</pre>"
-	}
-
-	args := TemplateSummary{
-		ServerName: serverName,
-		Raw:        data,
+		return args, errors.New(strings.TrimSpace(data))
 	}
 
 	// extract the table header
@@ -167,10 +167,21 @@ func summaryTable(data string, serverName string) string {
 		args.Rows = append(args.Rows, row)
 	}
 
-	// finally, render the summary template
+	return args, nil
+}
+
+// Output a table for the summary page
+func summaryTable(data string, serverName string) string {
+	result, err := summaryParse(data, serverName)
+
+	if err != nil {
+		return "<pre>" + template.HTMLEscapeString(err.Error()) + "</pre>"
+	}
+
+	// render the summary template
 	tmpl := TemplateLibrary["summary"]
 	var buffer bytes.Buffer
-	err := tmpl.Execute(&buffer, args)
+	err = tmpl.Execute(&buffer, result)
 	if err != nil {
 		fmt.Println("Error rendering summary:", err.Error())
 	}

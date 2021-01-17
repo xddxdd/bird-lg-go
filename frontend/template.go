@@ -32,15 +32,14 @@ type TemplatePage struct {
 }
 
 // summary
-
 type SummaryRowData struct {
-	Name        string
-	Proto       string
-	Table       string
-	State       string
-	MappedState string
-	Since       string
-	Info        string
+	Name        string `json:"name"`
+	Proto       string `json:"proto"`
+	Table       string `json:"table"`
+	State       string `json:"state"`
+	MappedState string `json:"-"`
+	Since       string `json:"since"`
+	Info        string `json:"info"`
 }
 
 // utility functions to allow filtering of results in the template

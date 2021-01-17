@@ -210,6 +210,7 @@ func webServerStart() {
 	http.HandleFunc("/generic/", webBackendCommunicator("bird", "generic"))
 	http.HandleFunc("/traceroute/", webBackendCommunicator("traceroute", "traceroute"))
 	http.HandleFunc("/whois/", webHandlerWhois)
+	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/telegram/", webHandlerTelegramBot)
 
 	// Start HTTP server
