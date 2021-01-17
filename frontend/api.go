@@ -107,6 +107,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
 	bytes, err := json.Marshal(response)
 	if err != nil {
 		println(err.Error())
