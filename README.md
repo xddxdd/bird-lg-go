@@ -118,7 +118,7 @@ You can use source IP restriction to increase security. You should also bind the
 
 The frontend provides an API for running BIRD/traceroute/whois queries.
 
-API Endpoint: `https://your.frontend.com:5000/api/` (the last slash must not be omitted!)
+API Endpoint: `https://your.frontend.com/api/` (the last slash must not be omitted!)
 
 Requests are sent as POSTS with JSON bodies.
 
@@ -126,7 +126,7 @@ Requests are sent as POSTS with JSON bodies.
 
 | Name | Type | Value |
 | ---- | ---- | -------- |
-| `servers` | `[]string` | List of servers to be queried |
+| `servers` | array of `string` | List of servers to be queried |
 | `type` | `string` | Can be `summary`, `bird`, `traceroute` or `whois` |
 | `args` | `string` | Arguments to be passed, see below |
 
@@ -153,7 +153,7 @@ Example request:
 
 | Name | Type | Value |
 | ---- | ---- | -------- |
-| `error` | `string` | Error message when something is wrong. Empty when everything good |
+| `error` | `string` | Error message when something is wrong. Empty when everything is good |
 | `result` | array of `apiSummaryResultPair` | See below |
 
 ##### Fields for `apiSummaryResultPair`
@@ -268,7 +268,7 @@ The frontend can act as a Telegram Bot webhook endpoint, to add BGP route/tracer
 
 There is no configuration necessary on the frontend, just start it up normally.
 
-Set your Telegram Bot webhook URL to `https://your.frontend.com:5000/telegram/alpha+beta+gamma`, where `alpha+beta+gamma` is the list of servers to be queried on Telegram commands, separated by `+`.
+Set your Telegram Bot webhook URL to `https://your.frontend.com/telegram/alpha+beta+gamma`, where `alpha+beta+gamma` is the list of servers to be queried on Telegram commands, separated by `+`.
 
 You may omit `alpha+beta+gamma` to use all your servers, but it is not recommended when you have lots of servers, or the message would be too long and hard to read.
 
