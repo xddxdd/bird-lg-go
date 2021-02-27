@@ -29,12 +29,12 @@
 		<ul class="navbar-nav mr-auto">
 			<li class="nav-item">
 				<a class="nav-link{{ if .AllServersLinkActive }} active{{ end }}"
-					href="/{{ urlquery $option }}/{{ urlquery .AllServersURL }}/{{ urlquery $target }}"> All Servers </a>
+					href="/{{ $option }}/{{ .AllServersURL }}/{{ $target }}"> All Servers </a>
 			</li>
 			{{ range $k, $v := .Servers }}
 			<li class="nav-item">
 				<a class="nav-link{{ if eq $server $v }} active{{ end }}"
-					href="/{{ urlquery $option }}/{{ urlquery $v }}/{{ urlquery $target }}">{{ html $v }}</a>
+					href="/{{ $option }}/{{ $v }}/{{ $target }}">{{ html $v }}</a>
 			</li>
 			{{ end }}
 		</ul>
@@ -67,9 +67,9 @@
 
 <script>
 function goto() {
-	let action = encodeURIComponent($('[name="action"]').val());
-	let server = encodeURIComponent($('[name="server"]').val());
-	let target = encodeURIComponent($('[name="target"]').val());
+	let action = $('[name="action"]').val();
+	let server = $('[name="server"]').val();
+	let target = $('[name="target"]').val();
 	let url = "";
 
 	if (action == "whois") {

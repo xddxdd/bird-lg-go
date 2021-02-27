@@ -9,7 +9,7 @@
   <tbody>
 {{ range .Rows }}
     <tr class="table-{{ .MappedState }}">
-      <td><a href="/detail/{{ urlquery $ServerName }}/{{ urlquery .Name }}">{{ html .Name }}</a></td>
+      <td><a href="/detail/{{ $ServerName }}/{{ urlquery .Name }}">{{ html .Name }}</a></td>
       <td>{{ html .Proto }}</td>
       <td>{{ html .Table }}</td>
       <td>{{ html .State }}</td>
