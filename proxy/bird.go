@@ -59,7 +59,9 @@ func birdHandler(httpW http.ResponseWriter, httpR *http.Request) {
 		// Initialize BIRDv4 socket
 		bird, err := net.Dial("unix", setting.birdSocket)
 		if err != nil {
-			panic(err)
+			httpW.WriteHeader(http.StatusInternalServerError)
+			httpW.Write([]byte(err.Error()))
+			return
 		}
 		defer bird.Close()
 

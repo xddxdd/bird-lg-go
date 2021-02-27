@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"html"
 	"net/http"
 	"os/exec"
 	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/google/shlex"
 )
 
 func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, string) {
@@ -31,10 +32,17 @@ func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, string) {
 func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 	query := string(httpR.URL.Query().Get("q"))
 	query = strings.TrimSpace(query)
-	query = html.EscapeString(query)
+
 	if query == "" {
 		invalidHandler(httpW, httpR)
 	} else {
+		args, err := shlex.Split(query)
+		if err != nil {
+			httpW.WriteHeader(http.StatusInternalServerError)
+			httpW.Write([]byte(fmt.Sprintf("failed to parse args: %s\n", err.Error())))
+			return
+		}
+
 		var result []byte
 		var errString string
 		skippedCounter := 0
@@ -45,7 +53,8 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 					"traceroute",
 				},
 				[][]string{
-					{"-q1", "-w1", query},
+					append([]string{"-q1", "-w1"}, args...),
+					args,
 				},
 			)
 		} else if runtime.GOOS == "linux" {
@@ -55,8 +64,9 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 					"traceroute",
 				},
 				[][]string{
-					{"-q1", "-N32", "-w1", query},
-					{"-q1", "-w1", query},
+					append([]string{"-q1", "-N32", "-w1"}, args...),
+					append([]string{"-q1", "-w1"}, args...),
+					args,
 				},
 			)
 		} else {
