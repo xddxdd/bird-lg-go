@@ -20,3 +20,7 @@ proxy/proxy
 
 # don't include generated bindata file
 frontend/bindata.go
+
+# don't include generated Dockerfiles
+frontend/Dockerfile.*
+proxy/Dockerfile.*
