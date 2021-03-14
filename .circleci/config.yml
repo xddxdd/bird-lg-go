@@ -53,8 +53,9 @@ jobs:
             PROGRAM: << parameters.program >>
             BUILD_ID: << pipeline.number >>
           command: |
-            make _crossbuild
+            make -f Makefile.docker _crossbuild
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-            make DOCKER_USERNAME=$DOCKER_USERNAME \
+            make -f Makefile.docker \
+                 DOCKER_USERNAME=$DOCKER_USERNAME \
                  BUILD_ID=circleci-build$BUILD_ID \
                  $PROGRAM/$IMAGE_ARCH

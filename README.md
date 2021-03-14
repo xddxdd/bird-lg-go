@@ -20,6 +20,28 @@ An alternative implementation for [bird-lg](https://github.com/sileht/bird-lg) w
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
+## Build Instructions
+
+Run `make` to build binaries for both the frontend and the proxy. You need to have Go installed on your machine.
+
+Optionally run `make install` to install them to `/usr/local/bin`.
+
+Or, you can manually do the building steps:
+
+```bash
+# Build frontend binary
+cd frontend
+go get -u github.com/kevinburke/go-bindata/...
+go generate
+go build -ldflags "-w -s" -o frontend
+cd ..
+
+# Build proxy binary
+cd proxy
+go build -ldflags "-w -s" -o proxy
+cd ..
+```
+
 ## Frontend
 
 The frontend directory contains the code for the web frontend, where users see BGP states, do traceroutes and whois, etc. It's a replacement for "lg.py" in original bird-lg project.
