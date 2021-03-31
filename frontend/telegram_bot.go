@@ -138,6 +138,10 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 		commandResult = "empty result"
 	}
 
+	if len(commandResult) > 4096 {
+		commandResult = commandResult[0:4096]
+	}
+
 	// Create a JSON response
 	w.Header().Add("Content-Type", "application/json")
 	response := &tgWebhookResponse{
