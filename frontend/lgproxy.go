@@ -35,7 +35,11 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 			}(i)
 		} else {
 			// Compose URL and send the request
-			url := "http://" + server + "." + setting.domain + ":" + strconv.Itoa(setting.proxyPort) + "/" + url.PathEscape(endpoint) + "?q=" + url.QueryEscape(command)
+			hostname := server
+			if setting.domain != "" {
+				hostname += "." + setting.domain
+			}
+			url := "http://" + hostname + ":" + strconv.Itoa(setting.proxyPort) + "/" + url.PathEscape(endpoint) + "?q=" + url.QueryEscape(command)
 			go func(url string, i int) {
 				response, err := http.Get(url)
 				if err != nil {

@@ -80,8 +80,6 @@ func main() {
 
 	if *serversPtr == "" {
 		panic("no server set")
-	} else if *domainPtr == "" {
-		panic("no base domain set")
 	}
 
 	setting = settingType{
