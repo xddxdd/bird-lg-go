@@ -42,6 +42,8 @@ go build -ldflags "-w -s" -o proxy
 cd ..
 ```
 
+- If you get `undefined: MustAssetString`, you need to uninstall an older version of go-bindata from your machine: see #11
+
 ## Frontend
 
 The frontend directory contains the code for the web frontend, where users see BGP states, do traceroutes and whois, etc. It's a replacement for "lg.py" in original bird-lg project.
