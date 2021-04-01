@@ -42,7 +42,7 @@ go build -ldflags "-w -s" -o proxy
 cd ..
 ```
 
-- If you get `undefined: MustAssetString`, you need to uninstall an older version of go-bindata from your machine: see #11
+- If you get `undefined: MustAssetString`, you need to uninstall an older version of go-bindata from your machine: see [#11](https://github.com/xddxdd/bird-lg-go/issues/11)
 
 ## Frontend
 
