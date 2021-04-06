@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"sort"
 	"strings"
@@ -47,23 +48,28 @@ func renderPageTemplate(w http.ResponseWriter, r *http.Request, title string, co
 	// Use a default URL if the request URL is too short
 	// The URL is for return to summary page
 	if len(split) < 2 {
-		path = "summary/" + strings.Join(setting.servers, "+") + "/"
+		path = "summary/" + url.PathEscape(strings.Join(setting.servers, "+")) + "/"
 	} else if len(split) == 2 {
 		path += "/"
 	}
 
 	split = strings.SplitN(path, "/", 3)
 
+	serversEscaped := map[string]string{}
+	for _, v := range setting.servers {
+		serversEscaped[url.PathEscape(v)] = v
+	}
+
 	args := TemplatePage{
 		Options:              optionsMap,
-		Servers:              setting.servers,
+		Servers:              serversEscaped,
 		AllServersLinkActive: strings.ToLower(split[1]) == strings.ToLower(strings.Join(setting.servers, "+")),
-		AllServersURL:        strings.Join(setting.servers, "+"),
+		AllServersURL:        url.PathEscape(strings.Join(setting.servers, "+")),
 		IsWhois:              isWhois,
 		WhoisTarget:          whoisTarget,
 
 		URLOption:  strings.ToLower(split[0]),
-		URLServer:  strings.ToLower(split[1]),
+		URLServer:  url.PathEscape(strings.ToLower(split[1])),
 		URLCommand: split[2],
 		Title:      setting.titleBrand + title,
 		Brand:      setting.navBarBrand,

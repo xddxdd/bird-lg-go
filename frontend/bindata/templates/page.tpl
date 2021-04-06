@@ -33,8 +33,8 @@
 			</li>
 			{{ range $k, $v := .Servers }}
 			<li class="nav-item">
-				<a class="nav-link{{ if eq $server $v }} active{{ end }}"
-					href="/{{ $option }}/{{ $v }}/{{ $target }}">{{ html $v }}</a>
+				<a class="nav-link{{ if eq $server $k }} active{{ end }}"
+					href="/{{ $option }}/{{ $k }}/{{ $target }}">{{ html $v }}</a>
 			</li>
 			{{ end }}
 		</ul>

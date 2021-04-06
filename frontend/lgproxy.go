@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type channelData struct {
@@ -36,6 +37,10 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 		} else {
 			// Compose URL and send the request
 			hostname := server
+			hostname = url.PathEscape(hostname)
+			if strings.Contains(hostname, ":") {
+				hostname = "[" + hostname + "]"
+			}
 			if setting.domain != "" {
 				hostname += "." + setting.domain
 			}
