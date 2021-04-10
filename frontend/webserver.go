@@ -71,12 +71,7 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 		split := strings.SplitN(r.URL.Path[1:], "/", 3)
 		var urlCommands string
 		if len(split) >= 3 {
-			tmp, err := url.PathUnescape(split[2])
-			if err != nil {
-				serverError(w, r)
-				return
-			}
-			urlCommands = tmp
+			urlCommands = split[2]
 		}
 
 		var backendCommand string
@@ -87,12 +82,7 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 		}
 		backendCommand = strings.TrimSpace(backendCommand)
 
-		escapedServers, err := url.PathUnescape(split[1])
-		if err != nil {
-			serverError(w, r)
-			return
-		}
-		servers := strings.Split(escapedServers, "+")
+		servers := strings.Split(split[1], "+")
 
 		var responses []string = batchRequest(servers, endpoint, backendCommand)
 		var content string
@@ -182,7 +172,7 @@ func webServerStart() {
 
 	// redirect main page to all server summary
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/summary/"+strings.Join(setting.servers, "+"), 302)
+		http.Redirect(w, r, "/summary/"+url.PathEscape(strings.Join(setting.servers, "+")), 302)
 	})
 
 	// serve static pages using the AssetFS and bindata

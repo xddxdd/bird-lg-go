@@ -11,7 +11,7 @@ import (
 type TemplatePage struct {
 	// Global options
 	Options map[string]string
-	Servers []string
+	Servers map[string]string
 
 	// Parameters related to current request
 	AllServersLinkActive bool
