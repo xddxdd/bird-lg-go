@@ -95,9 +95,17 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 				result = smartFormatter(response)
 			}
 
+			serverDisplay := servers[i]
+			for k, v := range setting.servers {
+				if servers[i] == v {
+					serverDisplay = setting.serversDisplay[k]
+					break
+				}
+			}
+
 			// render the bird result template
 			args := TemplateBird{
-				ServerName: servers[i],
+				ServerName: serverDisplay,
 				Target:     backendCommand,
 				Result:     result,
 			}

@@ -31,10 +31,10 @@
 				<a class="nav-link{{ if .AllServersLinkActive }} active{{ end }}"
 					href="/{{ $option }}/{{ .AllServersURL }}/{{ $target }}"> All Servers </a>
 			</li>
-			{{ range $k, $v := .Servers }}
+			{{ range $k, $v := .ServersEscaped }}
 			<li class="nav-item">
-				<a class="nav-link{{ if eq $server $k }} active{{ end }}"
-					href="/{{ $option }}/{{ $k }}/{{ $target }}">{{ html $v }}</a>
+				<a class="nav-link{{ if eq $server $v }} active{{ end }}"
+					href="/{{ $option }}/{{ $v }}/{{ $target }}">{{ html (index $.ServersDisplay $k) }}</a>
 			</li>
 			{{ end }}
 		</ul>

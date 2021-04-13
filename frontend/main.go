@@ -12,6 +12,7 @@ import (
 
 type settingType struct {
 	servers         []string
+	serversDisplay  []string
 	domain          string
 	proxyPort       int
 	whoisServer     string
@@ -82,8 +83,21 @@ func main() {
 		panic("no server set")
 	}
 
+	servers := strings.Split(*serversPtr, ",")
+	serversDisplay := strings.Split(*serversPtr, ",")
+
+	// Split server names of the form "DisplayName<Hostname>"
+	for i, server := range servers {
+		pos := strings.Index(server, "<")
+		if pos != -1 {
+			serversDisplay[i] = server[0:pos]
+			servers[i] = server[pos+1:len(server)-1]
+		}
+	}
+
 	setting = settingType{
-		strings.Split(*serversPtr, ","),
+		servers,
+		serversDisplay,
 		*domainPtr,
 		*proxyPortPtr,
 		*whoisPtr,
