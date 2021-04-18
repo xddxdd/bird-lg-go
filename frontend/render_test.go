@@ -10,6 +10,7 @@ import (
 
 func initSettings() {
 	setting.servers = []string{"alpha"}
+	setting.serversDisplay = []string{"alpha"}
 	setting.titleBrand = "Bird-lg Go"
 	setting.navBarBrand = "Bird-lg Go"
 

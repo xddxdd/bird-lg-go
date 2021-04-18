@@ -130,6 +130,24 @@ You can use source IP restriction to increase security. You should also bind the
 
 ## Advanced Features
 
+### Display names
+
+The server parameter is composed of server name prefixes, separated by comma. It also supports an extended syntax: It allows to define display names for the user interface that are different from the actual server names.
+
+For instance, the two servers from the basic example can be displayed as "Gigs" and "Hostdare" using the following syntax (as known from email addresses):
+
+    ./frontend --servers="Gigs<gigsgigscloud>,Hostdare<hostdare>" --domain=dn42.lantian.pub
+
+### IP addresses
+
+You may also specify IP addresses as server names when no domain is specified. IPv6 link local addresses are supported, too.
+
+For example:
+
+    ./frontend --servers="Prod<prod.mydomain.local>,Test1<fd88:dead:beef::1>,Test2<fe80::c%wg0>" --domain=
+
+These three servers are displayed as "Prod", "Test1" and "Test2" in the user interface. 
+
 ### API
 
 The frontend provides an API for running BIRD/traceroute/whois queries.

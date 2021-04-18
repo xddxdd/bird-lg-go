@@ -55,14 +55,16 @@ func renderPageTemplate(w http.ResponseWriter, r *http.Request, title string, co
 
 	split = strings.SplitN(path, "/", 3)
 
-	serversEscaped := map[string]string{}
-	for _, v := range setting.servers {
-		serversEscaped[url.PathEscape(v)] = v
+	serversEscaped := make([]string, len(setting.servers))
+	for i, v := range setting.servers {
+		serversEscaped[i] = url.PathEscape(v)
 	}
 
 	args := TemplatePage{
 		Options:              optionsMap,
-		Servers:              serversEscaped,
+		Servers:              setting.servers,
+		ServersEscaped:       serversEscaped,
+		ServersDisplay:       setting.serversDisplay,
 		AllServersLinkActive: strings.ToLower(split[1]) == strings.ToLower(strings.Join(setting.servers, "+")),
 		AllServersURL:        url.PathEscape(strings.Join(setting.servers, "+")),
 		IsWhois:              isWhois,
