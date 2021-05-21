@@ -6,19 +6,21 @@ An alternative implementation for [bird-lg](https://github.com/sileht/bird-lg) w
 
 ## Table of Contents
 
-   * [Bird-lg-go](#bird-lg-go)
-      * [Table of Contents](#table-of-contents)
-      * [Frontend](#frontend)
-      * [Proxy](#proxy)
-      * [Advanced Features](#advanced-features)
-         * [API](#api)
-         * [Telegram Bot Webhook](#telegram-bot-webhook)
-            * [Example of setting the webhook](#example-of-setting-the-webhook)
-            * [Supported commands](#supported-commands)
-      * [Credits](#credits)
-      * [License](#license)
-
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+- [Bird-lg-go](#bird-lg-go)
+  - [Table of Contents](#table-of-contents)
+  - [Build Instructions](#build-instructions)
+  - [Build Docker Images](#build-docker-images)
+  - [Frontend](#frontend)
+  - [Proxy](#proxy)
+  - [Advanced Features](#advanced-features)
+    - [Display names](#display-names)
+    - [IP addresses](#ip-addresses)
+    - [API](#api)
+    - [Telegram Bot Webhook](#telegram-bot-webhook)
+      - [Example of setting the webhook](#example-of-setting-the-webhook)
+      - [Supported commands](#supported-commands)
+  - [Credits](#credits)
+  - [License](#license)
 
 ## Build Instructions
 
@@ -43,6 +45,25 @@ cd ..
 ```
 
 - If you get `undefined: MustAssetString`, you need to uninstall an older version of go-bindata from your machine: see [#11](https://github.com/xddxdd/bird-lg-go/issues/11)
+
+## Build Docker Images
+
+Run `make dockerfile` and you'll get a bunch of Dockerfiles for different architectures:
+
+- `frontend/Dockerfile.amd64`
+- `frontend/Dockerfile.arm32v7`
+- `frontend/Dockerfile.arm64v8`
+- `frontend/Dockerfile.i386`
+- `frontend/Dockerfile.ppc64le`
+- `frontend/Dockerfile.s390x`
+- `proxy/Dockerfile.amd64`
+- `proxy/Dockerfile.arm32v7`
+- `proxy/Dockerfile.arm64v8`
+- `proxy/Dockerfile.i386`
+- `proxy/Dockerfile.ppc64le`
+- `proxy/Dockerfile.s390x`
+
+`cd` into either frontend or proxy directory, rename the Dockerfile for your architecture to `Dockerfile` and run `docker build .` as usual. In most cases you'll want `Dockerfile.amd64`.
 
 ## Frontend
 
@@ -71,22 +92,26 @@ Usage: all configuration is done via commandline parameters or environment varia
 
 Example: the following command starts the frontend with 2 BIRD nodes, with domain name "gigsgigscloud.dn42.lantian.pub" and "hostdare.dn42.lantian.pub", and proxies are running on port 8000 on both nodes.
 
-    ./frontend --servers=gigsgigscloud,hostdare --domain=dn42.lantian.pub --proxy-port=8000
+```bash
+./frontend --servers=gigsgigscloud,hostdare --domain=dn42.lantian.pub --proxy-port=8000
+```
 
 Example: the following docker-compose.yml entry does the same as above, but by starting a Docker container:
 
-    services:
-      bird-lg:
-        image: xddxdd/bird-lg-go
-        container_name: bird-lg
-        restart: always
-        environment:
-          - BIRDLG_SERVERS=gigsgigscloud,hostdare
-          - BIRDLG_DOMAIN=dn42.lantian.pub
-        ports:
-          - "5000:5000"
+```yaml
+services:
+  bird-lg:
+    image: xddxdd/bird-lg-go
+    container_name: bird-lg
+    restart: always
+    environment:
+      - BIRDLG_SERVERS=gigsgigscloud,hostdare
+      - BIRDLG_DOMAIN=dn42.lantian.pub
+    ports:
+      - "5000:5000"
+```
 
-Demo: https://lg.lantian.pub
+Demo: <https://lg.lantian.pub>
 
 ## Proxy
 
@@ -109,22 +134,29 @@ Usage: all configuration is done via commandline parameters or environment varia
 
 Example: start proxy with default configuration, should work "out of the box" on Debian 9 with BIRDv1:
 
-    ./proxy
+```bash
+./proxy
+```
 
 Example: start proxy with custom bird socket location:
 
-    ./proxy --bird /run/bird.ctl
+```bash
+./proxy --bird /run/bird.ctl
+```
 
 Example: the following docker-compose.yml entry does the same as above, but by starting a Docker container:
 
-    bird-lgproxy:
-      image: xddxdd/bird-lgproxy-go
-      container_name: bird-lgproxy
-      restart: always
-      volumes:
-        - "/run/bird.ctl:/var/run/bird/bird.ctl"
-      ports:
-        - "192.168.0.1:8000:8000"
+```yaml
+services:
+  bird-lgproxy:
+    image: xddxdd/bird-lgproxy-go
+    container_name: bird-lgproxy
+    restart: always
+    volumes:
+      - "/run/bird.ctl:/var/run/bird/bird.ctl"
+    ports:
+      - "192.168.0.1:8000:8000"
+```
 
 You can use source IP restriction to increase security. You should also bind the proxy to a specific interface and use an external firewall/iptables for added security.
 
@@ -136,7 +168,9 @@ The server parameter is composed of server name prefixes, separated by comma. It
 
 For instance, the two servers from the basic example can be displayed as "Gigs" and "Hostdare" using the following syntax (as known from email addresses):
 
-    ./frontend --servers="Gigs<gigsgigscloud>,Hostdare<hostdare>" --domain=dn42.lantian.pub
+```bash
+./frontend --servers="Gigs<gigsgigscloud>,Hostdare<hostdare>" --domain=dn42.lantian.pub
+```
 
 ### IP addresses
 
@@ -144,9 +178,11 @@ You may also specify IP addresses as server names when no domain is specified. I
 
 For example:
 
-    ./frontend --servers="Prod<prod.mydomain.local>,Test1<fd88:dead:beef::1>,Test2<fe80::c%wg0>" --domain=
+```bash
+./frontend --servers="Prod<prod.mydomain.local>,Test1<fd88:dead:beef::1>,Test2<fe80::c%wg0>" --domain=
+```
 
-These three servers are displayed as "Prod", "Test1" and "Test2" in the user interface. 
+These three servers are displayed as "Prod", "Test1" and "Test2" in the user interface.
 
 ### API
 
