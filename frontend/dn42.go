@@ -49,3 +49,33 @@ func dn42WhoisFilter(whois string) string {
 		return commandResult
 	}
 }
+
+/* experimental, behavior may change */
+func shortenWhoisFilter(whois string) string {
+	commandResult := ""
+	skippedLines := 0
+
+	for _, s := range strings.Split(whois, "\n") {
+		s = strings.TrimSpace(s)
+
+		shouldSkip := false
+		shouldSkip = shouldSkip || len(s) == 0
+		shouldSkip = shouldSkip || len(s) > 80
+		shouldSkip = shouldSkip || len(s) > 0 && s[0] == '#'
+		shouldSkip = shouldSkip || !strings.Contains(s, ":")
+		shouldSkip = shouldSkip || strings.Index(s, ":") > 20
+
+		if shouldSkip {
+			skippedLines++
+			continue
+		}
+
+		commandResult += s + "\n"
+	}
+
+	if skippedLines > 0 {
+		return commandResult + fmt.Sprintf("\n%d line(s) skipped.\n", skippedLines)
+	} else {
+		return commandResult
+	}
+}

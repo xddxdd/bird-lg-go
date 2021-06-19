@@ -105,7 +105,7 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 		})
 
 	} else if telegramIsCommand(request.Message.Text, "whois") {
-		if setting.netSpecificMode == "dn42" {
+		if setting.netSpecificMode == "dn42" || setting.netSpecificMode == "dn42_generic" {
 			targetNumber, err := strconv.ParseUint(target, 10, 64)
 			if err == nil {
 				if targetNumber < 10000 {
@@ -119,6 +119,8 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 		tempResult := whois(target)
 		if setting.netSpecificMode == "dn42" {
 			commandResult = dn42WhoisFilter(tempResult)
+		} else if setting.netSpecificMode == "dn42_shorten" || setting.netSpecificMode == "shorten" {
+			commandResult = shortenWhoisFilter(tempResult)
 		} else {
 			commandResult = tempResult
 		}
