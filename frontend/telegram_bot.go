@@ -31,7 +31,8 @@ type tgWebhookResponse struct {
 
 func telegramIsCommand(message string, command string) bool {
 	b := false
-	b = b || strings.HasPrefix(message, "/"+command+"@")
+	b = b || strings.HasPrefix(message, "/"+command+"@"+setting.telegramBotName+" ")
+	b = b || message == "/"+command+"@"+setting.telegramBotName
 	b = b || strings.HasPrefix(message, "/"+command+" ")
 	b = b || message == "/"+command
 	return b

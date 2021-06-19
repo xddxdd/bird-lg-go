@@ -21,19 +21,21 @@ type settingType struct {
 	netSpecificMode string
 	titleBrand      string
 	navBarBrand     string
+	telegramBotName string
 }
 
 var setting settingType
 
 func main() {
 	var settingDefault = settingType{
-		servers:      []string{""},
-		proxyPort:    8000,
-		whoisServer:  "whois.verisign-grs.com",
-		listen:       ":5000",
-		dnsInterface: "asn.cymru.com",
-		titleBrand:   "Bird-lg Go",
-		navBarBrand:  "Bird-lg Go",
+		servers:         []string{""},
+		proxyPort:       8000,
+		whoisServer:     "whois.verisign-grs.com",
+		listen:          ":5000",
+		dnsInterface:    "asn.cymru.com",
+		titleBrand:      "Bird-lg Go",
+		navBarBrand:     "Bird-lg Go",
+		telegramBotName: "",
 	}
 
 	if env := os.Getenv("BIRDLG_SERVERS"); env != "" {
@@ -67,6 +69,9 @@ func main() {
 	if env := os.Getenv("BIRDLG_NAVBAR_BRAND"); env != "" {
 		settingDefault.navBarBrand = env
 	}
+	if env := os.Getenv("BIRDLG_TELEGRAM_BOT_NAME"); env != "" {
+		settingDefault.telegramBotName = env
+	}
 
 	serversPtr := flag.String("servers", strings.Join(settingDefault.servers, ","), "server name prefixes, separated by comma")
 	domainPtr := flag.String("domain", settingDefault.domain, "server name domain suffixes")
@@ -77,6 +82,7 @@ func main() {
 	netSpecificModePtr := flag.String("net-specific-mode", settingDefault.netSpecificMode, "network specific operation mode, [(none)|dn42]")
 	titleBrandPtr := flag.String("title-brand", settingDefault.titleBrand, "prefix of page titles in browser tabs")
 	navBarBrandPtr := flag.String("navbar-brand", settingDefault.navBarBrand, "brand to show in the navigation bar")
+	telegramBotNamePtr := flag.String("telegram-bot-name", settingDefault.navBarBrand, "telegram bot name (used to filter @bot commands)")
 	flag.Parse()
 
 	if *serversPtr == "" {
@@ -91,7 +97,7 @@ func main() {
 		pos := strings.Index(server, "<")
 		if pos != -1 {
 			serversDisplay[i] = server[0:pos]
-			servers[i] = server[pos+1:len(server)-1]
+			servers[i] = server[pos+1 : len(server)-1]
 		}
 	}
 
@@ -106,6 +112,7 @@ func main() {
 		strings.ToLower(*netSpecificModePtr),
 		*titleBrandPtr,
 		*navBarBrandPtr,
+		*telegramBotNamePtr,
 	}
 
 	ImportTemplates()
