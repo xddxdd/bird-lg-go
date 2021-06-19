@@ -82,7 +82,7 @@ func main() {
 	netSpecificModePtr := flag.String("net-specific-mode", settingDefault.netSpecificMode, "network specific operation mode, [(none)|dn42]")
 	titleBrandPtr := flag.String("title-brand", settingDefault.titleBrand, "prefix of page titles in browser tabs")
 	navBarBrandPtr := flag.String("navbar-brand", settingDefault.navBarBrand, "brand to show in the navigation bar")
-	telegramBotNamePtr := flag.String("telegram-bot-name", settingDefault.navBarBrand, "telegram bot name (used to filter @bot commands)")
+	telegramBotNamePtr := flag.String("telegram-bot-name", settingDefault.telegramBotName, "telegram bot name (used to filter @bot commands)")
 	flag.Parse()
 
 	if *serversPtr == "" {
