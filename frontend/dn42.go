@@ -53,7 +53,11 @@ func dn42WhoisFilter(whois string) string {
 /* experimental, behavior may change */
 func shortenWhoisFilter(whois string) string {
 	commandResult := ""
+	commandResultLonger := ""
+	lines := 0
+	linesLonger := 0
 	skippedLines := 0
+	skippedLinesLonger := 0
 
 	for _, s := range strings.Split(whois, "\n") {
 		s = strings.TrimSpace(s)
@@ -62,6 +66,15 @@ func shortenWhoisFilter(whois string) string {
 		shouldSkip = shouldSkip || len(s) == 0
 		shouldSkip = shouldSkip || len(s) > 80
 		shouldSkip = shouldSkip || len(s) > 0 && s[0] == '#'
+
+		if shouldSkip {
+			skippedLinesLonger++
+			continue
+		}
+
+		commandResultLonger += s + "\n"
+		linesLonger++
+
 		shouldSkip = shouldSkip || !strings.Contains(s, ":")
 		shouldSkip = shouldSkip || strings.Index(s, ":") > 20
 
@@ -71,6 +84,12 @@ func shortenWhoisFilter(whois string) string {
 		}
 
 		commandResult += s + "\n"
+		lines++
+	}
+
+	if lines < 10 {
+		commandResult = commandResultLonger
+		skippedLines = skippedLinesLonger
 	}
 
 	if skippedLines > 0 {
