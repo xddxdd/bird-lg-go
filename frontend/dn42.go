@@ -64,7 +64,6 @@ func shortenWhoisFilter(whois string) string {
 
 		shouldSkip := false
 		shouldSkip = shouldSkip || len(s) == 0
-		shouldSkip = shouldSkip || len(s) > 80
 		shouldSkip = shouldSkip || len(s) > 0 && s[0] == '#'
 
 		if shouldSkip {
@@ -75,6 +74,7 @@ func shortenWhoisFilter(whois string) string {
 		commandResultLonger += s + "\n"
 		linesLonger++
 
+		shouldSkip = shouldSkip || len(s) > 80
 		shouldSkip = shouldSkip || !strings.Contains(s, ":")
 		shouldSkip = shouldSkip || strings.Index(s, ":") > 20
 
@@ -87,7 +87,7 @@ func shortenWhoisFilter(whois string) string {
 		lines++
 	}
 
-	if lines < 10 {
+	if lines < 5 {
 		commandResult = commandResultLonger
 		skippedLines = skippedLinesLonger
 	}
