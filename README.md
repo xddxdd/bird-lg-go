@@ -89,6 +89,7 @@ Usage: all configuration is done via commandline parameters or environment varia
 | --dns-interface | BIRDLG_DNS_INTERFACE | dns zone to query ASN information (default "asn.cymru.com") |
 | --title-brand | BIRDLG_TITLE_BRAND | prefix of page titles in browser tabs (default "Bird-lg Go") |
 | --navbar-brand | BIRDLG_NAVBAR_BRAND | brand to show in the navigation bar (default "Bird-lg Go") |
+| --net-specific-mode | BIRDLG_NET_SPECIFIC_MODE | apply network-specific changes for some networks, use "dn42" for BIRD in dn42 network |
 
 Example: the following command starts the frontend with 2 BIRD nodes, with domain name "gigsgigscloud.dn42.lantian.pub" and "hostdare.dn42.lantian.pub", and proxies are running on port 8000 on both nodes.
 
