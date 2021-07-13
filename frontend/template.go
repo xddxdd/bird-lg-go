@@ -1,17 +1,24 @@
 package main
 
 import (
+	"embed"
 	"strings"
 	"text/template"
 )
+
+// import templates and other assets
+//go:embed assets
+var assets embed.FS
+
+const TEMPLATE_PATH = "assets/templates/"
 
 // template argument structures
 
 // page
 type TemplatePage struct {
 	// Global options
-	Options map[string]string
-	Servers []string
+	Options        map[string]string
+	Servers        []string
 	ServersEscaped []string
 	ServersDisplay []string
 
@@ -95,7 +102,7 @@ var requiredTemplates = [...]string{
 	"bird",
 }
 
-// import templates from bindata
+// import templates from embedded assets
 
 func ImportTemplates() {
 
@@ -105,13 +112,16 @@ func ImportTemplates() {
 	// for each template that is needed
 	for _, tmpl := range requiredTemplates {
 
-		// extract the template definition from the bindata
-		def := MustAssetString("templates/" + tmpl + ".tpl")
+		// extract the template definition from the embedded assets
+		def, err := assets.ReadFile(TEMPLATE_PATH + tmpl + ".tpl")
+		if err != nil {
+			panic("Unable to read template (" + TEMPLATE_PATH + tmpl + ": " + err.Error())
+		}
 
 		// and add it to the template library
-		template, err := template.New(tmpl).Parse(def)
+		template, err := template.New(tmpl).Parse(string(def))
 		if err != nil {
-			panic("Unable to parse template (templates/" + tmpl + ": " + err.Error())
+			panic("Unable to parse template (" + TEMPLATE_PATH + tmpl + ": " + err.Error())
 		}
 
 		// store in the library

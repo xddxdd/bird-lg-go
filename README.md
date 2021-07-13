@@ -33,8 +33,6 @@ Or, you can manually do the building steps:
 ```bash
 # Build frontend binary
 cd frontend
-go get -u github.com/kevinburke/go-bindata/...
-go generate
 go build -ldflags "-w -s" -o frontend
 cd ..
 
@@ -43,8 +41,6 @@ cd proxy
 go build -ldflags "-w -s" -o proxy
 cd ..
 ```
-
-- If you get `undefined: MustAssetString`, you need to uninstall an older version of go-bindata from your machine: see [#11](https://github.com/xddxdd/bird-lg-go/issues/11)
 
 ## Build Docker Images
 

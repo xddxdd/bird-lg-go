@@ -19,9 +19,6 @@ ENV GOOS=linux GOARCH=s390x
 ENV CGO_ENABLED=0 GO111MODULE=on
 WORKDIR /root
 COPY . .
-# go-bindata is run on the build host as part of the go generate step
-RUN GOARCH=amd64 go get -u github.com/kevinburke/go-bindata/...
-RUN go generate
 RUN go build -ldflags "-w -s" -o /frontend
 
 ################################################################################

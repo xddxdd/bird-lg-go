@@ -21,17 +21,15 @@ workflows:
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.15
+      - image: circleci/golang:1.16
     working_directory: /go/src/github.com/xddxdd/bird-lg-go
     steps:
       - checkout
-      - run: go get -v -t -d ./...
-      - run: go get -u github.com/kevinburke/go-bindata/...
-      - run: cd frontend && go generate
-      - run: go test -v ./...
+      - run: GO111MODULE=auto go get -v -t -d ./...
+      - run: GO111MODULE=auto go test -v ./...
   deploy:
     docker:
-      - image: circleci/golang:1.15
+      - image: circleci/golang:1.16
     working_directory: /go/src/github.com/xddxdd/bird-lg-go
     parameters:
       image_arch:
