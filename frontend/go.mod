@@ -1,9 +1,5 @@
 module github.com/xddxdd/bird-lg-go/frontend
 
-go 1.15
+go 1.16
 
-require (
-	github.com/elazarl/go-bindata-assetfs v1.0.1
-	github.com/gorilla/handlers v1.5.1
-	github.com/kevinburke/go-bindata v3.22.0+incompatible // indirect
-)
+require github.com/gorilla/handlers v1.5.1

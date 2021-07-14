@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"html"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
-	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/gorilla/handlers"
 )
 
@@ -183,13 +183,12 @@ func webServerStart() {
 		http.Redirect(w, r, "/summary/"+url.PathEscape(strings.Join(setting.servers, "+")), 302)
 	})
 
-	// serve static pages using the AssetFS and bindata
-	fs := http.FileServer(&assetfs.AssetFS{
-		Asset:     Asset,
-		AssetDir:  AssetDir,
-		AssetInfo: AssetInfo,
-		Prefix:    "",
-	})
+	// serve static pages using embedded assets from template.go
+	subfs, err := fs.Sub(assets, "assets")
+	if err != nil {
+		panic("Webserver fs.sub failed: " + err.Error())
+	}
+	fs := http.FileServer(http.FS(subfs))
 
 	http.Handle("/static/", fs)
 	http.Handle("/robots.txt", fs)

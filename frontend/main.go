@@ -7,9 +7,6 @@ import (
 	"strings"
 )
 
-// binary data
-//go:generate go-bindata -prefix bindata -o bindata.go bindata/...
-
 type settingType struct {
 	servers         []string
 	serversDisplay  []string
