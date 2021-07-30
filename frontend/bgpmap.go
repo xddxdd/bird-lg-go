@@ -8,17 +8,33 @@ import (
 )
 
 func getASNRepresentation(asn string) string {
-	records, err := net.LookupTXT(fmt.Sprintf("AS%s.%s", asn, setting.dnsInterface))
-	if err != nil {
-		// DNS query failed, only use ASN as output
-		return fmt.Sprintf("AS%s", asn)
-	}
+	if setting.dnsInterface != "" {
+		// get ASN representation using DNS
+		records, err := net.LookupTXT(fmt.Sprintf("AS%s.%s", asn, setting.dnsInterface))
+		if err != nil {
+			// DNS query failed, only use ASN as output
+			return fmt.Sprintf("AS%s", asn)
+		}
 
-	result := strings.Join(records, " ")
-	if resultSplit := strings.Split(result, " | "); len(resultSplit) > 1 {
-		result = strings.Join(resultSplit[1:], "\\n")
+		result := strings.Join(records, " ")
+		if resultSplit := strings.Split(result, " | "); len(resultSplit) > 1 {
+			result = strings.Join(resultSplit[1:], "\\n")
+		}
+		return fmt.Sprintf("AS%s\\n%s", asn, result)
+	} else {
+		// get ASN representation using WHOIS
+		records := whois(fmt.Sprintf("AS%s", asn))
+		recordsSplit := strings.Split(records, "\n")
+		result := "\\n"
+		for _, line := range recordsSplit {
+			if strings.Contains(line, "as-name:") || strings.Contains(line, "ASName:") {
+				result = result + strings.TrimSpace(strings.SplitN(line, ":", 2)[1])
+			} else if strings.Contains(line, "descr:") {
+				result = result + "\\n" + strings.TrimSpace(strings.SplitN(line, ":", 2)[1])
+			}
+		}
+		return fmt.Sprintf("AS%s%s", asn, result)
 	}
-	return fmt.Sprintf("AS%s\\n%s", asn, result)
 }
 
 func birdRouteToGraphviz(servers []string, responses []string, target string) string {
