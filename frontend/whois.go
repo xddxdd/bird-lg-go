@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"net"
+	"time"
 )
 
 // Send a whois request
@@ -11,7 +12,7 @@ func whois(s string) string {
 		return ""
 	}
 
-	conn, err := net.Dial("tcp", setting.whoisServer+":43")
+	conn, err := net.DialTimeout("tcp", setting.whoisServer+":43", 5*time.Second)
 	if err != nil {
 		return err.Error()
 	}
