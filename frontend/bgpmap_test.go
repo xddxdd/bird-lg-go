@@ -45,10 +45,10 @@ func TestBirdRouteToGraphviz(t *testing.T) {
 	BGP.next_hop: 172.18.0.2`
 
 	expectedResult := `digraph {
-"AS4242422601" -> "Target: 192.168.0.1" [color=red];
 "Target: 192.168.0.1" [color=red,shape=diamond];
 "alpha" [color=blue,shape=box];
-"alpha" -> "AS4242422601" [color=red,label="Nexthop:\\n172.18.0.2"];
+"alpha" -> "AS4242422601" [fontsize=12.0,color=red,label="alpha*\n172.18.0.2"];
+"AS4242422601" -> "Target: 192.168.0.1" [color=red];
 }`
 
 	result := birdRouteToGraphviz([]string{
