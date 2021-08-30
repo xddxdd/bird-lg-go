@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html"
 	"net"
+	"regexp"
 	"strings"
 )
 
@@ -73,23 +74,45 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 		}
 		addPoint(server, "[color=blue,shape=box]")
 		// This is the best split point I can find for bird2
-		routes := strings.Split(response, "\tvia ")
-		routeFound := false
+		routes := strings.Split(response, "unicast")
+
+		targetNodeName := "Target: " + target
+		var nonBGPRoutes []string
+		var nonBGPRoutePreferred bool
+
 		for routeIndex, route := range routes {
 			var routeNexthop string
 			var routeASPath string
-			var routePreferred bool = routeIndex > 0 && strings.Contains(routes[routeIndex-1], "*")
-			// Have to look at previous slice to determine if route is preferred, due to bad split point selection
+			var routePreferred bool = routeIndex > 0 && strings.Contains(route, "*")
+			// Track non-BGP routes in the output by their protocol name, but draw them altogether in one line
+			// so that there are no conflicts in the edge label
+			var protocolName string
 
 			for _, routeParameter := range strings.Split(route, "\n") {
+				// Try to parse the protocol instance name in Bird
+				protocolNameRe := regexp.MustCompile(`\[(.*?) .*\]`)
+
 				if strings.HasPrefix(routeParameter, "\tBGP.next_hop: ") {
 					routeNexthop = strings.TrimPrefix(routeParameter, "\tBGP.next_hop: ")
 				} else if strings.HasPrefix(routeParameter, "\tBGP.as_path: ") {
 					routeASPath = strings.TrimPrefix(routeParameter, "\tBGP.as_path: ")
+				} else {
+					match := protocolNameRe.FindStringSubmatch(routeParameter)
+					if len(match) >= 2 {
+						protocolName = match[1]
+					}
 				}
 			}
 			if len(routeASPath) == 0 {
-				// Either this is not a BGP route, or the information is incomplete
+				if routeIndex == 0 {
+					// The first string split includes the target prefix and isn't a valid route
+					continue
+				}
+				if routePreferred {
+					nonBGPRoutePreferred = true
+					protocolName = protocolName + "*"
+				}
+				nonBGPRoutes = append(nonBGPRoutes, protocolName)
 				continue
 			}
 
@@ -103,13 +126,12 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 
 			// First step starting from originating server
 			if len(paths) > 0 {
-				routeFound = true
 				var attrs []string
-				if (routePreferred) {
+				if routePreferred {
 					attrs = append(attrs, "color=red")
 				}
 				if len(routeNexthop) > 0 {
-					attrs = append(attrs, fmt.Sprintf("label=\"Nexthop:\\n%s\"", routeNexthop))
+					attrs = append(attrs, fmt.Sprintf("label=\"%s\\n%s\"", getASNRepresentation(paths[0]), routeNexthop))
 				}
 				formattedAttr := fmt.Sprintf("[%s]", strings.Join(attrs, ","))
 				addEdge(server, getASNRepresentation(paths[0]), formattedAttr)
@@ -123,12 +145,19 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 				addEdge(getASNRepresentation(paths[pathIndex-1]), getASNRepresentation(paths[pathIndex]), (map[bool]string{true: "[color=red]"})[routePreferred])
 			}
 			// Last AS to destination
-			addEdge(getASNRepresentation(paths[len(paths)-1]), "Target: "+target, (map[bool]string{true: "[color=red]"})[routePreferred])
+			addEdge(getASNRepresentation(paths[len(paths)-1]), targetNodeName, (map[bool]string{true: "[color=red]"})[routePreferred])
 		}
 
-		if !routeFound {
-			// Cannot find a path starting from this server
-			addEdge(server, "Target: "+target, "[color=gray,label=\"?\"]")
+		if len(nonBGPRoutes) > 0 {
+			protocolsForRoute := fmt.Sprintf("label=\"%s\"", strings.Join(nonBGPRoutes, "\\n"))
+
+			attrs := []string{protocolsForRoute}
+
+			if nonBGPRoutePreferred {
+				attrs = append(attrs, "color=red")
+			}
+			formattedAttr := fmt.Sprintf("[%s]", strings.Join(attrs, ","))
+			addEdge(server, targetNodeName, formattedAttr)
 		}
 	}
 
