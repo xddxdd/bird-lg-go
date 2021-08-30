@@ -103,18 +103,16 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 
 			// First step starting from originating server
 			if len(paths) > 0 {
-				if len(routeNexthop) > 0 {
-					// Edge from originating server to nexthop
-					addEdge(server, "Nexthop:\\n"+routeNexthop, (map[bool]string{true: "[color=red]"})[routePreferred])
-					// and from nexthop to AS
-					addEdge("Nexthop:\\n"+routeNexthop, getASNRepresentation(paths[0]), (map[bool]string{true: "[color=red]"})[routePreferred])
-					addPoint("Nexthop:\\n"+routeNexthop, "[shape=diamond]")
-					routeFound = true
-				} else {
-					// Edge from originating server to AS
-					addEdge(server, getASNRepresentation(paths[0]), (map[bool]string{true: "[color=red]"})[routePreferred])
-					routeFound = true
+				routeFound = true
+				var attrs []string
+				if (routePreferred) {
+					attrs = append(attrs, "color=red")
 				}
+				if len(routeNexthop) > 0 {
+					attrs = append(attrs, fmt.Sprintf("label=\"Nexthop:\\n%s\"", routeNexthop))
+				}
+				formattedAttr := fmt.Sprintf("[%s]", strings.Join(attrs, ","))
+				addEdge(server, getASNRepresentation(paths[0]), formattedAttr)
 			}
 
 			// Following steps, edges between AS
