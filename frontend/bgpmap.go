@@ -49,8 +49,8 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 	addEdge := func(src string, dest string, attr string) {
 		key := "\"" + html.EscapeString(src) + "\" -> \"" + html.EscapeString(dest) + "\""
 		_, present := graph[key]
-		// Do not remove edge's attributes if it's already present
-		if present && len(attr) == 0 {
+		// If there are multiple edges / routes between 2 nodes, only pick the first one
+		if present {
 			return
 		}
 		graph[key] = attr
@@ -103,6 +103,9 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 					}
 				}
 			}
+			if routePreferred {
+				protocolName = protocolName + "*"
+			}
 			if len(routeASPath) == 0 {
 				if routeIndex == 0 {
 					// The first string split includes the target prefix and isn't a valid route
@@ -110,7 +113,6 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 				}
 				if routePreferred {
 					nonBGPRoutePreferred = true
-					protocolName = protocolName + "*"
 				}
 				nonBGPRoutes = append(nonBGPRoutes, protocolName)
 				continue
@@ -126,12 +128,12 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 
 			// First step starting from originating server
 			if len(paths) > 0 {
-				var attrs []string
+				attrs := []string{"fontsize=12.0"}
 				if routePreferred {
 					attrs = append(attrs, "color=red")
 				}
 				if len(routeNexthop) > 0 {
-					attrs = append(attrs, fmt.Sprintf("label=\"%s\\n%s\"", getASNRepresentation(paths[0]), routeNexthop))
+					attrs = append(attrs, fmt.Sprintf("label=\"%s\\n%s\"", protocolName, routeNexthop))
 				}
 				formattedAttr := fmt.Sprintf("[%s]", strings.Join(attrs, ","))
 				addEdge(server, getASNRepresentation(paths[0]), formattedAttr)
@@ -151,7 +153,7 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 		if len(nonBGPRoutes) > 0 {
 			protocolsForRoute := fmt.Sprintf("label=\"%s\"", strings.Join(nonBGPRoutes, "\\n"))
 
-			attrs := []string{protocolsForRoute}
+			attrs := []string{protocolsForRoute, "fontsize=12.0"}
 
 			if nonBGPRoutePreferred {
 				attrs = append(attrs, "color=red")
