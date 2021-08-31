@@ -65,6 +65,12 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 		}
 		graph[key] = attr
 	}
+	// The protocol name for each route (e.g. "ibgp_sea02") is encoded in the form:
+	//    unicast [ibgp_sea02 2021-08-27 from fd86:bad:11b7:1::1] * (100/1015) [i]
+	protocolNameRe := regexp.MustCompile(`\[(.*?) .*\]`)
+	// Try to split the output into one chunk for each route.
+	// Possible values are defined at https://gitlab.nic.cz/labs/bird/-/blob/v2.0.8/nest/rt-attr.c#L81-87
+	routeSplitRe := regexp.MustCompile("(unicast|blackhole|unreachable|prohibited)")
 
 	addPoint("Target: "+target, "[color=red,shape=diamond]")
 	for serverID, server := range servers {
@@ -73,8 +79,7 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 			continue
 		}
 		addPoint(server, "[color=blue,shape=box]")
-		// This is the best split point I can find for bird2
-		routes := strings.Split(response, "unicast")
+		routes := routeSplitRe.Split(response, -1)
 
 		targetNodeName := "Target: " + target
 		var nonBGPRoutes []string
@@ -89,9 +94,6 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 			var protocolName string
 
 			for _, routeParameter := range strings.Split(route, "\n") {
-				// Try to parse the protocol instance name in Bird
-				protocolNameRe := regexp.MustCompile(`\[(.*?) .*\]`)
-
 				if strings.HasPrefix(routeParameter, "\tBGP.next_hop: ") {
 					routeNexthop = strings.TrimPrefix(routeParameter, "\tBGP.next_hop: ")
 				} else if strings.HasPrefix(routeParameter, "\tBGP.as_path: ") {
