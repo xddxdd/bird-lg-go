@@ -24,7 +24,9 @@ An alternative implementation for [bird-lg](https://github.com/sileht/bird-lg) w
 
 ## Build Instructions
 
-Run `make` to build binaries for both the frontend and the proxy. You need to have Go installed on your machine.
+You need to have **Go 1.16 or newer** installed on your machine.
+
+Run `make` to build binaries for both the frontend and the proxy.
 
 Optionally run `make install` to install them to `/usr/local/bin`.
 
