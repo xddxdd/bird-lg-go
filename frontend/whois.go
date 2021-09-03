@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"net"
 	"time"
 )
@@ -19,9 +19,11 @@ func whois(s string) string {
 	defer conn.Close()
 
 	conn.Write([]byte(s + "\r\n"))
-	result, err := ioutil.ReadAll(conn)
-	if err != nil {
+
+	buf := make([]byte, 65536)
+	_, err = io.ReadFull(conn, buf)
+	if err != nil && err != io.ErrUnexpectedEOF {
 		return err.Error()
 	}
-	return string(result)
+	return string(buf)
 }

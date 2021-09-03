@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -53,8 +53,14 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 					ch <- channelData{i, "request failed: " + err.Error() + "\n"}
 					return
 				}
-				text, _ := ioutil.ReadAll(response.Body)
-				ch <- channelData{i, string(text)}
+
+				buf := make([]byte, 65536)
+				_, err = io.ReadFull(response.Body, buf)
+				if err != nil && err != io.ErrUnexpectedEOF {
+					ch <- channelData{i, err.Error()}
+				} else {
+					ch <- channelData{i, string(buf)}
+				}
 			}(url, i)
 		}
 	}
