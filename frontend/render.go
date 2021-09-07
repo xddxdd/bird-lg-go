@@ -156,6 +156,18 @@ func summaryParse(data string, serverName string) (TemplateSummary, error) {
 		}
 		if len(lineSplitted) >= 4 {
 			row.Proto = strings.TrimSpace(lineSplitted[3])
+			// Filter away unwanted protocol types, if setting.protocolFilter is non-empty
+			found := false
+			for _, protocol := range setting.protocolFilter {
+				if strings.EqualFold(row.Proto, protocol) {
+					found = true
+					break
+				}
+			}
+
+			if len(setting.protocolFilter) > 0 && !found {
+				continue
+			}
 		}
 		if len(lineSplitted) >= 6 {
 			row.Table = strings.TrimSpace(lineSplitted[5])

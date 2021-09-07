@@ -19,6 +19,7 @@ type settingType struct {
 	titleBrand      string
 	navBarBrand     string
 	telegramBotName string
+	protocolFilter  []string
 }
 
 var setting settingType
@@ -33,6 +34,7 @@ func main() {
 		titleBrand:      "Bird-lg Go",
 		navBarBrand:     "Bird-lg Go",
 		telegramBotName: "",
+		protocolFilter:  []string{},
 	}
 
 	if env := os.Getenv("BIRDLG_SERVERS"); env != "" {
@@ -69,6 +71,9 @@ func main() {
 	if env := os.Getenv("BIRDLG_TELEGRAM_BOT_NAME"); env != "" {
 		settingDefault.telegramBotName = env
 	}
+	if env := os.Getenv("BIRDLG_PROTOCOL_FILTER"); env != "" {
+		settingDefault.protocolFilter = strings.Split(env, ",")
+	}
 
 	serversPtr := flag.String("servers", strings.Join(settingDefault.servers, ","), "server name prefixes, separated by comma")
 	domainPtr := flag.String("domain", settingDefault.domain, "server name domain suffixes")
@@ -80,6 +85,8 @@ func main() {
 	titleBrandPtr := flag.String("title-brand", settingDefault.titleBrand, "prefix of page titles in browser tabs")
 	navBarBrandPtr := flag.String("navbar-brand", settingDefault.navBarBrand, "brand to show in the navigation bar")
 	telegramBotNamePtr := flag.String("telegram-bot-name", settingDefault.telegramBotName, "telegram bot name (used to filter @bot commands)")
+	protocolFilterPtr := flag.String("protocol-filter", strings.Join(settingDefault.protocolFilter, ","),
+		"protocol types to show in summary tables (comma separated list); defaults to all if not set")
 	flag.Parse()
 
 	if *serversPtr == "" {
@@ -88,6 +95,12 @@ func main() {
 
 	servers := strings.Split(*serversPtr, ",")
 	serversDisplay := strings.Split(*serversPtr, ",")
+
+	protocolFilter := []string{}
+	// strings.Split returns [""] for empty inputs; we want the list to remain empty in these cases
+	if len(*protocolFilterPtr) > 0 {
+		protocolFilter = strings.Split(*protocolFilterPtr, ",")
+	}
 
 	// Split server names of the form "DisplayName<Hostname>"
 	for i, server := range servers {
@@ -110,6 +123,7 @@ func main() {
 		*titleBrandPtr,
 		*navBarBrandPtr,
 		*telegramBotNamePtr,
+		protocolFilter,
 	}
 
 	ImportTemplates()
