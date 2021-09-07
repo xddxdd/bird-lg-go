@@ -86,7 +86,7 @@ func main() {
 	navBarBrandPtr := flag.String("navbar-brand", settingDefault.navBarBrand, "brand to show in the navigation bar")
 	telegramBotNamePtr := flag.String("telegram-bot-name", settingDefault.telegramBotName, "telegram bot name (used to filter @bot commands)")
 	protocolFilterPtr := flag.String("protocol-filter", strings.Join(settingDefault.protocolFilter, ","),
-		"case sensitive protocol types to show in summary tables (comma separated list); defaults to all if not set")
+		"protocol types to show in summary tables (comma separated list); defaults to all if not set")
 	flag.Parse()
 
 	if *serversPtr == "" {

@@ -159,7 +159,7 @@ func summaryParse(data string, serverName string) (TemplateSummary, error) {
 			// Filter away unwanted protocol types, if setting.protocolFilter is non-empty
 			found := false
 			for _, protocol := range setting.protocolFilter {
-				if row.Proto == protocol {
+				if strings.EqualFold(row.Proto, protocol) {
 					found = true
 					break
 				}
