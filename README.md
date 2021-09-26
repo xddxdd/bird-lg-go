@@ -81,12 +81,15 @@ Usage: all configuration is done via commandline parameters or environment varia
 | --------- | -------------------- | ----------- |
 | --servers | BIRDLG_SERVERS | server name prefixes, separated by comma |
 | --domain | BIRDLG_DOMAIN | server name domain suffixes |
-| --listen | BIRDLG_LISTEN | address bird-lg is listening on (default ":5000") |
+| --listen | BIRDLG_LISTEN | address bird-lg is listening on (default "5000") |
 | --proxy-port | BIRDLG_PROXY_PORT | port bird-lgproxy is running on (default 8000) |
 | --whois | BIRDLG_WHOIS | whois server for queries (default "whois.verisign-grs.com") |
 | --dns-interface | BIRDLG_DNS_INTERFACE | dns zone to query ASN information (default "asn.cymru.com") |
 | --title-brand | BIRDLG_TITLE_BRAND | prefix of page titles in browser tabs (default "Bird-lg Go") |
 | --navbar-brand | BIRDLG_NAVBAR_BRAND | brand to show in the navigation bar (default "Bird-lg Go") |
+| --navbar-brand-url | BIRDLG_NAVBAR_BRAND_URL | the url of the brand to show in the navigation bar (default "/") |
+| --navbar-all-servers | BIRDLG_NAVBAR_ALL_SERVERS | the text of "All servers" button in the navigation bar (default "ALL Servers") |
+| --navbar-all-url | BIRDLG_NAVBAR_ALL_URL | the URL of "All servers" button (default "all") |
 | --net-specific-mode | BIRDLG_NET_SPECIFIC_MODE | apply network-specific changes for some networks, use "dn42" for BIRD in dn42 network |
 | --protocol-filter | BIRDLG_PROTOCOL_FILTER | protocol types to show in summary tables (comma separated list); defaults to all if not set |
 
@@ -130,7 +133,7 @@ Usage: all configuration is done via commandline parameters or environment varia
 | --------- | -------------------- | ----------- |
 | --allowed | ALLOWED_IPS | IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "") |
 | --bird | BIRD_SOCKET | socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl") |
-| --listen | BIRDLG_LISTEN | listen address, set either in parameter or environment variable BIRDLG_LISTEN (default ":8000") |
+| --listen | BIRDLG_PROXY_PORT | listen address, set either in parameter or environment variable  BIRDLG_PROXY_PORT(default "8000") |
 
 Example: start proxy with default configuration, should work "out of the box" on Debian 9 with BIRDv1:
 
