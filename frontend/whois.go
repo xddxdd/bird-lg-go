@@ -21,9 +21,9 @@ func whois(s string) string {
 	conn.Write([]byte(s + "\r\n"))
 
 	buf := make([]byte, 65536)
-	_, err = io.ReadFull(conn, buf)
+	n, err := io.ReadFull(conn, buf)
 	if err != nil && err != io.ErrUnexpectedEOF {
 		return err.Error()
 	}
-	return string(buf)
+	return string(buf[:n])
 }
