@@ -55,11 +55,11 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 				}
 
 				buf := make([]byte, 65536)
-				_, err = io.ReadFull(response.Body, buf)
+				n, err := io.ReadFull(response.Body, buf)
 				if err != nil && err != io.ErrUnexpectedEOF {
 					ch <- channelData{i, err.Error()}
 				} else {
-					ch <- channelData{i, string(buf)}
+					ch <- channelData{i, string(buf[:n])}
 				}
 			}(url, i)
 		}
