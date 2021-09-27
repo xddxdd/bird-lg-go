@@ -36,10 +36,16 @@
 					href="{{ .AllServersURLCustom }}"> {{ .AllServerTitle }} </a>
 				{{ end }}
 			</li>
+			{{ $length := len .ServersEscaped }} 
 			{{ range $k, $v := .ServersEscaped }}
 			<li class="nav-item">
+				{{ if gt $length 1 }}
 				<a class="nav-link{{ if eq $server $v }} active{{ end }}"
 					href="/{{ $option }}/{{ $v }}/{{ $target }}">{{ html (index $.ServersDisplay $k) }}</a>
+				{{ else }}
+				<a class="nav-link{{ if eq $server $v }} active{{ end }}"
+					href="/">{{ html (index $.ServersDisplay $k) }}</a>
+				{{ end }}
 			</li>
 			{{ end }}
 		</ul>
