@@ -12,7 +12,7 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-	<a class="navbar-brand" href="/">{{ .Brand }}</a>
+	<a class="navbar-brand" href="{{ .BrandURL }}">{{ .Brand }}</a>
 	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 		<span class="navbar-toggler-icon"></span>
 	</button>
@@ -28,13 +28,24 @@
 		{{ end }}
 		<ul class="navbar-nav mr-auto">
 			<li class="nav-item">
+				{{ if eq .AllServersURLCustom "all" }}
 				<a class="nav-link{{ if .AllServersLinkActive }} active{{ end }}"
-					href="/{{ $option }}/{{ .AllServersURL }}/{{ $target }}"> All Servers </a>
+					href="/{{ $option }}/{{ .AllServersURL }}/{{ $target }}"> {{ .AllServerTitle }} </a>
+				{{ else }}
+				<a class="nav-link active"
+					href="{{ .AllServersURLCustom }}"> {{ .AllServerTitle }} </a>
+				{{ end }}
 			</li>
+			{{ $length := len .ServersEscaped }} 
 			{{ range $k, $v := .ServersEscaped }}
 			<li class="nav-item">
+				{{ if gt $length 1 }}
 				<a class="nav-link{{ if eq $server $v }} active{{ end }}"
 					href="/{{ $option }}/{{ $v }}/{{ $target }}">{{ html (index $.ServersDisplay $k) }}</a>
+				{{ else }}
+				<a class="nav-link{{ if eq $server $v }} active{{ end }}"
+					href="/">{{ html (index $.ServersDisplay $k) }}</a>
+				{{ end }}
 			</li>
 			{{ end }}
 		</ul>

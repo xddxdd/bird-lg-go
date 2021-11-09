@@ -67,6 +67,8 @@ func renderPageTemplate(w http.ResponseWriter, r *http.Request, title string, co
 		ServersDisplay:       setting.serversDisplay,
 		AllServersLinkActive: strings.ToLower(split[1]) == strings.ToLower(strings.Join(setting.servers, "+")),
 		AllServersURL:        url.PathEscape(strings.Join(setting.servers, "+")),
+		AllServerTitle:       setting.navBarAllServer,
+		AllServersURLCustom:  setting.navBarAllURL,
 		IsWhois:              isWhois,
 		WhoisTarget:          whoisTarget,
 
@@ -75,6 +77,7 @@ func renderPageTemplate(w http.ResponseWriter, r *http.Request, title string, co
 		URLCommand: split[2],
 		Title:      setting.titleBrand + title,
 		Brand:      setting.navBarBrand,
+		BrandURL:   setting.navBarBrandURL,
 		Content:    content,
 	}
 

@@ -24,7 +24,9 @@ type TemplatePage struct {
 
 	// Parameters related to current request
 	AllServersLinkActive bool
+	AllServerTitle       string
 	AllServersURL        string
+	AllServersURLCustom  string
 
 	// Whois specific handling (for its unique URL)
 	IsWhois     bool
@@ -35,9 +37,10 @@ type TemplatePage struct {
 	URLCommand string
 
 	// Generated content to be displayed
-	Title   string
-	Brand   string
-	Content string
+	Title    string
+	Brand    string
+	BrandURL string
+	Content  string
 }
 
 // summary

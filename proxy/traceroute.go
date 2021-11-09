@@ -50,8 +50,8 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 		if runtime.GOOS == "freebsd" || runtime.GOOS == "netbsd" || runtime.GOOS == "openbsd" {
 			result, errString = tracerouteTryExecute(
 				[]string{
-					"traceroute",
-					"traceroute",
+					setting.tr_bin,
+					setting.tr_bin,
 				},
 				[][]string{
 					append([]string{"-q1", "-w1"}, args...),
@@ -61,9 +61,9 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 		} else if runtime.GOOS == "linux" {
 			result, errString = tracerouteTryExecute(
 				[]string{
-					"traceroute",
-					"traceroute",
-					"traceroute",
+					setting.tr_bin,
+					setting.tr_bin,
+					setting.tr_bin,
 				},
 				[][]string{
 					append([]string{"-q1", "-N32", "-w1"}, args...),

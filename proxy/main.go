@@ -53,6 +53,7 @@ type settingType struct {
 	birdSocket string
 	listen     string
 	allowedIPs []string
+	tr_bin     string
 }
 
 var setting settingType
@@ -62,8 +63,9 @@ func main() {
 	// Prepare default socket paths, use environment variable if possible
 	var settingDefault = settingType{
 		"/var/run/bird/bird.ctl",
-		":8000",
+		"8000",
 		[]string{""},
+		"traceroute",
 	}
 
 	if birdSocketEnv := os.Getenv("BIRD_SOCKET"); birdSocketEnv != "" {
@@ -72,19 +74,32 @@ func main() {
 	if listenEnv := os.Getenv("BIRDLG_LISTEN"); listenEnv != "" {
 		settingDefault.listen = listenEnv
 	}
+	if listenEnv := os.Getenv("BIRDLG_PROXY_PORT"); listenEnv != "" {
+		settingDefault.listen = listenEnv
+	}
 	if AllowedIPsEnv := os.Getenv("ALLOWED_IPS"); AllowedIPsEnv != "" {
 		settingDefault.allowedIPs = strings.Split(AllowedIPsEnv, ",")
+	}
+	if tr_binEnv := os.Getenv("BIRDLG_TRACEROUTE_BIN"); tr_binEnv != "" {
+		settingDefault.tr_bin = tr_binEnv
 	}
 
 	// Allow parameters to override environment variables
 	birdParam := flag.String("bird", settingDefault.birdSocket, "socket file for bird, set either in parameter or environment variable BIRD_SOCKET")
-	listenParam := flag.String("listen", settingDefault.listen, "listen address, set either in parameter or environment variable BIRDLG_LISTEN")
+	listenParam := flag.String("listen", settingDefault.listen, "listen address, set either in parameter or environment variable BIRDLG_PROXY_PORT")
 	AllowedIPsParam := flag.String("allowed", strings.Join(settingDefault.allowedIPs, ","), "IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs.")
+	tr_binParam := flag.String("traceroute_bin", settingDefault.tr_bin, "traceroute binary file, set either in parameter or environment variable BIRDLG_TRACEROUTE_BIN")
 	flag.Parse()
+
+	if !strings.Contains(*listenParam, ":") {
+		listenHost := ":" + (*listenParam)
+		listenParam = &listenHost
+	}
 
 	setting.birdSocket = *birdParam
 	setting.listen = *listenParam
 	setting.allowedIPs = strings.Split(*AllowedIPsParam, ",")
+	setting.tr_bin = *tr_binParam
 
 	// Start HTTP server
 	http.HandleFunc("/", invalidHandler)
