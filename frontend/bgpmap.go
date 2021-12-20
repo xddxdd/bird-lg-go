@@ -23,23 +23,46 @@ func getASNRepresentation(asn string) string {
 
 	if setting.whoisServer != "" {
 		// get ASN representation using WHOIS
+		if setting.bgpmapInfo == "" {
+			setting.bgpmapInfo = "asn,as-name,ASName,descr"
+		}
 		records := whois(fmt.Sprintf("AS%s", asn))
 		if records != "" {
 			recordsSplit := strings.Split(records, "\n")
-			result := ""
-			for _, line := range recordsSplit {
-				if strings.Contains(line, "as-name:") || strings.Contains(line, "ASName:") {
-					result = result + strings.TrimSpace(strings.SplitN(line, ":", 2)[1])
-				} else if strings.Contains(line, "descr:") {
-					result = result + "\\n" + strings.TrimSpace(strings.SplitN(line, ":", 2)[1])
+			var result []string
+			for _, title := range strings.Split(setting.bgpmapInfo, ",") {
+				if title == "asn" {
+					result = append(result, "AS"+asn)
 				}
 			}
-			if result != "" {
-				return fmt.Sprintf("AS%s\\n%s", asn, result)
+			for _, title := range strings.Split(setting.bgpmapInfo, ",") {
+				allow_multiline := false
+				if title[0] == ':' && len(title) >= 2 {
+					title = title[1:]
+					allow_multiline = true
+				}
+				for _, line := range recordsSplit {
+					if len(line) == 0 || line[0] == '%' || !strings.Contains(line, ":") {
+						continue
+					}
+					linearr := strings.SplitN(line, ":", 2)
+					line_title := linearr[0]
+					content := strings.TrimSpace(linearr[1])
+					if line_title != title {
+						continue
+					}
+					result = append(result, content)
+					if !allow_multiline {
+						break
+					}
+
+				}
+			}
+			if len(result) > 0 {
+				return fmt.Sprintf("%s", strings.Join(result, "\n"))
 			}
 		}
 	}
-
 	return fmt.Sprintf("AS%s", asn)
 }
 

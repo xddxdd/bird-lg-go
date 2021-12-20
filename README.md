@@ -85,6 +85,7 @@ Usage: all configuration is done via commandline parameters or environment varia
 | --proxy-port | BIRDLG_PROXY_PORT | port bird-lgproxy is running on (default 8000) |
 | --whois | BIRDLG_WHOIS | whois server for queries (default "whois.verisign-grs.com") |
 | --dns-interface | BIRDLG_DNS_INTERFACE | dns zone to query ASN information (default "asn.cymru.com") |
+| --bgpmap-info | BIRDLG_BGPMAP_INFO | the infos displayed in bgpmap, separated by comma, start with `:` means allow multiline (default "asn,as-name,ASName,descr") |
 | --title-brand | BIRDLG_TITLE_BRAND | prefix of page titles in browser tabs (default "Bird-lg Go") |
 | --navbar-brand | BIRDLG_NAVBAR_BRAND | brand to show in the navigation bar (default "Bird-lg Go") |
 | --navbar-brand-url | BIRDLG_NAVBAR_BRAND_URL | the url of the brand to show in the navigation bar (default "/") |
