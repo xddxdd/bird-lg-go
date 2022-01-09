@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"net"
 	"net/http"
+	"strings"
 )
 
 // Read a line from bird socket, removing preceding status number, output it.
@@ -67,7 +69,13 @@ func birdHandler(httpW http.ResponseWriter, httpR *http.Request) {
 
 		birdReadln(bird, nil)
 		birdWriteln(bird, "restrict")
-		birdReadln(bird, nil)
+		var restrictedConfirmation bytes.Buffer
+		birdReadln(bird, &restrictedConfirmation)
+		if !strings.Contains(restrictedConfirmation.String(), "Access restricted") {
+			httpW.WriteHeader(http.StatusInternalServerError)
+			httpW.Write([]byte("could not verify that bird access was restricted"))
+			return
+		}
 		birdWriteln(bird, query)
 		for birdReadln(bird, httpW) {
 		}
