@@ -6,6 +6,8 @@ import (
 )
 
 func TestWhois(t *testing.T) {
+	checkNetwork(t)
+
 	setting.whoisServer = "whois.arin.net"
 	result := whois("AS6939")
 	if !strings.Contains(result, "HURRICANE") {

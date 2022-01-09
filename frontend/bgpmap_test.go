@@ -6,6 +6,8 @@ import (
 )
 
 func TestGetASNRepresentationDNS(t *testing.T) {
+	checkNetwork(t)
+
 	setting.dnsInterface = "asn.cymru.com"
 	setting.whoisServer = ""
 	result := getASNRepresentation("6939")
@@ -15,6 +17,8 @@ func TestGetASNRepresentationDNS(t *testing.T) {
 }
 
 func TestGetASNRepresentationWhois(t *testing.T) {
+	checkNetwork(t)
+
 	setting.dnsInterface = ""
 	setting.whoisServer = "whois.arin.net"
 	result := getASNRepresentation("6939")
