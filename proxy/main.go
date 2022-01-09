@@ -4,6 +4,7 @@ import (
 	"flag"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/handlers"
@@ -54,6 +55,7 @@ type settingType struct {
 	listen     string
 	allowedIPs []string
 	tr_bin     string
+	tr_raw     bool
 }
 
 var setting settingType
@@ -66,6 +68,7 @@ func main() {
 		"8000",
 		[]string{""},
 		"traceroute",
+		false,
 	}
 
 	if birdSocketEnv := os.Getenv("BIRD_SOCKET"); birdSocketEnv != "" {
@@ -83,12 +86,19 @@ func main() {
 	if tr_binEnv := os.Getenv("BIRDLG_TRACEROUTE_BIN"); tr_binEnv != "" {
 		settingDefault.tr_bin = tr_binEnv
 	}
+	if tracerouteRawEnv := os.Getenv("BIRDLG_TRACEROUTE_RAW"); tracerouteRawEnv != "" {
+		tracerouteRaw, err := strconv.ParseBool(tracerouteRawEnv)
+		if err == nil {
+			settingDefault.tr_raw = tracerouteRaw
+		}
+	}
 
 	// Allow parameters to override environment variables
 	birdParam := flag.String("bird", settingDefault.birdSocket, "socket file for bird, set either in parameter or environment variable BIRD_SOCKET")
 	listenParam := flag.String("listen", settingDefault.listen, "listen address, set either in parameter or environment variable BIRDLG_PROXY_PORT")
 	AllowedIPsParam := flag.String("allowed", strings.Join(settingDefault.allowedIPs, ","), "IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs.")
 	tr_binParam := flag.String("traceroute_bin", settingDefault.tr_bin, "traceroute binary file, set either in parameter or environment variable BIRDLG_TRACEROUTE_BIN")
+	tr_rawParam := flag.Bool("traceroute_raw", settingDefault.tr_raw, "whether to display traceroute outputs raw; set via parameter or environment variable BIRDLG_TRACEROUTE_RAW")
 	flag.Parse()
 
 	if !strings.Contains(*listenParam, ":") {
@@ -100,6 +110,7 @@ func main() {
 	setting.listen = *listenParam
 	setting.allowedIPs = strings.Split(*AllowedIPsParam, ",")
 	setting.tr_bin = *tr_binParam
+	setting.tr_raw = *tr_rawParam
 
 	// Start HTTP server
 	http.HandleFunc("/", invalidHandler)

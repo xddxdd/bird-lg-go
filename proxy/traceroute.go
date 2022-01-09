@@ -81,14 +81,18 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 			httpW.Write([]byte(errString))
 		}
 		if result != nil {
-			errString = string(result)
-			errString = regexp.MustCompile(`(?m)^\s*(\d*)\s*\*\n`).ReplaceAllStringFunc(errString, func(w string) string {
-				skippedCounter++
-				return ""
-			})
-			httpW.Write([]byte(strings.TrimSpace(errString)))
-			if skippedCounter > 0 {
-				httpW.Write([]byte("\n\n" + strconv.Itoa(skippedCounter) + " hops not responding."))
+			if setting.tr_raw {
+				httpW.Write(result)
+			} else {
+				errString = string(result)
+				errString = regexp.MustCompile(`(?m)^\s*(\d*)\s*\*\n`).ReplaceAllStringFunc(errString, func(w string) string {
+					skippedCounter++
+					return ""
+				})
+				httpW.Write([]byte(strings.TrimSpace(errString)))
+				if skippedCounter > 0 {
+					httpW.Write([]byte("\n\n" + strconv.Itoa(skippedCounter) + " hops not responding."))
+				}
 			}
 		}
 	}
