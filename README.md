@@ -32,6 +32,11 @@ Optionally run `make install` to install them to `/usr/local/bin` (`bird-lg-go` 
 
 Use the Dockerfiles in `frontend` and `proxy` directory.
 
+Ready-to-use images are available at:
+
+- Frontend: <https://hub.docker.com/r/xddxdd/bird-lg-go>
+- Proxy: <https://hub.docker.com/r/xddxdd/bird-lgproxy-go>
+
 ## Frontend
 
 The frontend directory contains the code for the web frontend, where users see BGP states, do traceroutes and whois, etc. It's a replacement for "lg.py" in original bird-lg project.
