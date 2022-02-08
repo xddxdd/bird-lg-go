@@ -47,7 +47,7 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 			}
 			url := "http://" + hostname + ":" + strconv.Itoa(setting.proxyPort) + "/" + url.PathEscape(endpoint) + "?q=" + url.QueryEscape(command)
 			go func(url string, i int) {
-				client := http.Client{Timeout: 120 * time.Second}
+				client := http.Client{Timeout: time.Duration(setting.timeOut) * time.Second}
 				response, err := client.Get(url)
 				if err != nil {
 					ch <- channelData{i, "request failed: " + err.Error() + "\n"}
