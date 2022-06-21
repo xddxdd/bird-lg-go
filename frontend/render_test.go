@@ -143,3 +143,36 @@ int_babel  Babel      ---        up     2021-08-27    `
 		setting.nameFilter = ""
 	})
 }
+
+func TestSummaryTableNameWhitelist(t *testing.T) {
+	initSettings()
+	setting.nameWhitelist = "^static"
+	data := `BIRD 2.0.8 ready.
+Name       Proto      Table      State  Since         Info
+static1    Static     master4    up     2021-08-27
+static2    Static     master6    up     2021-08-27
+device1    Device     ---        up     2021-08-27
+kernel1    Kernel     master6    up     2021-08-27
+kernel2    Kernel     master4    up     2021-08-27
+direct1    Direct     ---        up     2021-08-27
+int_babel  Babel      ---        up     2021-08-27    `
+
+	result := summaryTable(data, "testserver")
+	expectedInclude := []string{"static1", "static2"}
+	expectedExclude := []string{"device1", "kernel1", "kernel2", "direct1", "int_babel"}
+
+	for _, item := range expectedInclude {
+		if !strings.Contains(result, item) {
+			t.Errorf("Did not find expected %s in summary table output", result)
+		}
+	}
+	for _, item := range expectedExclude {
+		if strings.Contains(result, item) {
+			t.Errorf("Found unexpected %s in summary table output", result)
+		}
+	}
+
+	t.Cleanup(func() {
+		setting.nameWhitelist = ""
+	})
+}

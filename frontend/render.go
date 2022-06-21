@@ -135,6 +135,7 @@ func summaryParse(data string, serverName string) (TemplateSummary, error) {
 
 	// Build regexp for nameFilter
 	nameFilterRegexp := regexp.MustCompile(setting.nameFilter)
+	nameWhitelistRegexp := regexp.MustCompile(setting.nameWhitelist)
 
 	// sort the remaining rows
 	rows := lines[1:]
@@ -159,6 +160,9 @@ func summaryParse(data string, serverName string) (TemplateSummary, error) {
 
 		if len(lineSplitted) >= 2 {
 			row.Name = strings.TrimSpace(lineSplitted[1])
+			if setting.nameWhitelist != "" && !nameWhitelistRegexp.MatchString(row.Name) {
+                continue
+            }
 			if setting.nameFilter != "" && nameFilterRegexp.MatchString(row.Name) {
 				continue
 			}

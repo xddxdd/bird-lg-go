@@ -25,6 +25,7 @@ type settingType struct {
 	telegramBotName string
 	protocolFilter  []string
 	nameFilter      string
+	nameWhitelist   string
 	timeOut         int
 }
 
@@ -46,6 +47,7 @@ func main() {
 		telegramBotName: "",
 		protocolFilter:  []string{},
 		nameFilter:      "",
+		nameWhitelist:   "",
 		timeOut:         120,
 	}
 
@@ -101,6 +103,9 @@ func main() {
 	if env := os.Getenv("BIRDLG_NAME_FILTER"); env != "" {
 		settingDefault.nameFilter = env
 	}
+	if env := os.Getenv("BIRDLG_NAME_WHITELIST"); env != "" {
+		settingDefault.nameWhitelist = env
+	}
         if env := os.Getenv("BIRDLG_TIMEOUT"); env != "" {
                 var err error
                 if settingDefault.timeOut, err = strconv.Atoi(env); err != nil {
@@ -125,6 +130,7 @@ func main() {
 	protocolFilterPtr := flag.String("protocol-filter", strings.Join(settingDefault.protocolFilter, ","),
 		"protocol types to show in summary tables (comma separated list); defaults to all if not set")
 	nameFilterPtr := flag.String("name-filter", settingDefault.nameFilter, "protocol name regex to hide in summary tables (RE2 syntax); defaults to none if not set")
+	nameWhitelistPtr := flag.String("name-whitelist", settingDefault.nameWhitelist, "protocol name regex to only show in summary tables (RE2 syntax); defaults to none if not set")
 	timeOutPtr := flag.Int("time-out", settingDefault.timeOut, "time before request timed out, in seconds; defaults to 120 if not set")
 	flag.Parse()
 
@@ -173,6 +179,7 @@ func main() {
 		*telegramBotNamePtr,
 		protocolFilter,
 		*nameFilterPtr,
+		*nameWhitelistPtr,
 		*timeOutPtr,
 	}
 
