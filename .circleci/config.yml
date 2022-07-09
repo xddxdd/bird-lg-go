@@ -44,8 +44,20 @@ jobs:
     working_directory: /home/circleci/go/src/github.com/xddxdd/bird-lg-go
     steps:
       - checkout
-      - run: GO111MODULE=auto go get -v -t -d ./...
-      - run: GO111MODULE=auto go test -v ./...
+      - run: 
+          name: Test frontend
+          command: |
+            export GO111MODULE=on
+            cd frontend
+            go get -v -t -d ./...
+            go test -v ./...
+      - run: 
+          name: Test proxy
+          command: |
+            export GO111MODULE=on
+            cd proxy
+            go get -v -t -d ./...
+            go test -v ./...
 
   docker-frontend:
     machine:
