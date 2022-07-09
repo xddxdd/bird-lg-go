@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -101,18 +102,18 @@ func main() {
 	if env := os.Getenv("BIRDLG_NAME_FILTER"); env != "" {
 		settingDefault.nameFilter = env
 	}
-        if env := os.Getenv("BIRDLG_TIMEOUT"); env != "" {
-                var err error
-                if settingDefault.timeOut, err = strconv.Atoi(env); err != nil {
-                        panic(err)
-                }
-        }
+	if env := os.Getenv("BIRDLG_TIMEOUT"); env != "" {
+		var err error
+		if settingDefault.timeOut, err = strconv.Atoi(env); err != nil {
+			panic(err)
+		}
+	}
 
 	serversPtr := flag.String("servers", strings.Join(settingDefault.servers, ","), "server name prefixes, separated by comma")
 	domainPtr := flag.String("domain", settingDefault.domain, "server name domain suffixes")
 	proxyPortPtr := flag.Int("proxy-port", settingDefault.proxyPort, "port bird-lgproxy is running on")
 	whoisPtr := flag.String("whois", settingDefault.whoisServer, "whois server for queries")
-	listenPtr := flag.String("listen", settingDefault.listen, "address bird-lg is listening on")
+	listenPtr := flag.String("listen", settingDefault.listen, "address or unix socket bird-lg is listening on")
 	dnsInterfacePtr := flag.String("dns-interface", settingDefault.dnsInterface, "dns zone to query ASN information")
 	netSpecificModePtr := flag.String("net-specific-mode", settingDefault.netSpecificMode, "network specific operation mode, [(none)|dn42]")
 	titleBrandPtr := flag.String("title-brand", settingDefault.titleBrand, "prefix of page titles in browser tabs")
@@ -130,11 +131,6 @@ func main() {
 
 	if *serversPtr == "" {
 		panic("no server set")
-	}
-
-	if !strings.Contains(*listenPtr, ":") {
-		listenHost := ":" + (*listenPtr)
-		listenPtr = &listenHost
 	}
 
 	servers := strings.Split(*serversPtr, ",")
@@ -177,5 +173,25 @@ func main() {
 	}
 
 	ImportTemplates()
-	webServerStart()
+
+	var l net.Listener
+	var err error
+
+	if strings.HasPrefix(setting.listen, "/") {
+		// Delete existing socket file, ignore errors (will fail later anyway)
+		os.Remove(setting.listen)
+		l, err = net.Listen("unix", setting.listen)
+	} else {
+		listenAddr := setting.listen
+		if !strings.Contains(listenAddr, ":") {
+			listenAddr = ":" + listenAddr
+		}
+		l, err = net.Listen("tcp", listenAddr)
+	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	webServerStart(l)
 }

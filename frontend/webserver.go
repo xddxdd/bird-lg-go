@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 	"io/fs"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -176,7 +177,7 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 }
 
 // set up routing paths and start webserver
-func webServerStart() {
+func webServerStart(l net.Listener) {
 
 	// redirect main page to all server summary
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -211,5 +212,5 @@ func webServerStart() {
 	http.HandleFunc("/telegram/", webHandlerTelegramBot)
 
 	// Start HTTP server
-	http.ListenAndServe(setting.listen, handlers.LoggingHandler(os.Stdout, http.DefaultServeMux))
+	http.Serve(l, handlers.LoggingHandler(os.Stdout, http.DefaultServeMux))
 }
