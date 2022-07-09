@@ -49,26 +49,35 @@ Features implemented:
 - Work with both Python proxy (lgproxy.py) and Go proxy (proxy dir of this project)
 - Visualize AS paths as picture (bgpmap feature)
 
-Usage: all configuration is done via commandline parameters or environment variables, no config file.
+Configuration can be set in:
 
-| Parameter | Environment Variable | Description |
-| --------- | -------------------- | ----------- |
-| --servers | BIRDLG_SERVERS | server name prefixes, separated by comma |
-| --domain | BIRDLG_DOMAIN | server name domain suffixes |
-| --listen | BIRDLG_LISTEN | address bird-lg is listening on (default "5000") |
-| --proxy-port | BIRDLG_PROXY_PORT | port bird-lgproxy is running on (default 8000) |
-| --whois | BIRDLG_WHOIS | whois server for queries (default "whois.verisign-grs.com") |
-| --dns-interface | BIRDLG_DNS_INTERFACE | dns zone to query ASN information (default "asn.cymru.com") |
-| --bgpmap-info | BIRDLG_BGPMAP_INFO | the infos displayed in bgpmap, separated by comma, start with `:` means allow multiline (default "asn,as-name,ASName,descr") |
-| --title-brand | BIRDLG_TITLE_BRAND | prefix of page titles in browser tabs (default "Bird-lg Go") |
-| --navbar-brand | BIRDLG_NAVBAR_BRAND | brand to show in the navigation bar (default "Bird-lg Go") |
-| --navbar-brand-url | BIRDLG_NAVBAR_BRAND_URL | the url of the brand to show in the navigation bar (default "/") |
-| --navbar-all-servers | BIRDLG_NAVBAR_ALL_SERVERS | the text of "All servers" button in the navigation bar (default "ALL Servers") |
-| --navbar-all-url | BIRDLG_NAVBAR_ALL_URL | the URL of "All servers" button (default "all") |
-| --net-specific-mode | BIRDLG_NET_SPECIFIC_MODE | apply network-specific changes for some networks, use "dn42" for BIRD in dn42 network |
-| --protocol-filter | BIRDLG_PROTOCOL_FILTER | protocol types to show in summary tables (comma separated list); defaults to all if not set |
-| --name-filter | BIRDLG_NAME_FILTER | protocol names to hide in summary tables (RE2 syntax); defaults to none if not set |
-| --time-out | BIRDLG_TIMEOUT | time before request timed out, in seconds; defaults to 120 if not set |
+- `bird-lg.[json/yaml/etc]` in current directory
+- `/etc/bird-lg/bird-lg.[json/yaml/etc]`
+- Commandline parameter
+- Environment variables
+
+Configuration is handled by [viper](https://github.com/spf13/viper), any config format supported by it can be used.
+
+> Note: the config system is replaced with viper only recently (2022-07-08). If some config items do not work, please open an issue, and use commit [892a7bee22a1bb02d3b4da6d270c65b6e4e1321a](https://github.com/xddxdd/bird-lg-go/tree/892a7bee22a1bb02d3b4da6d270c65b6e4e1321a) (last version before config system replace) for the time being.
+
+| Config Key | Parameter | Environment Variable | Description |
+| ---------- | --------- | -------------------- | ----------- |
+| servers | --servers | BIRDLG_SERVERS | server name prefixes, separated by comma |
+| domain | --domain | BIRDLG_DOMAIN | server name domain suffixes |
+| listen | --listen | BIRDLG_LISTEN | address bird-lg is listening on (default "5000") |
+| proxy_port | --proxy-port | BIRDLG_PROXY_PORT | port bird-lgproxy is running on (default 8000) |
+| whois | --whois | BIRDLG_WHOIS | whois server for queries (default "whois.verisign-grs.com") |
+| dns_interface | --dns-interface | BIRDLG_DNS_INTERFACE | dns zone to query ASN information (default "asn.cymru.com") |
+| bgpmap_info | --bgpmap-info | BIRDLG_BGPMAP_INFO | the infos displayed in bgpmap, separated by comma, start with `:` means allow multiline (default "asn,as-name,ASName,descr") |
+| title_brand | --title-brand | BIRDLG_TITLE_BRAND | prefix of page titles in browser tabs (default "Bird-lg Go") |
+| navbar_brand | --navbar-brand | BIRDLG_NAVBAR_BRAND | brand to show in the navigation bar (default "Bird-lg Go") |
+| navbar_brand_url | --navbar-brand-url | BIRDLG_NAVBAR_BRAND_URL | the url of the brand to show in the navigation bar (default "/") |
+| navbar_all_servers | --navbar-all-servers | BIRDLG_NAVBAR_ALL_SERVERS | the text of "All servers" button in the navigation bar (default "ALL Servers") |
+| navbar_all_url | --navbar-all-url | BIRDLG_NAVBAR_ALL_URL | the URL of "All servers" button (default "all") |
+| net_specific_mode | --net-specific-mode | BIRDLG_NET_SPECIFIC_MODE | apply network-specific changes for some networks, use "dn42" for BIRD in dn42 network |
+| protocol_filter | --protocol-filter | BIRDLG_PROTOCOL_FILTER | protocol types to show in summary tables (comma separated list); defaults to all if not set |
+| name_filter | --name-filter | BIRDLG_NAME_FILTER | protocol names to hide in summary tables (RE2 syntax); defaults to none if not set |
+| timeout | --time-out | BIRDLG_TIMEOUT | time before request timed out, in seconds; defaults to 120 if not set |
 
 Example: the following command starts the frontend with 2 BIRD nodes, with domain name "gigsgigscloud.dn42.lantian.pub" and "hostdare.dn42.lantian.pub", and proxies are running on port 8000 on both nodes.
 
@@ -104,15 +113,24 @@ Features implemented:
 - Executing traceroute command on Linux, FreeBSD and OpenBSD
 - Source IP restriction
 
-Usage: all configuration is done via commandline parameters or environment variables, no config file.
+Configuration can be set in:
 
-| Parameter | Environment Variable | Description |
-| --------- | -------------------- | ----------- |
-| --allowed | ALLOWED_IPS | IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "") |
-| --bird | BIRD_SOCKET | socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl") |
-| --listen | BIRDLG_PROXY_PORT | listen address, set either in parameter or environment variable  BIRDLG_PROXY_PORT(default "8000") |
-| --traceroute_bin | BIRDLG_TRACEROUTE_BIN | traceroute binary file, set either in parameter or environment variable  BIRDLG_TRACEROUTE_BIN(default "traceroute") |
-| --traceroute_raw | BIRDLG_TRACEROUTE_RAW | whether to display traceroute outputs raw (default false) |
+- `bird-lgproxy.[json/yaml/etc]` in current directory
+- `/etc/bird-lg/bird-lgproxy.[json/yaml/etc]`
+- Commandline parameter
+- Environment variables
+
+Configuration is handled by [viper](https://github.com/spf13/viper), any config format supported by it can be used.
+
+> Note: the config system is replaced with viper only recently (2022-07-08). If some config items do not work, please open an issue, and use commit [892a7bee22a1bb02d3b4da6d270c65b6e4e1321a](https://github.com/xddxdd/bird-lg-go/tree/892a7bee22a1bb02d3b4da6d270c65b6e4e1321a) (last version before config system replace) for the time being.
+
+| Config Key | Parameter | Environment Variable | Description |
+| ---------- | --------- | -------------------- | ----------- |
+| allowed_ips | --allowed | ALLOWED_IPS | IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "") |
+| bird_socket | --bird | BIRD_SOCKET | socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl") |
+| listen | --listen | BIRDLG_PROXY_PORT | listen address, set either in parameter or environment variable  BIRDLG_PROXY_PORT(default "8000") |
+| traceroute_bin | --traceroute_bin | BIRDLG_TRACEROUTE_BIN | traceroute binary file, set either in parameter or environment variable  BIRDLG_TRACEROUTE_BIN(default "traceroute") |
+| traceroute_raw | --traceroute_raw | BIRDLG_TRACEROUTE_RAW | whether to display traceroute outputs raw (default false) |
 
 Example: start proxy with default configuration, should work "out of the box" on Debian 9 with BIRDv1:
 
