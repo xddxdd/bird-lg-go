@@ -124,7 +124,7 @@ func parseSettings() {
 		setting.navBarBrand = setting.titleBrand
 	}
 
-	setting.navBarBrandURL = viperSettings.NavBarBrand
+	setting.navBarBrandURL = viperSettings.NavBarBrandURL
 	setting.navBarAllServer = viperSettings.NavBarAllServer
 	setting.navBarAllURL = viperSettings.NavBarAllURL
 	setting.bgpmapInfo = viperSettings.BgpmapInfo
