@@ -1,9 +1,9 @@
 package main
 
 import (
+	"html/template"
 	"io/ioutil"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 )
@@ -25,7 +25,7 @@ func TestRenderPageTemplate(t *testing.T) {
 
 	r := httptest.NewRequest("GET", "/route/alpha/192.168.0.1/", nil)
 	w := httptest.NewRecorder()
-	renderPageTemplate(w, r, title, content)
+	renderPageTemplate(w, r, title, template.HTML(content))
 
 	resultBytes, _ := ioutil.ReadAll(w.Result().Body)
 	result := string(resultBytes)
@@ -43,7 +43,27 @@ func TestRenderPageTemplateXSS(t *testing.T) {
 
 	evil := "<script>alert('evil');</script>"
 
-	r := httptest.NewRequest("GET", "/whois/"+url.PathEscape(evil), nil)
+	r := httptest.NewRequest("GET", "/whois/"+evil, nil)
+	w := httptest.NewRecorder()
+
+	// renderPageTemplate doesn't escape content, filter is done beforehand
+	renderPageTemplate(w, r, evil, "Test Content")
+
+	resultBytes, _ := ioutil.ReadAll(w.Result().Body)
+	result := string(resultBytes)
+
+	if strings.Contains(result, evil) {
+		t.Errorf("XSS injection succeeded: %s", result)
+	}
+}
+
+// https://github.com/xddxdd/bird-lg-go/issues/57
+func TestRenderPageTemplateXSS_2(t *testing.T) {
+	initSettings()
+
+	evil := "<script>alert('evil');</script>"
+
+	r := httptest.NewRequest("GET", "/generic/dummy_server/"+evil, nil)
 	w := httptest.NewRecorder()
 
 	// renderPageTemplate doesn't escape content, filter is done beforehand
@@ -59,7 +79,7 @@ func TestRenderPageTemplateXSS(t *testing.T) {
 
 func TestSmartFormatterXSS(t *testing.T) {
 	evil := "<script>alert('evil');</script>"
-	result := smartFormatter(evil)
+	result := string(smartFormatter(evil))
 
 	if strings.Contains(result, evil) {
 		t.Errorf("XSS injection succeeded: %s", result)
@@ -71,7 +91,7 @@ func TestSummaryTableXSS(t *testing.T) {
 	evilData := `Name       Proto      Table      State  Since         Info
 ` + evil + ` ` + evil + `       ---        up     2021-01-04 17:21:44  ` + evil
 
-	result := summaryTable(evilData, evil)
+	result := string(summaryTable(evilData, evil))
 
 	if strings.Contains(result, evil) {
 		t.Errorf("XSS injection succeeded: %s", result)
@@ -91,7 +111,7 @@ kernel2    Kernel     master4    up     2021-08-27
 direct1    Direct     ---        up     2021-08-27
 int_babel  Babel      ---        up     2021-08-27    `
 
-	result := summaryTable(data, "testserver")
+	result := string(summaryTable(data, "testserver"))
 	expectedInclude := []string{"static1", "static2", "int_babel", "direct1"}
 	expectedExclude := []string{"device1", "kernel1", "kernel2"}
 
@@ -124,7 +144,7 @@ kernel2    Kernel     master4    up     2021-08-27
 direct1    Direct     ---        up     2021-08-27
 int_babel  Babel      ---        up     2021-08-27    `
 
-	result := summaryTable(data, "testserver")
+	result := string(summaryTable(data, "testserver"))
 	expectedInclude := []string{"device1", "kernel1", "kernel2", "direct1", "int_babel"}
 	expectedExclude := []string{"static1", "static2"}
 
