@@ -2,8 +2,8 @@ package main
 
 import (
 	"embed"
+	"html/template"
 	"strings"
-	"text/template"
 )
 
 // import templates and other assets
@@ -19,7 +19,6 @@ type TemplatePage struct {
 	// Global options
 	Options        map[string]string
 	Servers        []string
-	ServersEscaped []string
 	ServersDisplay []string
 
 	// Parameters related to current request
@@ -40,7 +39,7 @@ type TemplatePage struct {
 	Title    string
 	Brand    string
 	BrandURL string
-	Content  string
+	Content  template.HTML
 }
 
 // summary
@@ -74,7 +73,7 @@ type TemplateSummary struct {
 // whois
 type TemplateWhois struct {
 	Target string
-	Result string
+	Result template.HTML
 }
 
 // bgpmap
@@ -88,7 +87,7 @@ type TemplateBGPmap struct {
 type TemplateBird struct {
 	ServerName string
 	Target     string
-	Result     string
+	Result     template.HTML
 }
 
 // global variable to hold the templates

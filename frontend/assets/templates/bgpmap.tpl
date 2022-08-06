@@ -6,7 +6,7 @@
 <script src="/static/jsdelivr/npm/viz.js@2.1.2/lite.render.js" crossorigin="anonymous"></script>
 <script>
   var viz = new Viz();
-  viz.renderSVGElement(`{{ .Result }}`)
+  viz.renderSVGElement(atob({{ .Result }}))
   .then(element => {
     document.getElementById("bgpmap").appendChild(element);
   })

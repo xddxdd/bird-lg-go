@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"html"
+	"html/template"
 	"io/fs"
 	"net"
 	"net/http"
@@ -56,7 +58,7 @@ func webHandlerWhois(w http.ResponseWriter, r *http.Request) {
 	renderPageTemplate(
 		w, r,
 		" - whois "+html.EscapeString(target),
-		buffer.String(),
+		template.HTML(buffer.String()),
 	)
 }
 
@@ -89,7 +91,7 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 		var content string
 		for i, response := range responses {
 
-			var result string
+			var result template.HTML
 			if (endpoint == "bird") && backendCommand == "show protocols" && len(response) > 4 && strings.ToLower(response[0:4]) == "name" {
 				result = summaryTable(response, servers[i])
 			} else {
@@ -124,7 +126,7 @@ func webBackendCommunicator(endpoint string, command string) func(w http.Respons
 		renderPageTemplate(
 			w, r,
 			" - "+endpoint+" "+backendCommand,
-			content,
+			template.HTML(content),
 		)
 	}
 }
@@ -154,11 +156,15 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 		var servers []string = strings.Split(split[1], "+")
 		var responses []string = batchRequest(servers, endpoint, backendCommand)
 
+		// encode result with base64 to prevent xss
+		result := birdRouteToGraphviz(servers, responses, urlCommands)
+		result = base64.StdEncoding.EncodeToString([]byte(result))
+
 		// render the bgpmap result template
 		args := TemplateBGPmap{
 			Servers: servers,
 			Target:  backendCommand,
-			Result:  birdRouteToGraphviz(servers, responses, urlCommands),
+			Result:  result,
 		}
 
 		tmpl := TemplateLibrary["bgpmap"]
@@ -171,7 +177,7 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 		renderPageTemplate(
 			w, r,
 			" - "+html.EscapeString(endpoint+" "+backendCommand),
-			buffer.String(),
+			template.HTML(buffer.String()),
 		)
 	}
 }
