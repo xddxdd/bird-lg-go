@@ -66,7 +66,7 @@ Configuration is handled by [viper](https://github.com/spf13/viper), any config 
 | domain | --domain | BIRDLG_DOMAIN | server name domain suffixes |
 | listen | --listen | BIRDLG_LISTEN | address bird-lg is listening on (default "5000") |
 | proxy_port | --proxy-port | BIRDLG_PROXY_PORT | port bird-lgproxy is running on (default 8000) |
-| whois | --whois | BIRDLG_WHOIS | whois server for queries (default "whois.verisign-grs.com") |
+| whois | --whois | BIRDLG_WHOIS | whois server for queries (default "whois.verisign-grs.com"). Start with "/" to spacify local whois binary("/usr/local/whois"). |
 | dns_interface | --dns-interface | BIRDLG_DNS_INTERFACE | dns zone to query ASN information (default "asn.cymru.com") |
 | bgpmap_info | --bgpmap-info | BIRDLG_BGPMAP_INFO | the infos displayed in bgpmap, separated by comma, start with `:` means allow multiline (default "asn,as-name,ASName,descr") |
 | title_brand | --title-brand | BIRDLG_TITLE_BRAND | prefix of page titles in browser tabs (default "Bird-lg Go") |
