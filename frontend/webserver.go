@@ -17,15 +17,26 @@ import (
 )
 
 var primitiveMap = map[string]string{
-	"summary":         "show protocols",
-	"detail":          "show protocols all %s",
-	"route":           "show route for %s",
-	"route_all":       "show route for %s all",
-	"route_where":     "show route where net ~ [ %s ]",
-	"route_where_all": "show route where net ~ [ %s ] all",
-	"route_generic":   "show route %s",
-	"generic":         "show %s",
-	"traceroute":      "%s",
+	"summary":                          "show protocols",
+	"detail":                           "show protocols all %s",
+	"route_from_protocol":              "show route protocol %s",
+	"route_from_protocol_all":          "show route protocol %s all",
+	"route_from_protocol_primary":      "show route protocol %s primary",
+	"route_from_protocol_all_primary":  "show route protocol %s all primary",
+	"route_filtered_from_protocol":     "show route filtered protocol %s",
+	"route_filtered_from_protocol_all": "show route filtered protocol %s all",
+	"route_from_origin":                "show route where bgp_path.last = %s",
+	"route_from_origin_all":            "show route where bgp_path.last = %s all",
+	"route_from_origin_primary":        "show route where bgp_path.last = %s primary",
+	"route_from_origin_all_primary":    "show route where bgp_path.last = %s all primary",
+	"route":                            "show route for %s",
+	"route_all":                        "show route for %s all",
+	"route_where":                      "show route where net ~ [ %s ]",
+	"route_where_all":                  "show route where net ~ [ %s ] all",
+	"route_generic":                    "show route %s",
+	"generic":                          "show %s",
+	"whois":                            "%s",
+	"traceroute":                       "%s",
 }
 
 // serve up a generic error
@@ -204,6 +215,16 @@ func webServerStart(l net.Listener) {
 	// backend routes
 	http.HandleFunc("/summary/", webBackendCommunicator("bird", "summary"))
 	http.HandleFunc("/detail/", webBackendCommunicator("bird", "detail"))
+	http.HandleFunc("/route_filtered_from_protocol/", webBackendCommunicator("bird", "route_filtered_from_protocol"))
+	http.HandleFunc("/route_filtered_from_protocol_all/", webBackendCommunicator("bird", "route_filtered_from_protocol_all"))
+	http.HandleFunc("/route_from_protocol/", webBackendCommunicator("bird", "route_from_protocol"))
+	http.HandleFunc("/route_from_protocol_all/", webBackendCommunicator("bird", "route_from_protocol_all"))
+	http.HandleFunc("/route_from_protocol_primary/", webBackendCommunicator("bird", "route_from_protocol_primary"))
+	http.HandleFunc("/route_from_protocol_all_primary/", webBackendCommunicator("bird", "route_from_protocol_all_primary"))
+	http.HandleFunc("/route_from_origin/", webBackendCommunicator("bird", "route_from_origin"))
+	http.HandleFunc("/route_from_origin_all/", webBackendCommunicator("bird", "route_from_origin_all"))
+	http.HandleFunc("/route_from_origin_primary/", webBackendCommunicator("bird", "route_from_origin_primary"))
+	http.HandleFunc("/route_from_origin_all_primary/", webBackendCommunicator("bird", "route_from_origin_all_primary"))
 	http.HandleFunc("/route/", webBackendCommunicator("bird", "route"))
 	http.HandleFunc("/route_all/", webBackendCommunicator("bird", "route_all"))
 	http.HandleFunc("/route_bgpmap/", webHandlerBGPMap("bird", "route_bgpmap"))
