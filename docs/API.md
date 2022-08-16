@@ -153,9 +153,11 @@ Request:
 
 ```json
 {
-    "servers": [],
-    "type": "server_list",
-    "args": ""
+    "servers": [
+        "alpha"
+    ],
+    "type": "bird",
+    "args": "show status"
 }
 ```
 
@@ -179,11 +181,9 @@ Request:
 
 ```json
 {
-    "servers": [
-        "alpha"
-    ],
-    "type": "bird",
-    "args": "show status"
+    "servers": [],
+    "type": "server_list",
+    "args": ""
 }
 ```
 
