@@ -4,14 +4,6 @@ workflows:
   docker:
     jobs:
       - build
-      - docker-frontend:
-          context:
-            - docker
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: master
       - docker-frontend-deploy:
           context:
             - docker
@@ -20,14 +12,6 @@ workflows:
           filters:
             branches:
               only: master
-      - docker-proxy:
-          context:
-            - docker
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: master
       - docker-proxy-deploy:
           context:
             - docker
@@ -58,43 +42,6 @@ jobs:
             cd proxy
             go get -v -t -d ./...
             go test -v ./...
-
-  docker-frontend:
-    machine:
-      image: ubuntu-2004:202111-02
-    environment:
-      BUILDX_PLATFORMS: linux/amd64,linux/arm64,linux/386,linux/arm/v7
-    steps:
-      - checkout
-      - run:
-          name: Install buildx
-          command: |
-            BUILDX_BINARY_URL="https://github.com/docker/buildx/releases/download/v0.7.1/buildx-v0.7.1.linux-amd64"
-
-            curl --output docker-buildx \
-              --silent --show-error --location --fail --retry 3 \
-              "$BUILDX_BINARY_URL"
-
-            mkdir -p ~/.docker/cli-plugins
-
-            mv docker-buildx ~/.docker/cli-plugins/
-            chmod a+x ~/.docker/cli-plugins/docker-buildx
-
-            docker buildx install
-            # Run binfmt
-            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-      - run:
-          name: Build Docker image
-          environment:
-            BUILD_ID: << pipeline.number >>
-          command: |
-            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-            docker buildx create --name mybuilder --use
-            docker buildx build \
-              --platform $BUILDX_PLATFORMS \
-              -t $DOCKER_USERNAME/bird-lg-go:circleci-build$BUILD_ID \
-              --progress plain \
-              frontend
 
   docker-frontend-deploy:
     machine:
@@ -137,43 +84,6 @@ jobs:
               -t $DOCKER_USERNAME/bird-lg-go:latest \
               --progress plain \
               --push frontend
-
-  docker-proxy:
-    machine:
-      image: ubuntu-2004:202111-02
-    environment:
-      BUILDX_PLATFORMS: linux/amd64,linux/arm64,linux/386,linux/arm/v7
-    steps:
-      - checkout
-      - run:
-          name: Install buildx
-          command: |
-            BUILDX_BINARY_URL="https://github.com/docker/buildx/releases/download/v0.7.1/buildx-v0.7.1.linux-amd64"
-
-            curl --output docker-buildx \
-              --silent --show-error --location --fail --retry 3 \
-              "$BUILDX_BINARY_URL"
-
-            mkdir -p ~/.docker/cli-plugins
-
-            mv docker-buildx ~/.docker/cli-plugins/
-            chmod a+x ~/.docker/cli-plugins/docker-buildx
-
-            docker buildx install
-            # Run binfmt
-            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-      - run:
-          name: Build Docker image
-          environment:
-            BUILD_ID: << pipeline.number >>
-          command: |
-            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-            docker buildx create --name mybuilder --use
-            docker buildx build \
-              --platform $BUILDX_PLATFORMS \
-              -t $DOCKER_USERNAME/bird-lgproxy-go:circleci-build$BUILD_ID \
-              --progress plain \
-              proxy
 
   docker-proxy-deploy:
     machine:
