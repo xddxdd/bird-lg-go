@@ -1,6 +1,6 @@
 {{ $ServerName := urlquery .ServerName }}
 
-<table class="table table-striped table-bordered table-sm">
+<table class="table table-striped table-bordered table-sm sortable">
   <thead>
 {{ range .Header }}
     <th scope="col">{{ html . }}</th>
