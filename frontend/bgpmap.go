@@ -1,12 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"html"
 	"net"
 	"regexp"
 	"strings"
 )
+
+func graphvizEscape(s string) string {
+	result, err := json.Marshal(s)
+	if err != nil {
+		return err.Error()
+	} else {
+		return string(result)
+	}
+}
 
 func getASNRepresentation(asn string) string {
 	if setting.dnsInterface != "" {
@@ -15,9 +24,9 @@ func getASNRepresentation(asn string) string {
 		if err == nil {
 			result := strings.Join(records, " ")
 			if resultSplit := strings.Split(result, " | "); len(resultSplit) > 1 {
-				result = strings.Join(resultSplit[1:], "\\n")
+				result = strings.Join(resultSplit[1:], "\n")
 			}
-			return fmt.Sprintf("AS%s\\n%s", asn, result)
+			return fmt.Sprintf("AS%s\n%s", asn, result)
 		}
 	}
 
@@ -67,26 +76,28 @@ func getASNRepresentation(asn string) string {
 }
 
 func birdRouteToGraphviz(servers []string, responses []string, target string) string {
-	graph := make(map[string]string)
+	graph := make(map[string](map[string]string))
 	// Helper to add an edge
-	addEdge := func(src string, dest string, attr string) {
-		key := "\"" + html.EscapeString(src) + "\" -> \"" + html.EscapeString(dest) + "\""
+	addEdge := func(src string, dest string, attrKey string, attrValue string) {
+		key := graphvizEscape(src) + " -> " + graphvizEscape(dest)
 		_, present := graph[key]
-		// If there are multiple edges / routes between 2 nodes, only pick the first one
-		if present {
-			return
+		if !present {
+			graph[key] = map[string]string{}
 		}
-		graph[key] = attr
+		if attrKey != "" {
+			graph[key][attrKey] = attrValue
+		}
 	}
 	// Helper to set attribute for a point in graph
-	addPoint := func(name string, attr string) {
-		key := "\"" + html.EscapeString(name) + "\""
+	addPoint := func(name string, attrKey string, attrValue string) {
+		key := graphvizEscape(name)
 		_, present := graph[key]
-		// Do not remove point's attributes if it's already present
-		if present && len(attr) == 0 {
-			return
+		if !present {
+			graph[key] = map[string]string{}
 		}
-		graph[key] = attr
+		if attrKey != "" {
+			graph[key][attrKey] = attrValue
+		}
 	}
 	// The protocol name for each route (e.g. "ibgp_sea02") is encoded in the form:
 	//    unicast [ibgp_sea02 2021-08-27 from fd86:bad:11b7:1::1] * (100/1015) [i]
@@ -95,13 +106,16 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 	// Possible values are defined at https://gitlab.nic.cz/labs/bird/-/blob/v2.0.8/nest/rt-attr.c#L81-87
 	routeSplitRe := regexp.MustCompile("(unicast|blackhole|unreachable|prohibited)")
 
-	addPoint("Target: "+target, "[color=red,shape=diamond]")
+	addPoint("Target: "+target, "color", "red")
+	addPoint("Target: "+target, "shape", "diamond")
+
 	for serverID, server := range servers {
 		response := responses[serverID]
 		if len(response) == 0 {
 			continue
 		}
-		addPoint(server, "[color=blue,shape=box]")
+		addPoint(server, "color", "blue")
+		addPoint(server, "shape", "box")
 		routes := routeSplitRe.Split(response, -1)
 
 		targetNodeName := "Target: " + target
@@ -153,15 +167,16 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 
 			// First step starting from originating server
 			if len(paths) > 0 {
-				attrs := []string{"fontsize=12.0"}
+				edgeTarget := getASNRepresentation(paths[0])
+				addEdge(server, edgeTarget, "fontsize", "12.0")
 				if routePreferred {
-					attrs = append(attrs, "color=red")
+					addEdge(server, edgeTarget, "color", "red")
+					// Only set color for next step, origin color is set to blue above
+					addPoint(edgeTarget, "color", "red")
 				}
 				if len(routeNexthop) > 0 {
-					attrs = append(attrs, fmt.Sprintf("label=\"%s\\n%s\"", protocolName, routeNexthop))
+					addEdge(server, edgeTarget, "label", protocolName + "\n" + routeNexthop)
 				}
-				formattedAttr := fmt.Sprintf("[%s]", strings.Join(attrs, ","))
-				addEdge(server, getASNRepresentation(paths[0]), formattedAttr)
 			}
 
 			// Following steps, edges between AS
@@ -169,29 +184,51 @@ func birdRouteToGraphviz(servers []string, responses []string, target string) st
 				if pathIndex == 0 {
 					continue
 				}
-				addEdge(getASNRepresentation(paths[pathIndex-1]), getASNRepresentation(paths[pathIndex]), (map[bool]string{true: "[color=red]"})[routePreferred])
+				if routePreferred {
+					addEdge(getASNRepresentation(paths[pathIndex-1]), getASNRepresentation(paths[pathIndex]), "color", "red")
+					// Only set color for next step, origin color is set to blue above
+					addPoint(getASNRepresentation(paths[pathIndex]), "color", "red")
+				} else {
+					addEdge(getASNRepresentation(paths[pathIndex-1]), getASNRepresentation(paths[pathIndex]), "", "")
+				}
 			}
+
 			// Last AS to destination
-			addEdge(getASNRepresentation(paths[len(paths)-1]), targetNodeName, (map[bool]string{true: "[color=red]"})[routePreferred])
+			if routePreferred {
+				addEdge(getASNRepresentation(paths[len(paths)-1]), targetNodeName, "color", "red")
+			} else {
+				addEdge(getASNRepresentation(paths[len(paths)-1]), targetNodeName, "", "")
+			}
 		}
 
 		if len(nonBGPRoutes) > 0 {
-			protocolsForRoute := fmt.Sprintf("label=\"%s\"", strings.Join(nonBGPRoutes, "\\n"))
-
-			attrs := []string{protocolsForRoute, "fontsize=12.0"}
+			addEdge(server, targetNodeName, "label", strings.Join(nonBGPRoutes, "\n"))
+			addEdge(server, targetNodeName, "fontsize", "12.0")
 
 			if nonBGPRoutePreferred {
-				attrs = append(attrs, "color=red")
+				addEdge(server, targetNodeName, "color", "red")
 			}
-			formattedAttr := fmt.Sprintf("[%s]", strings.Join(attrs, ","))
-			addEdge(server, targetNodeName, formattedAttr)
 		}
 	}
 
 	// Combine all graphviz commands
 	var result string
 	for edge, attr := range graph {
-		result += edge + " " + attr + ";\n"
+		result += edge;
+		if len(attr) != 0 {
+			result += " ["
+			isFirst := true
+			for k, v := range attr {
+				if isFirst {
+					isFirst = false
+				} else {
+					result += ","
+				}
+				result += graphvizEscape(k) + "=" + graphvizEscape(v) + "";
+			}
+			result += "]"
+		}
+		result += ";\n"
 	}
 	return "digraph {\n" + result + "}\n"
 }
