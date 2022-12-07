@@ -47,43 +47,39 @@ func TestGetASNRepresentationFallback(t *testing.T) {
 }
 
 // Broken due to random order of attributes
-// func TestBirdRouteToGraphviz(t *testing.T) {
-// 	setting.dnsInterface = ""
+func TestBirdRouteToGraphviz(t *testing.T) {
+	setting.dnsInterface = ""
 
-// 	// Don't change formatting of the following strings!
+	// Don't change formatting of the following strings!
 
-// 	fakeResult := `192.168.0.1/32       unicast [alpha 2021-01-14 from 192.168.0.2] * (100) [AS12345i]
-// 	via 192.168.0.2 on eth0
-// 	Type: BGP univ
-// 	BGP.origin: IGP
-// 	BGP.as_path: 4242422601
-// 	BGP.next_hop: 172.18.0.2`
+	fakeResult := `192.168.0.1/32       unicast [alpha 2021-01-14 from 192.168.0.2] * (100) [AS12345i]
+	via 192.168.0.2 on eth0
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242422601
+	BGP.next_hop: 172.18.0.2`
 
-// 	expectedResult := strings.Split(`digraph {
-// "AS4242422601" ["color"="red"];
-// "AS4242422601" -> "Target: 192.168.0.1" ["color"="red"];
-// "Target: 192.168.0.1" ["shape"="diamond","color"="red"];
-// "alpha" ["color"="blue","shape"="box"];
-// "alpha" -> "AS4242422601" ["fontsize"="12.0","color"="red","label"="alpha*\n172.18.0.2"];
-// }
-// `, "\n")
+	expectedLinesInResult := []string{
+		`"AS4242422601" [`,
+		`"AS4242422601" -> "Target: 192.168.0.1" [`,
+		`"Target: 192.168.0.1" [`,
+		`"alpha" [`,
+		`"alpha" -> "AS4242422601" [`,
+	}
 
-// 	result := birdRouteToGraphviz([]string{
-// 		"alpha",
-// 	}, []string{
-// 		fakeResult,
-// 	}, "192.168.0.1")
+	result := birdRouteToGraphviz([]string{
+		"alpha",
+	}, []string{
+		fakeResult,
+	}, "192.168.0.1")
 
 
-// 	for _, line := range strings.Split(result, "\n") {
-// 		println(line)
-// 		if !contains(expectedResult, line) {
-// 			t.Errorf("Unexpected line in result: %s", line)
-// 		} else {
-// 			println("OK")
-// 		}
-// 	}
-// }
+	for _, line := range expectedLinesInResult {
+		if !strings.Contains(result, line) {
+			t.Errorf("Expected line in result not found: %s", line)
+		}
+	}
+}
 
 func TestBirdRouteToGraphvizXSS(t *testing.T) {
 	setting.dnsInterface = ""
