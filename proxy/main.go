@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -54,6 +55,7 @@ type settingType struct {
 	listen     string
 	allowedIPs []string
 	tr_bin     string
+	tr_flags   []string
 	tr_raw     bool
 }
 
@@ -62,6 +64,9 @@ var setting settingType
 // Wrapper of tracer
 func main() {
 	parseSettings()
+	tracerouteAutodetect()
+
+	fmt.Printf("Listening on %s...\n", setting.listen)
 
 	var l net.Listener
 	var err error

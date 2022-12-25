@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/shlex"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 type viperSettingType struct {
-	BirdSocket string `mapstructure:"bird_socket"`
-	Listen string `mapstructure:"listen"`
-	AllowedIPs string `mapstructure:"allowed_ips"`
-	TracerouteBin string `mapstructure:"traceroute_bin"`
-	TracerouteRaw bool `mapstructure:"traceroute_raw"`
+	BirdSocket      string `mapstructure:"bird_socket"`
+	Listen          string `mapstructure:"listen"`
+	AllowedIPs      string `mapstructure:"allowed_ips"`
+	TracerouteBin   string `mapstructure:"traceroute_bin"`
+	TracerouteFlags string `mapstructure:"traceroute_flags"`
+	TracerouteRaw   bool   `mapstructure:"traceroute_raw"`
 }
 
 // Parse settings with viper, and convert to legacy setting format
@@ -39,8 +41,11 @@ func parseSettings() {
 	pflag.String("allowed", "", "IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs.")
 	viper.BindPFlag("allowed_ips", pflag.Lookup("allowed"))
 
-	pflag.String("traceroute_bin", "traceroute", "traceroute binary file, set either in parameter or environment variable BIRDLG_TRACEROUTE_BIN")
+	pflag.String("traceroute_bin", "", "traceroute binary file, set either in parameter or environment variable BIRDLG_TRACEROUTE_BIN")
 	viper.BindPFlag("traceroute_bin", pflag.Lookup("traceroute_bin"))
+
+	pflag.String("traceroute_flags", "", "traceroute flags, repeat for multiple flags.")
+	viper.BindPFlag("traceroute_flags", pflag.Lookup("traceroute_flags"))
 
 	pflag.Bool("traceroute_raw", false, "whether to display traceroute outputs raw; set via parameter or environment variable BIRDLG_TRACEROUTE_RAW")
 	viper.BindPFlag("traceroute_raw", pflag.Lookup("traceroute_raw"))
@@ -65,7 +70,13 @@ func parseSettings() {
 		setting.allowedIPs = []string{""}
 	}
 
+	var err error
 	setting.tr_bin = viperSettings.TracerouteBin
+	setting.tr_flags, err = shlex.Split(viperSettings.TracerouteFlags)
+	if err != nil {
+		panic(err)
+	}
+
 	setting.tr_raw = viperSettings.TracerouteRaw
 
 	fmt.Printf("%#v\n", setting)
