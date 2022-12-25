@@ -79,6 +79,8 @@ Configuration is handled by [viper](https://github.com/spf13/viper), any config 
 | name_filter | --name-filter | BIRDLG_NAME_FILTER | protocol names to hide in summary tables (RE2 syntax); defaults to none if not set |
 | timeout | --time-out | BIRDLG_TIMEOUT | time before request timed out, in seconds; defaults to 120 if not set |
 
+### Examples
+
 Example: the following command starts the frontend with 2 BIRD nodes, with domain name "gigsgigscloud.dn42.lantian.pub" and "hostdare.dn42.lantian.pub", and proxies are running on port 8000 on both nodes.
 
 ```bash
@@ -122,15 +124,31 @@ Configuration can be set in:
 
 Configuration is handled by [viper](https://github.com/spf13/viper), any config format supported by it can be used.
 
-> Note: the config system is replaced with viper only recently (2022-07-08). If some config items do not work, please open an issue, and use commit [892a7bee22a1bb02d3b4da6d270c65b6e4e1321a](https://github.com/xddxdd/bird-lg-go/tree/892a7bee22a1bb02d3b4da6d270c65b6e4e1321a) (last version before config system replace) for the time being.
-
 | Config Key | Parameter | Environment Variable | Description |
 | ---------- | --------- | -------------------- | ----------- |
 | allowed_ips | --allowed | ALLOWED_IPS | IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "") |
 | bird_socket | --bird | BIRD_SOCKET | socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl") |
 | listen | --listen | BIRDLG_PROXY_PORT | listen address, set either in parameter or environment variable  BIRDLG_PROXY_PORT(default "8000") |
-| traceroute_bin | --traceroute_bin | BIRDLG_TRACEROUTE_BIN | traceroute binary file, set either in parameter or environment variable  BIRDLG_TRACEROUTE_BIN(default "traceroute") |
+| traceroute_bin | --traceroute_bin | BIRDLG_TRACEROUTE_BIN | traceroute binary file, set either in parameter or environment variable  BIRDLG_TRACEROUTE_BIN |
+| traceroute_flags | --traceroute_flags | BIRDLG_TRACEROUTE_FLAGS | traceroute flags, repeat for multiple flags. |
 | traceroute_raw | --traceroute_raw | BIRDLG_TRACEROUTE_RAW | whether to display traceroute outputs raw (default false) |
+
+### Traceroute Binary Autodetection
+
+If `traceroute_bin` or `traceroute_flags` is not set, then on startup, the proxy will try to `traceroute 127.0.0.1` with different traceroute binaries and arguments, in order to use the most optimized setting available, while maintaining compatibility with multiple variants of traceroute binaries.
+
+Traceroute binaries will be autodetected in the following order:
+
+1. If `traceroute_bin` is set:
+   1. `[traceroute_bin] -q1 -N32 -w1 127.0.0.1` (Corresponds to Traceroute on Debian)
+   2. `[traceroute_bin] -q1 -w1 127.0.0.1` (Corresponds to Traceroute on FreeBSD)
+   3. `[traceroute_bin] 127.0.0.1` (Corresponds to Busybox Traceroute)
+2. `mtr -w -c1 -Z1 -G1 -b 127.0.0.1` (MTR)
+3. `traceroute -q1 -N32 -w1 127.0.0.1` (Corresponds to Traceroute on Debian)
+4. `traceroute -q1 -w1 127.0.0.1` (Corresponds to Traceroute on FreeBSD)
+5. `traceroute 127.0.0.1` (Corresponds to Busybox Traceroute)
+
+### Examples
 
 Example: start proxy with default configuration, should work "out of the box" on Debian 9 with BIRDv1:
 

@@ -5,28 +5,81 @@ import (
 	"net/http"
 	"os/exec"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/google/shlex"
 )
 
-func tracerouteTryExecute(cmd []string, args [][]string) ([]byte, string) {
-	var output []byte
-	var errString = ""
-	for i := range cmd {
-		var err error
-		var cmdCombined = cmd[i] + " " + strings.Join(args[i], " ")
+func tracerouteArgsToString(cmd string, args []string, target []string) string {
+	var cmdCombined = append([]string{cmd}, args...)
+	cmdCombined = append(cmdCombined, target...)
+	return strings.Join(cmdCombined, " ")
+}
 
-		instance := exec.Command(cmd[i], args[i]...)
-		output, err = instance.CombinedOutput()
-		if err == nil {
-			return output, ""
-		}
-		errString += fmt.Sprintf("+ (Try %d) %s\n%s\n\n", (i + 1), cmdCombined, output)
+func tracerouteTryExecute(cmd string, args []string, target []string) ([]byte, error) {
+	instance := exec.Command(cmd, append(args, target...)...)
+	output, err := instance.CombinedOutput()
+	if err == nil {
+		return output, nil
 	}
-	return nil, errString
+
+	return output, err
+}
+
+func tracerouteDetect(cmd string, args []string) bool {
+	target := []string{"127.0.0.1"}
+	success := false
+	if result, err := tracerouteTryExecute(cmd, args, target); err == nil {
+		setting.tr_bin = cmd
+		setting.tr_flags = args
+		success = true
+		fmt.Printf("Traceroute autodetect success: %s\n", tracerouteArgsToString(cmd, args, target))
+	} else {
+		fmt.Printf("Traceroute autodetect fail, continuing: %s (%s)\n%s", tracerouteArgsToString(cmd, args, target), err.Error(), result)
+	}
+
+	return success
+}
+
+func tracerouteAutodetect() {
+	if setting.tr_bin != "" && setting.tr_flags != nil {
+		return
+	}
+
+	// Traceroute (custom binary)
+	if setting.tr_bin != "" {
+		if tracerouteDetect(setting.tr_bin, []string{"-q1", "-N32", "-w1"}) {
+			return
+		}
+		if tracerouteDetect(setting.tr_bin, []string{"-q1", "-w1"}) {
+			return
+		}
+		if tracerouteDetect(setting.tr_bin, []string{}) {
+			return
+		}
+	}
+
+	// MTR
+	if tracerouteDetect("mtr", []string{"-w", "-c1", "-Z1", "-G1", "-b"}) {
+		return
+	}
+
+	// Traceroute
+	if tracerouteDetect("traceroute", []string{"-q1", "-N32", "-w1"}) {
+		return
+	}
+	if tracerouteDetect("traceroute", []string{"-q1", "-w1"}) {
+		return
+	}
+	if tracerouteDetect("traceroute", []string{}) {
+		return
+	}
+
+	// Unsupported
+	setting.tr_bin = ""
+	setting.tr_flags = nil
+	println("Traceroute autodetect failed! Traceroute will be disabled")
 }
 
 func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
@@ -44,52 +97,30 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 		}
 
 		var result []byte
-		var errString string
 		skippedCounter := 0
 
-		if runtime.GOOS == "freebsd" || runtime.GOOS == "netbsd" || runtime.GOOS == "openbsd" {
-			result, errString = tracerouteTryExecute(
-				[]string{
-					setting.tr_bin,
-					setting.tr_bin,
-				},
-				[][]string{
-					append([]string{"-q1", "-w1"}, args...),
-					args,
-				},
-			)
-		} else if runtime.GOOS == "linux" {
-			result, errString = tracerouteTryExecute(
-				[]string{
-					setting.tr_bin,
-					setting.tr_bin,
-					setting.tr_bin,
-				},
-				[][]string{
-					append([]string{"-q1", "-N32", "-w1"}, args...),
-					append([]string{"-q1", "-w1"}, args...),
-					args,
-				},
-			)
-		} else {
+		if setting.tr_bin == "" {
 			httpW.WriteHeader(http.StatusInternalServerError)
 			httpW.Write([]byte("traceroute not supported on this node.\n"))
 			return
 		}
-		if errString != "" {
+
+		result, err = tracerouteTryExecute(setting.tr_bin, setting.tr_flags, args)
+		if err != nil {
 			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte(errString))
+			httpW.Write([]byte(fmt.Sprintf("Error executing traceroute: %s\n\n", err.Error())))
 		}
+
 		if result != nil {
 			if setting.tr_raw {
 				httpW.Write(result)
 			} else {
-				errString = string(result)
-				errString = regexp.MustCompile(`(?m)^\s*(\d*)\s*\*\n`).ReplaceAllStringFunc(errString, func(w string) string {
+				resultString := string(result)
+				resultString = regexp.MustCompile(`(?m)^\s*(\d*)\s*\*\n`).ReplaceAllStringFunc(resultString, func(w string) string {
 					skippedCounter++
 					return ""
 				})
-				httpW.Write([]byte(strings.TrimSpace(errString)))
+				httpW.Write([]byte(strings.TrimSpace(resultString)))
 				if skippedCounter > 0 {
 					httpW.Write([]byte("\n\n" + strconv.Itoa(skippedCounter) + " hops not responding."))
 				}
