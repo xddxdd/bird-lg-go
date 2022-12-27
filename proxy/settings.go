@@ -44,7 +44,7 @@ func parseSettings() {
 	pflag.String("traceroute_bin", "", "traceroute binary file, set either in parameter or environment variable BIRDLG_TRACEROUTE_BIN")
 	viper.BindPFlag("traceroute_bin", pflag.Lookup("traceroute_bin"))
 
-	pflag.String("traceroute_flags", "", "traceroute flags, repeat for multiple flags.")
+	pflag.String("traceroute_flags", "", "traceroute flags, supports multiple flags separated with space.")
 	viper.BindPFlag("traceroute_flags", pflag.Lookup("traceroute_flags"))
 
 	pflag.Bool("traceroute_raw", false, "whether to display traceroute outputs raw; set via parameter or environment variable BIRDLG_TRACEROUTE_RAW")

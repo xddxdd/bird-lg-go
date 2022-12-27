@@ -58,8 +58,6 @@ Configuration can be set in:
 
 Configuration is handled by [viper](https://github.com/spf13/viper), any config format supported by it can be used.
 
-> Note: the config system is replaced with viper only recently (2022-07-08). If some config items do not work, please open an issue, and use commit [892a7bee22a1bb02d3b4da6d270c65b6e4e1321a](https://github.com/xddxdd/bird-lg-go/tree/892a7bee22a1bb02d3b4da6d270c65b6e4e1321a) (last version before config system replace) for the time being.
-
 | Config Key | Parameter | Environment Variable | Description |
 | ---------- | --------- | -------------------- | ----------- |
 | servers | --servers | BIRDLG_SERVERS | server name prefixes, separated by comma |
@@ -130,7 +128,7 @@ Configuration is handled by [viper](https://github.com/spf13/viper), any config 
 | bird_socket | --bird | BIRD_SOCKET | socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl") |
 | listen | --listen | BIRDLG_PROXY_PORT | listen address, set either in parameter or environment variable  BIRDLG_PROXY_PORT(default "8000") |
 | traceroute_bin | --traceroute_bin | BIRDLG_TRACEROUTE_BIN | traceroute binary file, set either in parameter or environment variable  BIRDLG_TRACEROUTE_BIN |
-| traceroute_flags | --traceroute_flags | BIRDLG_TRACEROUTE_FLAGS | traceroute flags, repeat for multiple flags. |
+| traceroute_flags | --traceroute_flags | BIRDLG_TRACEROUTE_FLAGS | traceroute flags, supports multiple flags separated with space. |
 | traceroute_raw | --traceroute_raw | BIRDLG_TRACEROUTE_RAW | whether to display traceroute outputs raw (default false) |
 
 ### Traceroute Binary Autodetection
