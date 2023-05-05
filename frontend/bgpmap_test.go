@@ -20,7 +20,8 @@ func TestGetASNRepresentationDNS(t *testing.T) {
 
 	setting.dnsInterface = "asn.cymru.com"
 	setting.whoisServer = ""
-	result := getASNRepresentation("6939")
+	cache := make(ASNCache)
+	result := cache.lookup("6939")
 	if !strings.Contains(result, "HURRICANE") {
 		t.Errorf("Lookup AS6939 failed, got %s", result)
 	}
@@ -31,7 +32,8 @@ func TestGetASNRepresentationWhois(t *testing.T) {
 
 	setting.dnsInterface = ""
 	setting.whoisServer = "whois.arin.net"
-	result := getASNRepresentation("6939")
+	cache := make(ASNCache)
+	result := cache.lookup("6939")
 	if !strings.Contains(result, "HURRICANE") {
 		t.Errorf("Lookup AS6939 failed, got %s", result)
 	}
@@ -40,7 +42,8 @@ func TestGetASNRepresentationWhois(t *testing.T) {
 func TestGetASNRepresentationFallback(t *testing.T) {
 	setting.dnsInterface = ""
 	setting.whoisServer = ""
-	result := getASNRepresentation("6939")
+	cache := make(ASNCache)
+	result := cache.lookup("6939")
 	if result != "AS6939" {
 		t.Errorf("Lookup AS6939 failed, got %s", result)
 	}
@@ -72,7 +75,6 @@ func TestBirdRouteToGraphviz(t *testing.T) {
 	}, []string{
 		fakeResult,
 	}, "192.168.0.1")
-
 
 	for _, line := range expectedLinesInResult {
 		if !strings.Contains(result, line) {

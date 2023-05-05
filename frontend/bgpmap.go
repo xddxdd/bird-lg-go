@@ -8,6 +8,18 @@ import (
 	"strings"
 )
 
+// The protocol name for each route (e.g. "ibgp_sea02") is encoded in the form:
+//
+//	unicast [ibgp_sea02 2021-08-27 from fd86:bad:11b7:1::1] * (100/1015) [i]
+var protocolNameRe = regexp.MustCompile(`\[(.*?) .*\]`)
+
+// Try to split the output into one chunk for each route.
+// Possible values are defined at https://gitlab.nic.cz/labs/bird/-/blob/v2.0.8/nest/rt-attr.c#L81-87
+var routeSplitRe = regexp.MustCompile("(unicast|blackhole|unreachable|prohibited)")
+
+var routeViaRe = regexp.MustCompile(`(?m)^\t(via .*?)$`)
+var routeASPathRe = regexp.MustCompile(`(?m)^\tBGP\.as_path: (.*?)$`)
+
 func graphvizEscape(s string) string {
 	result, err := json.Marshal(s)
 	if err != nil {
@@ -17,7 +29,16 @@ func graphvizEscape(s string) string {
 	}
 }
 
-func getASNRepresentation(asn string) string {
+type ASNCache map[string]string
+
+func (cache ASNCache) lookup(asn string) string {
+	var representation string
+
+	cachedValue, cacheOk := cache[asn]
+	if cacheOk {
+		return cachedValue
+	}
+
 	if setting.dnsInterface != "" {
 		// get ASN representation using DNS
 		records, err := net.LookupTXT(fmt.Sprintf("AS%s.%s", asn, setting.dnsInterface))
@@ -26,11 +47,9 @@ func getASNRepresentation(asn string) string {
 			if resultSplit := strings.Split(result, " | "); len(resultSplit) > 1 {
 				result = strings.Join(resultSplit[1:], "\n")
 			}
-			return fmt.Sprintf("AS%s\n%s", asn, result)
+			representation = fmt.Sprintf("AS%s\n%s", asn, result)
 		}
-	}
-
-	if setting.whoisServer != "" {
+	} else if setting.whoisServer != "" {
 		// get ASN representation using WHOIS
 		if setting.bgpmapInfo == "" {
 			setting.bgpmapInfo = "asn,as-name,ASName,descr"
@@ -68,167 +87,185 @@ func getASNRepresentation(asn string) string {
 				}
 			}
 			if len(result) > 0 {
-				return fmt.Sprintf("%s", strings.Join(result, "\n"))
+				representation = strings.Join(result, "\n")
 			}
 		}
+	} else {
+		representation = fmt.Sprintf("AS%s", asn)
 	}
-	return fmt.Sprintf("AS%s", asn)
+
+	cache[asn] = representation
+	return representation
 }
 
-func birdRouteToGraphviz(servers []string, responses []string, target string) string {
-	graph := make(map[string](map[string]string))
-	// Helper to add an edge
-	addEdge := func(src string, dest string, attrKey string, attrValue string) {
-		key := graphvizEscape(src) + " -> " + graphvizEscape(dest)
-		_, present := graph[key]
-		if !present {
-			graph[key] = map[string]string{}
-		}
-		if attrKey != "" {
-			graph[key][attrKey] = attrValue
-		}
-	}
-	// Helper to set attribute for a point in graph
-	addPoint := func(name string, attrKey string, attrValue string) {
-		key := graphvizEscape(name)
-		_, present := graph[key]
-		if !present {
-			graph[key] = map[string]string{}
-		}
-		if attrKey != "" {
-			graph[key][attrKey] = attrValue
-		}
-	}
-	// The protocol name for each route (e.g. "ibgp_sea02") is encoded in the form:
-	//    unicast [ibgp_sea02 2021-08-27 from fd86:bad:11b7:1::1] * (100/1015) [i]
-	protocolNameRe := regexp.MustCompile(`\[(.*?) .*\]`)
-	// Try to split the output into one chunk for each route.
-	// Possible values are defined at https://gitlab.nic.cz/labs/bird/-/blob/v2.0.8/nest/rt-attr.c#L81-87
-	routeSplitRe := regexp.MustCompile("(unicast|blackhole|unreachable|prohibited)")
+func birdRouteToGraphviz(servers []string, responses []string, targetName string) string {
+	asnCache := make(ASNCache)
+	graph := makeRouteGraph()
 
-	addPoint("Target: "+target, "color", "red")
-	addPoint("Target: "+target, "shape", "diamond")
+	makeEdgeAttrs := func(preferred bool) RouteAttrs {
+		result := RouteAttrs{
+			"fontsize": "12.0",
+		}
+		if preferred {
+			result["color"] = "red"
+		}
+		return result
+	}
+	makePointAttrs := func(preferred bool) RouteAttrs {
+		result := RouteAttrs{}
+		if preferred {
+			result["color"] = "red"
+		}
+		return result
+	}
+
+	target := "Target: " + targetName
+	graph.AddPoint(target, RouteAttrs{"color": "red", "shape": "diamond"})
 
 	for serverID, server := range servers {
 		response := responses[serverID]
 		if len(response) == 0 {
 			continue
 		}
-		addPoint(server, "color", "blue")
-		addPoint(server, "shape", "box")
+		graph.AddPoint(server, RouteAttrs{"color": "blue", "shape": "box"})
 		routes := routeSplitRe.Split(response, -1)
 
-		targetNodeName := "Target: " + target
-		var nonBGPRoutes []string
-		var nonBGPRoutePreferred bool
-
 		for routeIndex, route := range routes {
-			var routeNexthop string
-			var routeASPath string
-			var routePreferred bool = routeIndex > 0 && strings.Contains(route, "*")
+			if routeIndex == 0 {
+				continue
+			}
+
+			var via string
+			var paths []string
+			var routePreferred bool = strings.Contains(route, "*")
 			// Track non-BGP routes in the output by their protocol name, but draw them altogether in one line
 			// so that there are no conflicts in the edge label
 			var protocolName string
 
-			for _, routeParameter := range strings.Split(route, "\n") {
-				if strings.HasPrefix(routeParameter, "\tBGP.next_hop: ") {
-					routeNexthop = strings.TrimPrefix(routeParameter, "\tBGP.next_hop: ")
-				} else if strings.HasPrefix(routeParameter, "\tBGP.as_path: ") {
-					routeASPath = strings.TrimPrefix(routeParameter, "\tBGP.as_path: ")
-				} else {
-					match := protocolNameRe.FindStringSubmatch(routeParameter)
-					if len(match) >= 2 {
-						protocolName = match[1]
+			if match := routeViaRe.FindStringSubmatch(route); len(match) >= 2 {
+				via = strings.TrimSpace(match[1])
+			}
+
+			if match := routeASPathRe.FindStringSubmatch(route); len(match) >= 2 {
+				pathString := strings.TrimSpace(match[1])
+				if len(pathString) > 0 {
+					paths = strings.Split(strings.TrimSpace(match[1]), " ")
+					for i := range paths {
+						paths[i] = strings.TrimPrefix(paths[i], "(")
+						paths[i] = strings.TrimSuffix(paths[i], ")")
 					}
 				}
 			}
-			if routePreferred {
-				protocolName = protocolName + "*"
-			}
-			if len(routeASPath) == 0 {
-				if routeIndex == 0 {
-					// The first string split includes the target prefix and isn't a valid route
-					continue
-				}
+
+			if match := protocolNameRe.FindStringSubmatch(route); len(match) >= 2 {
+				protocolName = strings.TrimSpace(match[1])
 				if routePreferred {
-					nonBGPRoutePreferred = true
+					protocolName = protocolName + "*"
 				}
-				nonBGPRoutes = append(nonBGPRoutes, protocolName)
+			}
+
+			if len(paths) == 0 {
+				graph.AddEdge(server, target, strings.TrimSpace(protocolName+"\n"+via), makeEdgeAttrs(routePreferred))
 				continue
 			}
 
-			// Connect each node on AS path
-			paths := strings.Split(strings.TrimSpace(routeASPath), " ")
-
-			for pathIndex := range paths {
-				paths[pathIndex] = strings.TrimPrefix(paths[pathIndex], "(")
-				paths[pathIndex] = strings.TrimSuffix(paths[pathIndex], ")")
-			}
-
-			// First step starting from originating server
-			if len(paths) > 0 {
-				edgeTarget := getASNRepresentation(paths[0])
-				addEdge(server, edgeTarget, "fontsize", "12.0")
-				if routePreferred {
-					addEdge(server, edgeTarget, "color", "red")
-					// Only set color for next step, origin color is set to blue above
-					addPoint(edgeTarget, "color", "red")
-				}
-				if len(routeNexthop) > 0 {
-					addEdge(server, edgeTarget, "label", protocolName + "\n" + routeNexthop)
-				}
-			}
-
-			// Following steps, edges between AS
-			for pathIndex := range paths {
-				if pathIndex == 0 {
-					continue
-				}
-				if routePreferred {
-					addEdge(getASNRepresentation(paths[pathIndex-1]), getASNRepresentation(paths[pathIndex]), "color", "red")
-					// Only set color for next step, origin color is set to blue above
-					addPoint(getASNRepresentation(paths[pathIndex]), "color", "red")
+			// Edges between AS
+			for i := range paths {
+				var src string
+				if i == 0 {
+					src = server
 				} else {
-					addEdge(getASNRepresentation(paths[pathIndex-1]), getASNRepresentation(paths[pathIndex]), "", "")
+					src = asnCache.lookup(paths[i-1])
 				}
+				dst := asnCache.lookup(paths[i])
+
+				graph.AddEdge(src, dst, strings.TrimSpace(protocolName+"\n"+via), makeEdgeAttrs(routePreferred))
+				// Only set color for next step, origin color is set to blue above
+				graph.AddPoint(dst, makePointAttrs(routePreferred))
 			}
 
 			// Last AS to destination
-			if routePreferred {
-				addEdge(getASNRepresentation(paths[len(paths)-1]), targetNodeName, "color", "red")
-			} else {
-				addEdge(getASNRepresentation(paths[len(paths)-1]), targetNodeName, "", "")
-			}
-		}
-
-		if len(nonBGPRoutes) > 0 {
-			addEdge(server, targetNodeName, "label", strings.Join(nonBGPRoutes, "\n"))
-			addEdge(server, targetNodeName, "fontsize", "12.0")
-
-			if nonBGPRoutePreferred {
-				addEdge(server, targetNodeName, "color", "red")
-			}
+			src := asnCache.lookup(paths[len(paths)-1])
+			graph.AddEdge(src, target, "", makeEdgeAttrs(routePreferred))
 		}
 	}
 
-	// Combine all graphviz commands
-	var result string
-	for edge, attr := range graph {
-		result += edge;
-		if len(attr) != 0 {
-			result += " ["
-			isFirst := true
-			for k, v := range attr {
-				if isFirst {
-					isFirst = false
-				} else {
-					result += ","
-				}
-				result += graphvizEscape(k) + "=" + graphvizEscape(v) + "";
-			}
-			result += "]"
+	return graph.ToGraphviz()
+}
+
+type RouteGraph struct {
+	points map[string]RouteAttrs
+	edges  map[RouteEdge]RouteAttrs
+}
+type RouteEdge struct {
+	src   string
+	dest  string
+	label string
+}
+type RouteAttrs map[string]string
+
+func attrsToString(attrs RouteAttrs) string {
+	if len(attrs) == 0 {
+		return ""
+	}
+
+	result := ""
+	isFirst := true
+	for k, v := range attrs {
+		if isFirst {
+			isFirst = false
+		} else {
+			result += ","
 		}
-		result += ";\n"
+		result += graphvizEscape(k) + "=" + graphvizEscape(v) + ""
+	}
+
+	return "[" + result + "]"
+}
+
+func makeRouteGraph() RouteGraph {
+	return RouteGraph{
+		points: make(map[string]RouteAttrs),
+		edges:  make(map[RouteEdge]RouteAttrs),
+	}
+}
+
+func (graph *RouteGraph) AddEdge(src string, dest string, label string, attrs RouteAttrs) {
+	// Add edges with same src/dest separately, multiple edges with same src/dest could exist
+	edge := RouteEdge{
+		src:   src,
+		dest:  dest,
+		label: label,
+	}
+
+	_, exists := graph.edges[edge]
+	if !exists {
+		graph.edges[edge] = make(RouteAttrs)
+	}
+
+	for k, v := range attrs {
+		graph.edges[edge][k] = v
+	}
+}
+
+func (graph *RouteGraph) AddPoint(name string, attrs RouteAttrs) {
+	graph.points[name] = attrs
+}
+
+func (graph *RouteGraph) ToGraphviz() string {
+	var result string
+	for name, attrs := range graph.points {
+		result += fmt.Sprintf("%s %s;\n", graphvizEscape(name), attrsToString(attrs))
+	}
+	for edge, attrs := range graph.edges {
+		attrsCopy := attrs
+		if attrsCopy == nil {
+			attrsCopy = make(RouteAttrs)
+		}
+		if len(edge.label) > 0 {
+			attrsCopy["label"] = edge.label
+		}
+		result += fmt.Sprintf("%s -> %s %s;\n", graphvizEscape(edge.src), graphvizEscape(edge.dest), attrsToString(attrsCopy))
 	}
 	return "digraph {\n" + result + "}\n"
 }
