@@ -19,6 +19,18 @@ func TestGetASNRepresentationDNS(t *testing.T) {
 	}
 }
 
+func TestGetASNRepresentationDNSFallback(t *testing.T) {
+	checkNetwork(t)
+
+	setting.dnsInterface = "invalid.example.com"
+	setting.whoisServer = "whois.arin.net"
+	cache := make(ASNCache)
+	result := cache.Lookup("6939")
+	if !strings.Contains(result, "HURRICANE") {
+		t.Errorf("Lookup AS6939 failed, got %s", result)
+	}
+}
+
 func TestGetASNRepresentationWhois(t *testing.T) {
 	checkNetwork(t)
 
