@@ -1,0 +1,151 @@
+Table master4:
+172.20.0.53/32       unicast [ibgp_sjc2 2023-04-29 from fd86:bad:11b7:22::1] * (100/38) [AS4242423914i]
+	via 169.254.108.122 on igp-sjc2
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242423914
+	BGP.next_hop: 172.20.229.122
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,1) (64511,24) (64511,34)
+	BGP.large_community: (4242421080, 101, 44) (4242421080, 103, 122) (4242421080, 104, 1)
+                     unicast [miaotony_2688 2023-04-29 from fe80::2688] (100) [AS4242423914i]
+	via 172.23.6.6 on dn42las-miaoton
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242422688 4242423914
+	BGP.next_hop: 172.23.6.6
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,3) (64511,24) (64511,34)
+	BGP.large_community: (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [imlonghao_1888 2023-04-17] (100) [AS4242423914i]
+	via fe80::1888 on dn42-imlonghao
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242421888 4242423914
+	BGP.next_hop: :: fe80::1888
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,1) (64511,24) (64511,34)
+	BGP.large_community: (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [ciplc_3021 2023-04-29 from fe80::943e] (100) [AS4242423914i]
+	via 172.23.33.161 on dn42-ciplc
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242423021 4242423914
+	BGP.next_hop: 172.23.33.161
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,1) (64511,24) (64511,34)
+	BGP.large_community: (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [iedon_2189 2023-04-29 from fe80::2189:ef] (100) [AS4242423914i]
+	via 172.23.91.114 on dn42-iedon
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242422189 4242423914
+	BGP.next_hop: 172.23.91.114
+	BGP.med: 65
+	BGP.local_pref: 100
+	BGP.community: (64511,24) (64511,33) (64511,3)
+	BGP.large_community: (4242422189, 1, 4) (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [prevarinite_2475 2023-04-19] (100) [AS4242423914i]
+	via fe80::7072:6576:6172:1 on dn42-prevarinit
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242422475 4242423192 4242423914
+	BGP.next_hop: :: fe80::7072:6576:6172:1
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,1) (64511,24) (64511,34)
+	BGP.large_community: (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [lare_3035 2023-04-29] (100) [AS4242423914i]
+	via fe80::3035:132 on dn42-lare
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242423035 4242423914
+	BGP.next_hop: :: fe80::3035:132
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,3) (64511,34) (64511,24)
+	BGP.large_community: (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [hinata_3724 2023-04-29 from fe80::3724] (100) [AS4242423914i]
+	via 172.23.215.228 on dn42las-hinata
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242423724 4201271111 4242423914
+	BGP.next_hop: 172.23.215.228
+	BGP.med: 70
+	BGP.local_pref: 100
+	BGP.community: (64511,22) (64511,1) (64511,34)
+	BGP.large_community: (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [liki4_0927 2023-04-21] (100) [AS4242423914i]
+	via fe80::927 on dn42-liki4
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242420927 4242421888 4242423914
+	BGP.next_hop: :: fe80::927
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,2) (64511,24) (64511,34)
+	BGP.large_community: (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [eastbound_2633 2023-04-29 from fe80::2633] (100) [AS4242423914i]
+	via 172.23.250.42 on dn42las-eastbnd
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242422633 4242423914
+	BGP.next_hop: 172.23.250.42
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,24) (64511,34) (64511,3)
+	BGP.large_community: (4242422633, 101, 44) (4242422633, 103, 36) (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [yura_2464 2023-04-29] (100) [AS4242423914i]
+	via fe80::2464 on dn42las-yura
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242422464 4242423914
+	BGP.next_hop: :: fe80::2464
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,1) (64511,24) (64511,34)
+	BGP.large_community: (4242422464, 2, 4242423914) (4242422464, 64511, 44) (4242422464, 64511, 1840) (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+                     unicast [ibgp_fra 2023-04-29 from fd86:bad:11b7:117::1] (100/186) [AS4242423914i]
+	via 169.254.108.113 on igp-chi
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242423914
+	BGP.next_hop: 172.20.229.117
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,1) (64511,24) (64511,34)
+	BGP.large_community: (4242421080, 101, 41) (4242421080, 103, 117) (4242421080, 104, 3)
+                     unicast [ibgp_sgp 2023-04-29 from fd86:bad:11b7:239::1] (100/200) [AS4242423914i]
+	via 169.254.108.39 on igp-sgp
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242423914
+	BGP.next_hop: 172.22.108.39
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,4) (64511,24) (64511,34)
+	BGP.large_community: (4242421080, 101, 51) (4242421080, 103, 39) (4242421080, 104, 4)
+                     unicast [ibgp_ymq 2023-04-30 from fd86:bad:11b7:23::1] (100/105) [AS4242423914i]
+	via 169.254.108.113 on igp-chi
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242423914
+	BGP.next_hop: 172.20.229.123
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,3) (64511,24) (64511,34)
+	BGP.large_community: (4242421080, 101, 42) (4242421080, 103, 123) (4242421080, 104, 2)
+                     unicast [cola_3391 18:41:16.608 from fe80::3391] (100) [AS4242423914i]
+	via 172.22.96.65 on dn42-cola
+	Type: BGP univ
+	BGP.origin: IGP
+	BGP.as_path: 4242423391 4242420604 4242423914
+	BGP.next_hop: 172.22.96.65
+	BGP.med: 50
+	BGP.local_pref: 100
+	BGP.community: (64511,4) (64511,34) (64511,24)
+	BGP.large_community: (4242420604, 2, 50) (4242420604, 501, 4242423914) (4242420604, 502, 44) (4242420604, 504, 4) (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
