@@ -23,6 +23,7 @@ func parseSettings() {
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/etc/bird-lg")
 	viper.SetConfigName("bird-lgproxy")
+	viper.AllowEmptyEnv(true)
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("birdlg")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
