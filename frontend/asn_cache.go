@@ -9,9 +9,8 @@ import (
 type ASNCache map[string]string
 
 func (cache ASNCache) _lookup(asn string) string {
-
+	// Try to get ASN representation using DNS
 	if setting.dnsInterface != "" {
-		// get ASN representation using DNS
 		records, err := net.LookupTXT(fmt.Sprintf("AS%s.%s", asn, setting.dnsInterface))
 		if err == nil {
 			result := strings.Join(records, " ")
@@ -20,8 +19,10 @@ func (cache ASNCache) _lookup(asn string) string {
 			}
 			return fmt.Sprintf("AS%s\n%s", asn, result)
 		}
-	} else if setting.whoisServer != "" {
-		// get ASN representation using WHOIS
+	}
+
+	// Try to get ASN representation using WHOIS
+	if setting.whoisServer != "" {
 		if setting.bgpmapInfo == "" {
 			setting.bgpmapInfo = "asn,as-name,ASName,descr"
 		}

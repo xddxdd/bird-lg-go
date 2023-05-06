@@ -89,7 +89,9 @@ func (graph *RouteGraph) AddEdge(src string, dest string, label string, attrs Ro
 		newValue = makeRouteEdgeValue()
 	}
 
-	newValue.label = append(newValue.label, label)
+	if len(label) != 0 {
+		newValue.label = append(newValue.label, label)
+	}
 	for k, v := range attrs {
 		newValue.attrs[k] = v
 	}

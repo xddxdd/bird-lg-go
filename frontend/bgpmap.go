@@ -90,14 +90,18 @@ func birdRouteToGraph(servers []string, responses []string, target string) Route
 			// Edges between AS
 			for i := range paths {
 				var src string
+				var label string
+				// Only show nexthop information on the first hop
 				if i == 0 {
 					src = server
+					label = strings.TrimSpace(protocolName + "\n" + via)
 				} else {
 					src = paths[i-1]
+					label = ""
 				}
 				dst := paths[i]
 
-				graph.AddEdge(src, dst, strings.TrimSpace(protocolName+"\n"+via), makeEdgeAttrs(routePreferred))
+				graph.AddEdge(src, dst, label, makeEdgeAttrs(routePreferred))
 				// Only set color for next step, origin color is set to blue above
 				graph.AddPoint(dst, true, makePointAttrs(routePreferred))
 			}
