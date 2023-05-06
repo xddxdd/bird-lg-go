@@ -8,14 +8,14 @@ import (
 	"testing"
 )
 
-func readDataFile(filename string) string {
+func readDataFile(t *testing.T, filename string) string {
 	_, sourceName, _, _ := runtime.Caller(0)
 	projectRoot := path.Join(path.Dir(sourceName), "..")
 	dir := path.Join(projectRoot, filename)
 
 	data, err := ioutil.ReadFile(dir)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	return string(data)
 }
@@ -41,7 +41,7 @@ func TestBirdRouteToGraphvizXSS(t *testing.T) {
 func TestBirdRouteToGraph(t *testing.T) {
 	setting.dnsInterface = ""
 
-	input := readDataFile("frontend/test_data/bgpmap_case1.txt")
+	input := readDataFile(t, "frontend/test_data/bgpmap_case1.txt")
 	result := birdRouteToGraph([]string{"node"}, []string{input}, "target")
 
 	// Source node must exist
@@ -69,5 +69,16 @@ func TestBirdRouteToGraph(t *testing.T) {
 	}
 	if result.GetEdge("4242423914", "target") == nil {
 		t.Error("Result doesn't contain edge from 4242423914 to target")
+	}
+}
+
+func TestBirdRouteToGraphviz(t *testing.T) {
+	setting.dnsInterface = ""
+
+	input := readDataFile(t, "frontend/test_data/bgpmap_case1.txt")
+	result := birdRouteToGraphviz([]string{"node"}, []string{input}, "target")
+
+	if !strings.Contains(result, "digraph {") {
+		t.Error("Response is not Graphviz data")
 	}
 }

@@ -8,6 +8,17 @@ import (
 	"testing"
 )
 
+const BirdSummaryData = `BIRD 2.0.8 ready.
+Name       Proto      Table      State  Since         Info
+static1    Static     master4    up     2021-08-27
+static2    Static     master6    up     2021-08-27
+device1    Device     ---        up     2021-08-27
+kernel1    Kernel     master6    up     2021-08-27
+kernel2    Kernel     master4    up     2021-08-27
+direct1    Direct     ---        up     2021-08-27
+int_babel  Babel      ---        up     2021-08-27
+`
+
 func initSettings() {
 	setting.servers = []string{"alpha"}
 	setting.serversDisplay = []string{"alpha"}
@@ -101,17 +112,8 @@ func TestSummaryTableXSS(t *testing.T) {
 func TestSummaryTableProtocolFilter(t *testing.T) {
 	initSettings()
 	setting.protocolFilter = []string{"Static", "Direct", "Babel"}
-	data := `BIRD 2.0.8 ready.
-Name       Proto      Table      State  Since         Info
-static1    Static     master4    up     2021-08-27
-static2    Static     master6    up     2021-08-27
-device1    Device     ---        up     2021-08-27
-kernel1    Kernel     master6    up     2021-08-27
-kernel2    Kernel     master4    up     2021-08-27
-direct1    Direct     ---        up     2021-08-27
-int_babel  Babel      ---        up     2021-08-27    `
 
-	result := string(summaryTable(data, "testserver"))
+	result := string(summaryTable(BirdSummaryData, "testserver"))
 	expectedInclude := []string{"static1", "static2", "int_babel", "direct1"}
 	expectedExclude := []string{"device1", "kernel1", "kernel2"}
 
@@ -134,17 +136,8 @@ int_babel  Babel      ---        up     2021-08-27    `
 func TestSummaryTableNameFilter(t *testing.T) {
 	initSettings()
 	setting.nameFilter = "^static"
-	data := `BIRD 2.0.8 ready.
-Name       Proto      Table      State  Since         Info
-static1    Static     master4    up     2021-08-27
-static2    Static     master6    up     2021-08-27
-device1    Device     ---        up     2021-08-27
-kernel1    Kernel     master6    up     2021-08-27
-kernel2    Kernel     master4    up     2021-08-27
-direct1    Direct     ---        up     2021-08-27
-int_babel  Babel      ---        up     2021-08-27    `
 
-	result := string(summaryTable(data, "testserver"))
+	result := string(summaryTable(BirdSummaryData, "testserver"))
 	expectedInclude := []string{"device1", "kernel1", "kernel2", "direct1", "int_babel"}
 	expectedExclude := []string{"static1", "static2"}
 

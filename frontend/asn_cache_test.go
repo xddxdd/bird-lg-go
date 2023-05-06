@@ -3,6 +3,8 @@ package main
 import (
 	"strings"
 	"testing"
+
+	"github.com/magiconair/properties/assert"
 )
 
 func TestGetASNRepresentationDNS(t *testing.T) {
@@ -34,7 +36,5 @@ func TestGetASNRepresentationFallback(t *testing.T) {
 	setting.whoisServer = ""
 	cache := make(ASNCache)
 	result := cache.Lookup("6939")
-	if result != "AS6939" {
-		t.Errorf("Lookup AS6939 failed, got %s", result)
-	}
+	assert.Equal(t, result, "AS6939")
 }

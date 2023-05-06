@@ -21,39 +21,49 @@ func invalidHandler(httpW http.ResponseWriter, httpR *http.Request) {
 	httpW.Write([]byte("Invalid Request\n"))
 }
 
+func hasAccess(remoteAddr string) bool {
+	// setting.allowedIPs will always have at least one element because of how it's defined
+	if len(setting.allowedIPs) == 0 {
+		return true
+	}
+
+	if !strings.Contains(remoteAddr, ":") {
+		return false
+	}
+
+	// Remove port from IP and remove brackets that are around IPv6 addresses
+	remoteAddr = remoteAddr[0:strings.LastIndex(remoteAddr, ":")]
+	remoteAddr = strings.Trim(remoteAddr, "[]")
+
+	ipObject := net.ParseIP(remoteAddr)
+	if ipObject == nil {
+		return false
+	}
+
+	for _, allowedIP := range setting.allowedIPs {
+		if ipObject.Equal(allowedIP) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Access handler, check to see if client IP in allowed IPs, continue if it is, send to invalidHandler if not
 func accessHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(httpW http.ResponseWriter, httpR *http.Request) {
-
-		// setting.allowedIPs will always have at least one element because of how it's defined
-		if setting.allowedIPs[0] == "" {
+		if hasAccess(httpR.RemoteAddr) {
 			next.ServeHTTP(httpW, httpR)
-			return
+		} else {
+			invalidHandler(httpW, httpR)
 		}
-
-		IPPort := httpR.RemoteAddr
-
-		// Remove port from IP and remove brackets that are around IPv6 addresses
-		requestIp := IPPort[0:strings.LastIndex(IPPort, ":")]
-		requestIp = strings.Replace(requestIp, "[", "", -1)
-		requestIp = strings.Replace(requestIp, "]", "", -1)
-
-		for _, allowedIP := range setting.allowedIPs {
-			if requestIp == allowedIP {
-				next.ServeHTTP(httpW, httpR)
-				return
-			}
-		}
-
-		invalidHandler(httpW, httpR)
-		return
 	})
 }
 
 type settingType struct {
 	birdSocket string
 	listen     string
-	allowedIPs []string
+	allowedIPs []net.IP
 	tr_bin     string
 	tr_flags   []string
 	tr_raw     bool

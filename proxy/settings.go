@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/google/shlex"
@@ -66,9 +67,17 @@ func parseSettings() {
 	setting.listen = viperSettings.Listen
 
 	if viperSettings.AllowedIPs != "" {
-		setting.allowedIPs = strings.Split(viperSettings.AllowedIPs, ",")
+		for _, ip := range strings.Split(viperSettings.AllowedIPs, ",") {
+			ipObject := net.ParseIP(ip)
+			if ipObject == nil {
+				fmt.Printf("Parse IP %s failed\n", ip)
+				continue
+			}
+
+			setting.allowedIPs = append(setting.allowedIPs, ipObject)
+		}
 	} else {
-		setting.allowedIPs = []string{""}
+		setting.allowedIPs = []net.IP{}
 	}
 
 	var err error

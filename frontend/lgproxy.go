@@ -56,8 +56,8 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 
 				buf := make([]byte, 65536)
 				n, err := io.ReadFull(response.Body, buf)
-				if err != nil && err != io.ErrUnexpectedEOF {
-					ch <- channelData{i, err.Error()}
+				if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+					ch <- channelData{i, "request failed: " + err.Error()}
 				} else {
 					ch <- channelData{i, string(buf[:n])}
 				}

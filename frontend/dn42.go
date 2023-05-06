@@ -65,7 +65,7 @@ func shortenWhoisFilter(whois string) string {
 		shouldSkip := false
 		shouldSkip = shouldSkip || len(s) == 0
 		shouldSkip = shouldSkip || len(s) > 0 && s[0] == '#'
-		shouldSkip = shouldSkip || strings.Contains(strings.ToUpper(s), "REDACTED FOR PRIVACY")
+		shouldSkip = shouldSkip || strings.Contains(strings.ToUpper(s), "REDACTED")
 
 		if shouldSkip {
 			skippedLinesLonger++

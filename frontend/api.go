@@ -113,7 +113,7 @@ func apiHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		handler := apiHandlerMap[request.Type]
 		if handler == nil {
-			response = apiErrorHandler(errors.New("Invalid request type"))
+			response = apiErrorHandler(errors.New("invalid request type"))
 		} else {
 			response = handler(request)
 		}

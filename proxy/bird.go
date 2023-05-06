@@ -8,19 +8,23 @@ import (
 	"strings"
 )
 
+const MAX_LINE_SIZE = 1024
+
 // Read a line from bird socket, removing preceding status number, output it.
 // Returns if there are more lines.
 func birdReadln(bird io.Reader, w io.Writer) bool {
 	// Read from socket byte by byte, until reaching newline character
-	c := make([]byte, 1024, 1024)
+	c := make([]byte, MAX_LINE_SIZE)
 	pos := 0
 	for {
-		if pos >= 1024 {
+		// Leave one byte for newline character
+		if pos >= MAX_LINE_SIZE-1 {
 			break
 		}
 		_, err := bird.Read(c[pos : pos+1])
 		if err != nil {
-			panic(err)
+			w.Write([]byte(err.Error()))
+			return false
 		}
 		if c[pos] == byte('\n') {
 			break
@@ -29,6 +33,7 @@ func birdReadln(bird io.Reader, w io.Writer) bool {
 	}
 
 	c = c[:pos+1]
+	c[pos] = '\n'
 	// print(string(c[:]))
 
 	// Remove preceding status number, different situations
