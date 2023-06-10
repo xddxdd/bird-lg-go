@@ -60,7 +60,7 @@
 					<option value="{{ html $k }}"{{ if eq $k $.URLOption }} selected{{end}}>{{ html $v }}</option>
 					{{ end }}
 				</select>
-				<input name="server" class="d-none" value="{{ html $server }}">
+				<input name="server" class="d-none" value="{{ html ($server | pathescape) }}">
 				<input name="target" class="form-control" placeholder="Target" aria-label="Target" value="{{ html $target }}">
 				<div class="input-group-append">
 					<button class="btn btn-outline-success" type="submit">&raquo;</button>

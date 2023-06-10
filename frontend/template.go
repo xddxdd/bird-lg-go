@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"html/template"
+        "net/url"
 	"strings"
 )
 
@@ -104,6 +105,12 @@ var requiredTemplates = [...]string{
 	"bird",
 }
 
+// define functions to be made available in templates
+
+var funcMap = template.FuncMap{
+        "pathescape": url.PathEscape,
+}
+
 // import templates from embedded assets
 
 func ImportTemplates() {
@@ -121,7 +128,7 @@ func ImportTemplates() {
 		}
 
 		// and add it to the template library
-		template, err := template.New(tmpl).Parse(string(def))
+		template, err := template.New(tmpl).Funcs(funcMap).Parse(string(def))
 		if err != nil {
 			panic("Unable to parse template (" + TEMPLATE_PATH + tmpl + ": " + err.Error())
 		}
