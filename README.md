@@ -90,7 +90,8 @@ Example: the following docker-compose.yml entry does the same as above, but by s
 ```yaml
 services:
   bird-lg:
-    image: xddxdd/bird-lg-go
+    # Use xddxdd/bird-lg-go:develop for the latest build from master branch
+    image: xddxdd/bird-lg-go:latest
     container_name: bird-lg
     restart: always
     environment:
@@ -165,7 +166,8 @@ Example: the following docker-compose.yml entry does the same as above, but by s
 ```yaml
 services:
   bird-lgproxy:
-    image: xddxdd/bird-lgproxy-go
+    # Use xddxdd/bird-lgproxy-go:develop for the latest build from master branch
+    image: xddxdd/bird-lgproxy-go:latest
     container_name: bird-lgproxy
     restart: always
     volumes:
