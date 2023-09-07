@@ -15,7 +15,7 @@ RUN wget https://github.com/rfc1036/whois/archive/refs/tags/v5.5.18.tar.gz \
     -O whois-5.5.18.tar.gz
 RUN tar xvf whois-5.5.18.tar.gz \
     && cd whois-5.5.18 \
-    && make -j4 LDFLAGS="-static" \
+    && make -j4 LDFLAGS="-static" CONFIG_FILE="/etc/whois.conf" \
     && strip /root/whois-5.5.18/whois
 
 ################################################################################
