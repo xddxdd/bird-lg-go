@@ -4,7 +4,7 @@ on:
       - '**'
 
 jobs:
-  docker:
+  docker-develop:
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU

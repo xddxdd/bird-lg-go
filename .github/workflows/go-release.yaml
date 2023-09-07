@@ -3,7 +3,7 @@ on:
     types: [created]
 
 jobs:
-  releases-matrix:
+  go-release:
     name: Release Go Binary
     runs-on: ubuntu-latest
     strategy:
