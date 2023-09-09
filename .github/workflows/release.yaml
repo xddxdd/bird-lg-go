@@ -3,6 +3,42 @@ on:
     types: [created]
 
 jobs:
+  go-release:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64, "arm", arm64]
+        exclude:
+          - goarch: "386"
+            goos: darwin
+          - goarch: "arm"
+            goos: darwin
+          - goarch: "arm"
+            goos: windows
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Release frontend
+      uses: wangyoucao577/go-release-action@v1.34
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        project_path: "./frontend"
+        binary_name: "bird-lg-go"
+
+    - name: Release proxy
+      uses: wangyoucao577/go-release-action@v1.34
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        project_path: "./proxy"
+        binary_name: "bird-lgproxy-go"
+
   docker-release:
     runs-on: ubuntu-latest
     steps:
