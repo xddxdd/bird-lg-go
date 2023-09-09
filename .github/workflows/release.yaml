@@ -70,7 +70,9 @@ jobs:
           push: true
           tags: |
             xddxdd/bird-lg-go:latest
+            xddxdd/bird-lg-go:${{ github.event.release.tag_name }}
             ghcr.io/xddxdd/bird-lg-go:frontend
+            ghcr.io/xddxdd/bird-lg-go:frontend-${{ github.event.release.tag_name }}
 
       - name: Build proxy docker image
         uses: docker/build-push-action@v4
@@ -80,4 +82,6 @@ jobs:
           push: true
           tags: |
             xddxdd/bird-lgproxy-go:latest
+            xddxdd/bird-lgproxy-go:${{ github.event.release.tag_name }}
             ghcr.io/xddxdd/bird-lg-go:proxy
+            ghcr.io/xddxdd/bird-lg-go:proxy-${{ github.event.release.tag_name }}
