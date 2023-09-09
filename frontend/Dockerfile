@@ -29,4 +29,5 @@ ENV PATH=/
 ENV BIRDLG_WHOIS=/whois
 COPY --from=step_0 /frontend /
 COPY --from=step_1 /root/whois-5.5.18/whois /
+COPY --from=step_1 /etc/services /etc/services
 ENTRYPOINT ["/frontend"]
