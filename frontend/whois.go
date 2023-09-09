@@ -25,13 +25,14 @@ func whois(s string) string {
 
 		cmd := exec.Command(args[0], args[1:]...)
 		output, err := cmd.CombinedOutput()
-		if err != nil {
-			return err.Error()
-		}
 		if len(output) > 65535 {
 			output = output[:65535]
 		}
-		return string(output)
+		if err != nil {
+			return err.Error() + "\n" + string(output)
+		} else {
+			return string(output)
+		}
 	} else {
 		buf := make([]byte, 65536)
 
@@ -50,7 +51,7 @@ func whois(s string) string {
 
 		n, err := io.ReadFull(conn, buf)
 		if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
-			return err.Error()
+			return err.Error() + "\n" + string(buf[:n])
 		}
 		return string(buf[:n])
 	}
