@@ -125,7 +125,7 @@ Configuration is handled by [viper](https://github.com/spf13/viper), any config 
 
 | Config Key | Parameter | Environment Variable | Description |
 | ---------- | --------- | -------------------- | ----------- |
-| allowed_ips | --allowed | ALLOWED_IPS | IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "") |
+| allowed_ips | --allowed | ALLOWED_IPS | IPs or networks allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "") |
 | bird_socket | --bird | BIRD_SOCKET | socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl") |
 | listen | --listen | BIRDLG_PROXY_PORT | listen address, set either in parameter or environment variable  BIRDLG_PROXY_PORT(default "8000") |
 | traceroute_bin | --traceroute_bin | BIRDLG_TRACEROUTE_BIN | traceroute binary file, set either in parameter or environment variable  BIRDLG_TRACEROUTE_BIN |

@@ -13,7 +13,7 @@ import (
 type viperSettingType struct {
 	BirdSocket      string `mapstructure:"bird_socket"`
 	Listen          string `mapstructure:"listen"`
-	AllowedIPs      string `mapstructure:"allowed_ips"`
+	AllowedNets     string `mapstructure:"allowed_ips"`
 	TracerouteBin   string `mapstructure:"traceroute_bin"`
 	TracerouteFlags string `mapstructure:"traceroute_flags"`
 	TracerouteRaw   bool   `mapstructure:"traceroute_raw"`
@@ -40,7 +40,7 @@ func parseSettings() {
 	pflag.String("listen", "8000", "listen address, set either in parameter or environment variable BIRDLG_PROXY_PORT")
 	viper.BindPFlag("listen", pflag.Lookup("listen"))
 
-	pflag.String("allowed", "", "IPs allowed to access this proxy, separated by commas. Don't set to allow all IPs.")
+	pflag.String("allowed", "", "IPs or networks allowed to access this proxy, separated by commas. Don't set to allow all IPs.")
 	viper.BindPFlag("allowed_ips", pflag.Lookup("allowed"))
 
 	pflag.String("traceroute_bin", "", "traceroute binary file, set either in parameter or environment variable BIRDLG_TRACEROUTE_BIN")
@@ -66,18 +66,31 @@ func parseSettings() {
 	setting.birdSocket = viperSettings.BirdSocket
 	setting.listen = viperSettings.Listen
 
-	if viperSettings.AllowedIPs != "" {
-		for _, ip := range strings.Split(viperSettings.AllowedIPs, ",") {
-			ipObject := net.ParseIP(ip)
-			if ipObject == nil {
-				fmt.Printf("Parse IP %s failed\n", ip)
-				continue
+	if viperSettings.AllowedNets != "" {
+		for _, arg := range strings.Split(viperSettings.AllowedNets, ",") {
+
+			// if argument is an IP address, convert to CIDR by adding a suitable mask
+			if !strings.Contains(arg, "/") {
+				if strings.Contains(arg, ":") {
+					// IPv6 address with /128 mask
+					arg += "/128"
+				} else {
+					// IPv4 address with /32 mask
+					arg += "/32"
+				}
 			}
 
-			setting.allowedIPs = append(setting.allowedIPs, ipObject)
+			// parse the network
+			_, netip, err := net.ParseCIDR(arg)
+			if err != nil {
+				fmt.Printf("Failed to parse CIDR %s: %s\n", arg, err.Error())
+				continue
+			}
+			setting.allowedNets = append(setting.allowedNets, netip)
+
 		}
 	} else {
-		setting.allowedIPs = []net.IP{}
+		setting.allowedNets = []*net.IPNet{}
 	}
 
 	var err error
