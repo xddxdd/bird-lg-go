@@ -22,8 +22,8 @@ func invalidHandler(httpW http.ResponseWriter, httpR *http.Request) {
 }
 
 func hasAccess(remoteAddr string) bool {
-	// setting.allowedIPs will always have at least one element because of how it's defined
-	if len(setting.allowedIPs) == 0 {
+	// setting.allowedNets will always have at least one element because of how it's defined
+	if len(setting.allowedNets) == 0 {
 		return true
 	}
 
@@ -40,8 +40,8 @@ func hasAccess(remoteAddr string) bool {
 		return false
 	}
 
-	for _, allowedIP := range setting.allowedIPs {
-		if ipObject.Equal(allowedIP) {
+	for _, net := range setting.allowedNets {
+		if net.Contains(ipObject) {
 			return true
 		}
 	}
@@ -49,7 +49,7 @@ func hasAccess(remoteAddr string) bool {
 	return false
 }
 
-// Access handler, check to see if client IP in allowed IPs, continue if it is, send to invalidHandler if not
+// Access handler, check to see if client IP in allowed nets, continue if it is, send to invalidHandler if not
 func accessHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(httpW http.ResponseWriter, httpR *http.Request) {
 		if hasAccess(httpR.RemoteAddr) {
@@ -61,12 +61,12 @@ func accessHandler(next http.Handler) http.Handler {
 }
 
 type settingType struct {
-	birdSocket string
-	listen     string
-	allowedIPs []net.IP
-	tr_bin     string
-	tr_flags   []string
-	tr_raw     bool
+	birdSocket  string
+	listen      string
+	allowedNets []*net.IPNet
+	tr_bin      string
+	tr_flags    []string
+	tr_raw      bool
 }
 
 var setting settingType
