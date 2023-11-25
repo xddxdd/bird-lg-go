@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -12,6 +13,23 @@ import (
 type channelData struct {
 	id   int
 	data string
+}
+
+func createConnectionTimeoutRoundTripper(timeout int) http.RoundTripper {
+	context := net.Dialer{
+		Timeout: time.Duration(timeout) * time.Second,
+	}
+	return &http.Transport{
+		DialContext: context.DialContext,
+
+		// Default options from transport.go
+		Proxy:                 http.ProxyFromEnvironment,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
 }
 
 // Send commands to lgproxy instances in parallel, and retrieve their responses
@@ -47,7 +65,9 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 			}
 			url := "http://" + hostname + ":" + strconv.Itoa(setting.proxyPort) + "/" + url.PathEscape(endpoint) + "?q=" + url.QueryEscape(command)
 			go func(url string, i int) {
-				client := http.Client{Timeout: time.Duration(setting.timeOut) * time.Second}
+				client := http.Client{
+					Transport: createConnectionTimeoutRoundTripper(setting.connectionTimeOut),
+					Timeout:   time.Duration(setting.timeOut) * time.Second}
 				response, err := client.Get(url)
 				if err != nil {
 					ch <- channelData{i, "request failed: " + err.Error() + "\n"}

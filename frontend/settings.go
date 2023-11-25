@@ -9,23 +9,24 @@ import (
 )
 
 type viperSettingType struct {
-	Servers         string `mapstructure:"servers"`
-	Domain          string `mapstructure:"domain"`
-	ProxyPort       int    `mapstructure:"proxy_port"`
-	WhoisServer     string `mapstructure:"whois"`
-	Listen          string `mapstructure:"listen"`
-	DNSInterface    string `mapstructure:"dns_interface"`
-	NetSpecificMode string `mapstructure:"net_specific_mode"`
-	TitleBrand      string `mapstructure:"title_brand"`
-	NavBarBrand     string `mapstructure:"navbar_brand"`
-	NavBarBrandURL  string `mapstructure:"navbar_brand_url"`
-	NavBarAllServer string `mapstructure:"navbar_all_servers"`
-	NavBarAllURL    string `mapstructure:"navbar_all_url"`
-	BgpmapInfo      string `mapstructure:"bgpmap_info"`
-	TelegramBotName string `mapstructure:"telegram_bot_name"`
-	ProtocolFilter  string `mapstructure:"protocol_filter"`
-	NameFilter      string `mapstructure:"name_filter"`
-	TimeOut         int    `mapstructure:"timeout"`
+	Servers           string `mapstructure:"servers"`
+	Domain            string `mapstructure:"domain"`
+	ProxyPort         int    `mapstructure:"proxy_port"`
+	WhoisServer       string `mapstructure:"whois"`
+	Listen            string `mapstructure:"listen"`
+	DNSInterface      string `mapstructure:"dns_interface"`
+	NetSpecificMode   string `mapstructure:"net_specific_mode"`
+	TitleBrand        string `mapstructure:"title_brand"`
+	NavBarBrand       string `mapstructure:"navbar_brand"`
+	NavBarBrandURL    string `mapstructure:"navbar_brand_url"`
+	NavBarAllServer   string `mapstructure:"navbar_all_servers"`
+	NavBarAllURL      string `mapstructure:"navbar_all_url"`
+	BgpmapInfo        string `mapstructure:"bgpmap_info"`
+	TelegramBotName   string `mapstructure:"telegram_bot_name"`
+	ProtocolFilter    string `mapstructure:"protocol_filter"`
+	NameFilter        string `mapstructure:"name_filter"`
+	TimeOut           int    `mapstructure:"timeout"`
+	ConnectionTimeOut int    `mapstructure:"connection_timeout"`
 }
 
 // Parse settings with viper, and convert to legacy setting format
@@ -87,8 +88,11 @@ func parseSettings() {
 	pflag.String("name-filter", "", "protocol name regex to hide in summary tables (RE2 syntax); defaults to none if not set")
 	viper.BindPFlag("name_filter", pflag.Lookup("name-filter"))
 
-	pflag.Int("time-out", 120, "time before request timed out, in seconds; defaults to 120 if not set")
+	pflag.Int("time-out", 120, "time before backend HTTP request times out, in seconds; defaults to 120 if not set")
 	viper.BindPFlag("timeout", pflag.Lookup("time-out"))
+
+	pflag.Int("connection-time-out", 5, "time before backend TCP connection times out, in seconds; defaults to 5 if not set")
+	viper.BindPFlag("connection_timeout", pflag.Lookup("connection-time-out"))
 
 	pflag.Parse()
 
@@ -139,6 +143,7 @@ func parseSettings() {
 
 	setting.nameFilter = viperSettings.NameFilter
 	setting.timeOut = viperSettings.TimeOut
+	setting.connectionTimeOut = viperSettings.ConnectionTimeOut
 
 	fmt.Printf("%#v\n", setting)
 }

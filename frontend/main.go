@@ -7,24 +7,25 @@ import (
 )
 
 type settingType struct {
-	servers         []string
-	serversDisplay  []string
-	domain          string
-	proxyPort       int
-	whoisServer     string
-	listen          string
-	dnsInterface    string
-	netSpecificMode string
-	titleBrand      string
-	navBarBrand     string
-	navBarBrandURL  string
-	navBarAllServer string
-	navBarAllURL    string
-	bgpmapInfo      string
-	telegramBotName string
-	protocolFilter  []string
-	nameFilter      string
-	timeOut         int
+	servers           []string
+	serversDisplay    []string
+	domain            string
+	proxyPort         int
+	whoisServer       string
+	listen            string
+	dnsInterface      string
+	netSpecificMode   string
+	titleBrand        string
+	navBarBrand       string
+	navBarBrandURL    string
+	navBarAllServer   string
+	navBarAllURL      string
+	bgpmapInfo        string
+	telegramBotName   string
+	protocolFilter    []string
+	nameFilter        string
+	timeOut           int
+	connectionTimeOut int
 }
 
 var setting settingType
