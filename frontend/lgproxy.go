@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/jarcoal/httpmock"
 )
 
 type channelData struct {
@@ -19,6 +21,12 @@ func createConnectionTimeoutRoundTripper(timeout int) http.RoundTripper {
 	context := net.Dialer{
 		Timeout: time.Duration(timeout) * time.Second,
 	}
+
+	// Prefer httpmock's transport if activated, so unit tests can work
+	if http.DefaultTransport == httpmock.DefaultTransport {
+		return httpmock.DefaultTransport
+	}
+
 	return &http.Transport{
 		DialContext: context.DialContext,
 
@@ -67,7 +75,8 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 			go func(url string, i int) {
 				client := http.Client{
 					Transport: createConnectionTimeoutRoundTripper(setting.connectionTimeOut),
-					Timeout:   time.Duration(setting.timeOut) * time.Second}
+					Timeout:   time.Duration(setting.timeOut) * time.Second,
+				}
 				response, err := client.Get(url)
 				if err != nil {
 					ch <- channelData{i, "request failed: " + err.Error() + "\n"}
