@@ -8,6 +8,19 @@
 <meta name="renderer" content="webkit">
 <title>{{ html .Title }}</title>
 <link rel="stylesheet" href="/static/jsdelivr/npm/bootstrap@4.5.1/dist/css/bootstrap.min.css" integrity="sha256-VoFZSlmyTXsegReQCNmbXrS4hBBUl/cexZvPmPWoJsY=" crossorigin="anonymous">
+<style>
+.navbar-nav {
+	flex-wrap: wrap;
+}
+@media (min-width: 768px) {
+	.navbar form {
+		min-width: 400px;
+	}
+	.nav-link {
+		padding: 0.2rem 0.5rem !important;
+	}
+}
+</style>
 <meta name="robots" content="noindex, nofollow">
 </head>
 <body>
