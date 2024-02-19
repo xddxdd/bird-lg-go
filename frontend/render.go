@@ -193,6 +193,11 @@ func summaryParse(data string, serverName string) (TemplateSummary, error) {
 			row.Info = strings.TrimSpace(lineSplitted[10])
 		}
 
+		// Dynamic BGP session, show without any color
+		if strings.Contains(row.Info, "Passive") {
+			row.MappedState = summaryStateMap["passive"]
+		}
+
 		// add to the result
 		args.Rows = append(args.Rows, row)
 	}
