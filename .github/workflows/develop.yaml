@@ -106,3 +106,16 @@ jobs:
             xddxdd/bird-lgproxy-go:develop-${{ github.sha }}
             ghcr.io/xddxdd/bird-lg-go:proxy-develop
             ghcr.io/xddxdd/bird-lg-go:proxy-develop-${{ github.sha }}
+
+      - name: Build proxy docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: '{{defaultContext}}:proxy'
+          file: '{context}/Dockerfile.mtr'
+          platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7
+          push: true
+          tags: |
+            xddxdd/bird-lgproxy-go:develop-mtr
+            xddxdd/bird-lgproxy-go:develop-${{ github.sha }}-mtr
+            ghcr.io/xddxdd/bird-lg-go:proxy-develop-mtr
+            ghcr.io/xddxdd/bird-lg-go:proxy-develop-${{ github.sha }}-mtr
