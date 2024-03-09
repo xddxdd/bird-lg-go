@@ -57,6 +57,12 @@ jobs:
           docker run --rm --net host --entrypoint traceroute local/proxy 127.0.0.1 || exit 1
           docker run --rm --net host --entrypoint traceroute local/proxy ::1 || exit 1
 
+      - name: Test mtr binary in proxy image
+        run: |
+          docker build -t local/proxy:mtr -f proxy/Dockerfile.mtr proxy/
+          docker run --rm --net host --entrypoint mtr local/proxy:mtr -w -c1 -Z1 -G1 -b 127.0.0.1 || exit 1
+          docker run --rm --net host --entrypoint mtr local/proxy:mtr -w -c1 -Z1 -G1 -b ::1 || exit 1
+
   docker-develop:
     runs-on: ubuntu-latest
     needs:
