@@ -1,0 +1,31 @@
+FROM golang AS step_0
+
+ENV CGO_ENABLED=0 GO111MODULE=on
+WORKDIR /root
+COPY . .
+RUN go build -ldflags "-w -s" -o /proxy
+
+################################################################################
+
+FROM alpine:edge AS step_1
+
+WORKDIR /root
+RUN apk add --no-cache build-base linux-headers
+
+RUN wget https://www.bitwizard.nl/mtr/files/mtr-0.94.tar.gz \
+    -O mtr-0.94.tar.gz
+RUN tar xvf mtr-0.94.tar.gz \
+    && cd mtr-0.94 \
+    && ./configure --without-gtk --without-ncurses --without-jansson --without-ipinfo --disable-bash-completion \
+    && make -j4 LDFLAGS="-static" \
+    && strip /root/mtr-0.94/mtr \
+    && strip /root/mtr-0.94/mtr-packet
+
+################################################################################
+
+FROM scratch AS step_2
+ENV PATH=/
+COPY --from=step_0 /proxy /
+COPY --from=step_1 /root/mtr-0.94/mtr /
+COPY --from=step_1 /root/mtr-0.94/mtr-packet /
+ENTRYPOINT ["/proxy"]
