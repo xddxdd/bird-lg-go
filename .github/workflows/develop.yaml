@@ -117,7 +117,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: '{{defaultContext}}:proxy'
-          file: '{context}/Dockerfile.mtr'
+          file: 'Dockerfile.mtr'
           platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7
           push: true
           tags: |
