@@ -47,7 +47,7 @@ jobs:
       - name: Test whois binary in frontend image
         run: |
           docker build -t local/frontend frontend/
-          docker run --rm --net host --entrypoint whois local/frontend github.com || exit 1
+          docker run --rm --net host --entrypoint whois local/frontend -I github.com || exit 1
           docker run --rm --net host --entrypoint whois local/frontend -h whois.ripe.net github.com || exit 1
           docker run --rm --net host --entrypoint whois local/frontend -h whois.ripe.net:43 github.com || exit 1
 
