@@ -167,6 +167,7 @@ Example: the following docker-compose.yml entry does the same as above, but by s
 services:
   bird-lgproxy:
     # Use xddxdd/bird-lgproxy-go:develop for the latest build from master branch
+    # Use xddxdd/bird-lgproxy-go:latest-mtr to use MTR instead of Traceroute
     image: xddxdd/bird-lgproxy-go:latest
     container_name: bird-lgproxy
     restart: always
