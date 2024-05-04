@@ -93,7 +93,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: '{{defaultContext}}:frontend'
-          platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7
+          platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/mips,linux/mipsle,linux/mips64,linux/mips64le
           push: true
           tags: |
             xddxdd/bird-lg-go:develop
@@ -105,7 +105,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: '{{defaultContext}}:proxy'
-          platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7
+          platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/mips,linux/mipsle,linux/mips64,linux/mips64le
           push: true
           tags: |
             xddxdd/bird-lgproxy-go:develop
@@ -118,7 +118,7 @@ jobs:
         with:
           context: '{{defaultContext}}:proxy'
           file: 'Dockerfile.mtr'
-          platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7
+          platforms: linux/amd64,linux/arm64,linux/386,linux/arm/v7,linux/mips,linux/mipsle,linux/mips64,linux/mips64le
           push: true
           tags: |
             xddxdd/bird-lgproxy-go:develop-mtr
