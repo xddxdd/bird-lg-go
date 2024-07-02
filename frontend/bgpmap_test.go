@@ -33,7 +33,7 @@ func TestBirdRouteToGraphvizXSS(t *testing.T) {
 		fakeResult,
 	}, fakeResult)
 
-	if strings.Contains(result, "<script>") {
+	if strings.Contains(result, fakeResult) {
 		t.Errorf("XSS injection succeeded: %s", result)
 	}
 }

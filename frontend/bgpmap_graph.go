@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -69,11 +70,15 @@ func (graph *RouteGraph) attrsToString(attrs RouteAttrs) string {
 }
 
 func (graph *RouteGraph) escape(s string) string {
-	result, err := json.Marshal(s)
+	buffer := &bytes.Buffer{}
+	encoder := json.NewEncoder(buffer)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(s)
+
 	if err != nil {
 		return err.Error()
 	} else {
-		return string(result)
+		return string(buffer.Bytes())
 	}
 }
 
