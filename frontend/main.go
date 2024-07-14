@@ -26,6 +26,7 @@ type settingType struct {
 	nameFilter        string
 	timeOut           int
 	connectionTimeOut int
+	trustProxyHeaders bool
 }
 
 var setting settingType

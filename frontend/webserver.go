@@ -75,7 +75,6 @@ func webHandlerWhois(w http.ResponseWriter, r *http.Request) {
 
 // serve up results from bird
 func webBackendCommunicator(endpoint string, command string) func(w http.ResponseWriter, r *http.Request) {
-
 	backendCommandPrimitive, commandPresent := primitiveMap[command]
 	if !commandPresent {
 		panic("invalid command: " + command)
@@ -195,7 +194,6 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 
 // set up routing paths and start webserver
 func webServerStart(l net.Listener) {
-
 	// redirect main page to all server summary
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/summary/"+url.PathEscape(strings.Join(setting.servers, "+")), 302)
@@ -239,5 +237,11 @@ func webServerStart(l net.Listener) {
 	http.HandleFunc("/telegram/", webHandlerTelegramBot)
 
 	// Start HTTP server
-	http.Serve(l, handlers.LoggingHandler(os.Stdout, http.DefaultServeMux))
+	var handler http.Handler
+	handler = http.DefaultServeMux
+	if setting.trustProxyHeaders {
+		handler = handlers.ProxyHeaders(handler)
+	}
+	handler = handlers.LoggingHandler(os.Stdout, handler)
+	http.Serve(l, handler)
 }
