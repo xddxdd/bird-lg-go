@@ -27,6 +27,7 @@ type viperSettingType struct {
 	NameFilter        string `mapstructure:"name_filter"`
 	TimeOut           int    `mapstructure:"timeout"`
 	ConnectionTimeOut int    `mapstructure:"connection_timeout"`
+	TrustProxyHeaders bool   `mapstructure:"trust_proxy_headers"`
 }
 
 // Parse settings with viper, and convert to legacy setting format
@@ -94,6 +95,9 @@ func parseSettings() {
 	pflag.Int("connection-time-out", 5, "time before backend TCP connection times out, in seconds; defaults to 5 if not set")
 	viper.BindPFlag("connection_timeout", pflag.Lookup("connection-time-out"))
 
+	pflag.Bool("trust-proxy-headers", false, "Trust X-Forwared-For, X-Real-IP, X-Forwarded-Proto, X-Forwarded-Scheme and X-Forwarded-Host sent by the client")
+	viper.BindPFlag("trust_proxy_headers", pflag.Lookup("trust-proxy-headers"))
+
 	pflag.Parse()
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -144,6 +148,7 @@ func parseSettings() {
 	setting.nameFilter = viperSettings.NameFilter
 	setting.timeOut = viperSettings.TimeOut
 	setting.connectionTimeOut = viperSettings.ConnectionTimeOut
+	setting.trustProxyHeaders = viperSettings.TrustProxyHeaders
 
 	fmt.Printf("%#v\n", setting)
 }
