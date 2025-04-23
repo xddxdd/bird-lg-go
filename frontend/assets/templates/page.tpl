@@ -88,7 +88,7 @@
 </div>
 
 <script src="/static/jsdelivr/npm/jquery@3.5.1/dist/jquery.min.js" crossorigin="anonymous"></script>
-<script src="/static/jsdelivr/npm/bootstrap@4.5.1/dist/js/bootstrap.min.js" rossorigin="anonymous"></script>
+<script src="/static/jsdelivr/npm/bootstrap@4.5.1/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
 <script src="/static/sortTable.js"></script>
 
 <script>
