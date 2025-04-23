@@ -20,6 +20,7 @@ type apiGenericResultPair struct {
 type apiSummaryResultPair struct {
 	Server string           `json:"server"`
 	Data   []SummaryRowData `json:"data"`
+	Error  string           `json:"error,omitempty"`
 }
 
 type apiResponse struct {
@@ -70,9 +71,12 @@ func apiSummaryHandler(request apiRequest) apiResponse {
 	for i, result := range results {
 		parsedSummary, err := summaryParse(result, request.Servers[i])
 		if err != nil {
-			return apiResponse{
-				Error: err.Error(),
-			}
+			response.Result = append(response.Result, &apiSummaryResultPair{
+				Server: request.Servers[i],
+				Data:   []SummaryRowData{},
+				Error:  err.Error(),
+			})
+			continue
 		}
 
 		response.Result = append(response.Result, &apiSummaryResultPair{
