@@ -100,7 +100,10 @@ func TestApiSummaryHandlerError(t *testing.T) {
 	}
 	response := apiSummaryHandler(request)
 
-	assert.Equal(t, response.Error, "Mock backend error")
+	assert.Equal(t, response.Error, "")
+
+	summary := response.Result[0].(*apiSummaryResultPair)
+	assert.Equal(t, summary.Error, "Mock backend error")
 }
 
 func TestApiWhoisHandler(t *testing.T) {
