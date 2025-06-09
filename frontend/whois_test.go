@@ -88,7 +88,7 @@ func TestWhoisWithoutServer(t *testing.T) {
 }
 
 func TestWhoisConnectionError(t *testing.T) {
-	setting.whoisServer = "127.0.0.1:0"
+	setting.whoisServer = "127.0.0.1:1"
 	result := whois("AS6939")
 	if !strings.Contains(result, "connect: connection refused") {
 		t.Errorf("Whois AS6939 without server produced output, got %s", result)
