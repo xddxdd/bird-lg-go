@@ -35,15 +35,6 @@ var optionsMap = map[string]string{
 	"traceroute":                       "traceroute ...",
 }
 
-// pre-compiled regexp and constant statemap for summary rendering
-var splitSummaryLine = regexp.MustCompile(`(\w+)(\s+)(\w+)(\s+)([\w-]+)(\s+)(\w+)(\s+)([0-9\-\. :]+)(.*)`)
-var summaryStateMap = map[string]string{
-	"up":      "success",
-	"down":    "secondary",
-	"start":   "danger",
-	"passive": "info",
-}
-
 // render the page template
 func renderPageTemplate(w http.ResponseWriter, r *http.Request, title string, content template.HTML) {
 	path := r.URL.Path[1:]
@@ -143,63 +134,23 @@ func summaryParse(data string, serverName string) (TemplateSummary, error) {
 
 	// parse each line
 	for _, line := range rows {
-
-		// Ignore empty lines
-		line = strings.TrimSpace(line)
-		if len(line) == 0 {
+		row := SummaryRowDataFromLine(line)
+		if row == nil {
 			continue
 		}
 
-		// Parse a total of 6 columns from bird summary
-		lineSplitted := splitSummaryLine.FindStringSubmatch(line)
-		if lineSplitted == nil {
+		// Filter row name
+		if setting.nameFilter != "" && nameFilterRegexp.MatchString(row.Name) {
 			continue
 		}
 
-		var row SummaryRowData
-
-		if len(lineSplitted) >= 2 {
-			row.Name = strings.TrimSpace(lineSplitted[1])
-			if setting.nameFilter != "" && nameFilterRegexp.MatchString(row.Name) {
-				continue
-			}
-		}
-		if len(lineSplitted) >= 4 {
-			row.Proto = strings.TrimSpace(lineSplitted[3])
-			// Filter away unwanted protocol types, if setting.protocolFilter is non-empty
-			found := false
-			for _, protocol := range setting.protocolFilter {
-				if strings.EqualFold(row.Proto, protocol) {
-					found = true
-					break
-				}
-			}
-
-			if len(setting.protocolFilter) > 0 && !found {
-				continue
-			}
-		}
-		if len(lineSplitted) >= 6 {
-			row.Table = strings.TrimSpace(lineSplitted[5])
-		}
-		if len(lineSplitted) >= 8 {
-			row.State = strings.TrimSpace(lineSplitted[7])
-			row.MappedState = summaryStateMap[row.State]
-		}
-		if len(lineSplitted) >= 10 {
-			row.Since = strings.TrimSpace(lineSplitted[9])
-		}
-		if len(lineSplitted) >= 11 {
-			row.Info = strings.TrimSpace(lineSplitted[10])
-		}
-
-		// Dynamic BGP session, show without any color
-		if strings.Contains(row.Info, "Passive") {
-			row.MappedState = summaryStateMap["passive"]
+		// Filter away unwanted protocol types, if setting.protocolFilter is non-empty
+		if len(setting.protocolFilter) > 0 && !row.ProtocolMatches(setting.protocolFilter) {
+			continue
 		}
 
 		// add to the result
-		args.Rows = append(args.Rows, row)
+		args.Rows = append(args.Rows, *row)
 	}
 
 	return args, nil

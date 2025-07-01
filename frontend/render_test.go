@@ -8,8 +8,7 @@ import (
 	"testing"
 )
 
-const BirdSummaryData = `BIRD 2.0.8 ready.
-Name       Proto      Table      State  Since         Info
+const BirdSummaryData = `Name       Proto      Table      State  Since         Info
 static1    Static     master4    up     2021-08-27
 static2    Static     master6    up     2021-08-27
 device1    Device     ---        up     2021-08-27

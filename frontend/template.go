@@ -3,11 +3,13 @@ package main
 import (
 	"embed"
 	"html/template"
-        "net/url"
+	"net/url"
+	"regexp"
 	"strings"
 )
 
 // import templates and other assets
+//
 //go:embed assets
 var assets embed.FS
 
@@ -64,6 +66,47 @@ func (r SummaryRowData) NameContains(prefix string) bool {
 	return strings.Contains(r.Name, prefix)
 }
 
+func (r SummaryRowData) ProtocolMatches(protocols []string) bool {
+	for _, protocol := range protocols {
+		if strings.EqualFold(r.Proto, protocol) {
+			return true
+		}
+	}
+	return false
+}
+
+// pre-compiled regexp and constant statemap for summary rendering
+var splitSummaryLine = regexp.MustCompile(`(\w+)\s+(\w+)\s+([\w-]+)\s+(\w+)\s+([0-9\-\. :]+)(.*)`)
+var summaryStateMap = map[string]string{
+	"up":      "success",
+	"down":    "secondary",
+	"start":   "danger",
+	"passive": "info",
+}
+
+func SummaryRowDataFromLine(line string) *SummaryRowData {
+	lineSplitted := splitSummaryLine.FindStringSubmatch(line)
+	if lineSplitted == nil {
+		return nil
+	}
+
+	var row SummaryRowData
+	row.Name = strings.TrimSpace(lineSplitted[1])
+	row.Proto = strings.TrimSpace(lineSplitted[2])
+	row.Table = strings.TrimSpace(lineSplitted[3])
+	row.State = strings.TrimSpace(lineSplitted[4])
+	row.Since = strings.TrimSpace(lineSplitted[5])
+	row.Info = strings.TrimSpace(lineSplitted[6])
+
+	if strings.Contains(row.Info, "Passive") {
+		row.MappedState = summaryStateMap["passive"]
+	} else {
+		row.MappedState = summaryStateMap[row.State]
+	}
+
+	return &row
+}
+
 type TemplateSummary struct {
 	ServerName string
 	Raw        string
@@ -108,7 +151,7 @@ var requiredTemplates = [...]string{
 // define functions to be made available in templates
 
 var funcMap = template.FuncMap{
-        "pathescape": url.PathEscape,
+	"pathescape": url.PathEscape,
 }
 
 // import templates from embedded assets

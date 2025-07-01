@@ -73,13 +73,14 @@ func TestApiSummaryHandler(t *testing.T) {
 
 	summary := response.Result[0].(*apiSummaryResultPair)
 	assert.Equal(t, summary.Server, "alpha")
+	assert.Equal(t, len(summary.Data), 7)
 	// Protocol list will be sorted
-	assert.Equal(t, summary.Data[1].Name, "device1")
-	assert.Equal(t, summary.Data[1].Proto, "Device")
-	assert.Equal(t, summary.Data[1].Table, "---")
-	assert.Equal(t, summary.Data[1].State, "up")
-	assert.Equal(t, summary.Data[1].Since, "2021-08-27")
-	assert.Equal(t, summary.Data[1].Info, "")
+	assert.Equal(t, summary.Data[0].Name, "device1")
+	assert.Equal(t, summary.Data[0].Proto, "Device")
+	assert.Equal(t, summary.Data[0].Table, "---")
+	assert.Equal(t, summary.Data[0].State, "up")
+	assert.Equal(t, summary.Data[0].Since, "2021-08-27")
+	assert.Equal(t, summary.Data[0].Info, "")
 }
 
 func TestApiSummaryHandlerError(t *testing.T) {
