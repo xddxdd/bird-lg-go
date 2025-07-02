@@ -76,3 +76,14 @@ func TestSummaryRowDataFromLineBGPPassive(t *testing.T) {
 	assert.Equal(t, data.Since, "2025-06-27 21:23:08")
 	assert.Equal(t, data.Info, "Passive")
 }
+
+func TestSummaryRowDataFromLineWithDash(t *testing.T) {
+	data := SummaryRowDataFromLine("ibgp_test-01 BGP        ---        up     07:16:51.656  Established")
+
+	assert.Equal(t, data.Name, "ibgp_test-01")
+	assert.Equal(t, data.Proto, "BGP")
+	assert.Equal(t, data.Table, "---")
+	assert.Equal(t, data.State, "up")
+	assert.Equal(t, data.Since, "07:16:51.656")
+	assert.Equal(t, data.Info, "Established")
+}

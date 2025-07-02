@@ -76,7 +76,7 @@ func (r SummaryRowData) ProtocolMatches(protocols []string) bool {
 }
 
 // pre-compiled regexp and constant statemap for summary rendering
-var splitSummaryLine = regexp.MustCompile(`(\w+)\s+(\w+)\s+([\w-]+)\s+(\w+)\s+([0-9\-\. :]+)(.*)`)
+var splitSummaryLine = regexp.MustCompile(`^([\w-]+)\s+(\w+)\s+([\w-]+)\s+(\w+)\s+([0-9\-\. :]+)(.*)$`)
 var summaryStateMap = map[string]string{
 	"up":      "success",
 	"down":    "secondary",
