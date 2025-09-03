@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/handlers v1.5.2
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/magiconair/properties v1.8.10
-	github.com/spf13/pflag v1.0.8
+	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.19.0
 )
 
