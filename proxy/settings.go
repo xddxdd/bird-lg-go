@@ -11,12 +11,12 @@ import (
 )
 
 type viperSettingType struct {
-	BirdSocket      string `mapstructure:"bird_socket"`
-	Listen          string `mapstructure:"listen"`
-	AllowedNets     string `mapstructure:"allowed_ips"`
-	TracerouteBin   string `mapstructure:"traceroute_bin"`
-	TracerouteFlags string `mapstructure:"traceroute_flags"`
-	TracerouteRaw   bool   `mapstructure:"traceroute_raw"`
+	BirdSocket      string   `mapstructure:"bird_socket"`
+	Listen          []string `mapstructure:"listen"`
+	AllowedNets     string   `mapstructure:"allowed_ips"`
+	TracerouteBin   string   `mapstructure:"traceroute_bin"`
+	TracerouteFlags string   `mapstructure:"traceroute_flags"`
+	TracerouteRaw   bool     `mapstructure:"traceroute_raw"`
 }
 
 // Parse settings with viper, and convert to legacy setting format
@@ -37,7 +37,7 @@ func parseSettings() {
 	pflag.String("bird", "/var/run/bird/bird.ctl", "socket file for bird, set either in parameter or environment variable BIRD_SOCKET")
 	viper.BindPFlag("bird_socket", pflag.Lookup("bird"))
 
-	pflag.String("listen", "8000", "listen address, set either in parameter or environment variable BIRDLG_PROXY_PORT")
+	pflag.StringSlice("listen", []string{"8000"}, "listen address, set either in parameter or environment variable BIRDLG_PROXY_PORT")
 	viper.BindPFlag("listen", pflag.Lookup("listen"))
 
 	pflag.String("allowed", "", "IPs or networks allowed to access this proxy, separated by commas. Don't set to allow all IPs.")
