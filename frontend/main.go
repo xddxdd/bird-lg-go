@@ -12,7 +12,7 @@ type settingType struct {
 	domain            string
 	proxyPort         int
 	whoisServer       string
-	listen            string
+	listen            []string
 	dnsInterface      string
 	netSpecificMode   string
 	titleBrand        string
@@ -35,24 +35,29 @@ func main() {
 	parseSettings()
 	ImportTemplates()
 
-	var l net.Listener
-	var err error
+	for _, listenAddr := range setting.listen {
+		go func(listenAddr string) {
+			var l net.Listener
+			var err error
 
-	if strings.HasPrefix(setting.listen, "/") {
-		// Delete existing socket file, ignore errors (will fail later anyway)
-		os.Remove(setting.listen)
-		l, err = net.Listen("unix", setting.listen)
-	} else {
-		listenAddr := setting.listen
-		if !strings.Contains(listenAddr, ":") {
-			listenAddr = ":" + listenAddr
-		}
-		l, err = net.Listen("tcp", listenAddr)
+			if strings.HasPrefix(listenAddr, "/") {
+				// Delete existing socket file, ignore errors (will fail later anyway)
+				os.Remove(listenAddr)
+				l, err = net.Listen("unix", listenAddr)
+			} else {
+				if !strings.Contains(listenAddr, ":") {
+					listenAddr = ":" + listenAddr
+				}
+				l, err = net.Listen("tcp", listenAddr)
+			}
+
+			if err != nil {
+				panic(err)
+			}
+
+			webServerStart(l)
+		}(listenAddr)
 	}
 
-	if err != nil {
-		panic(err)
-	}
-
-	webServerStart(l)
+	select {}
 }
