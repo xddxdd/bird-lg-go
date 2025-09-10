@@ -62,7 +62,7 @@ func accessHandler(next http.Handler) http.Handler {
 
 type settingType struct {
 	birdSocket  string
-	listen      string
+	listen      []string
 	allowedNets []*net.IPNet
 	tr_bin      string
 	tr_flags    []string
@@ -76,32 +76,40 @@ func main() {
 	parseSettings()
 	tracerouteAutodetect()
 
-	fmt.Printf("Listening on %s...\n", setting.listen)
+	mux := http.NewServeMux()
 
-	var l net.Listener
-	var err error
+	// Prepare HTTP server
+	mux.HandleFunc("/", invalidHandler)
+	mux.HandleFunc("/bird", birdHandler)
+	mux.HandleFunc("/bird6", birdHandler)
+	mux.HandleFunc("/traceroute", tracerouteHandler)
+	mux.HandleFunc("/traceroute6", tracerouteHandler)
 
-	if strings.HasPrefix(setting.listen, "/") {
-		// Delete existing socket file, ignore errors (will fail later anyway)
-		os.Remove(setting.listen)
-		l, err = net.Listen("unix", setting.listen)
-	} else {
-		listenAddr := setting.listen
-		if !strings.Contains(listenAddr, ":") {
-			listenAddr = ":" + listenAddr
-		}
-		l, err = net.Listen("tcp", listenAddr)
+	for _, listenAddr := range setting.listen {
+		go func(addr string) {
+			fmt.Printf("Listening on %s...\n", addr)
+
+			var l net.Listener
+			var err error
+
+			if strings.HasPrefix(addr, "/") {
+				// Delete existing socket file, ignore errors (will fail later anyway)
+				os.Remove(addr)
+				l, err = net.Listen("unix", addr)
+			} else {
+				if !strings.Contains(addr, ":") {
+					addr = ":" + addr
+				}
+				l, err = net.Listen("tcp", addr)
+			}
+
+			if err != nil {
+				panic(err)
+			}
+
+			http.Serve(l, handlers.LoggingHandler(os.Stdout, accessHandler(mux)))
+		}(listenAddr)
 	}
 
-	if err != nil {
-		panic(err)
-	}
-
-	// Start HTTP server
-	http.HandleFunc("/", invalidHandler)
-	http.HandleFunc("/bird", birdHandler)
-	http.HandleFunc("/bird6", birdHandler)
-	http.HandleFunc("/traceroute", tracerouteHandler)
-	http.HandleFunc("/traceroute6", tracerouteHandler)
-	http.Serve(l, handlers.LoggingHandler(os.Stdout, accessHandler(http.DefaultServeMux)))
+	select {}
 }

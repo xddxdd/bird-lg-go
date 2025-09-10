@@ -9,25 +9,25 @@ import (
 )
 
 type viperSettingType struct {
-	Servers           string `mapstructure:"servers"`
-	Domain            string `mapstructure:"domain"`
-	ProxyPort         int    `mapstructure:"proxy_port"`
-	WhoisServer       string `mapstructure:"whois"`
-	Listen            string `mapstructure:"listen"`
-	DNSInterface      string `mapstructure:"dns_interface"`
-	NetSpecificMode   string `mapstructure:"net_specific_mode"`
-	TitleBrand        string `mapstructure:"title_brand"`
-	NavBarBrand       string `mapstructure:"navbar_brand"`
-	NavBarBrandURL    string `mapstructure:"navbar_brand_url"`
-	NavBarAllServer   string `mapstructure:"navbar_all_servers"`
-	NavBarAllURL      string `mapstructure:"navbar_all_url"`
-	BgpmapInfo        string `mapstructure:"bgpmap_info"`
-	TelegramBotName   string `mapstructure:"telegram_bot_name"`
-	ProtocolFilter    string `mapstructure:"protocol_filter"`
-	NameFilter        string `mapstructure:"name_filter"`
-	TimeOut           int    `mapstructure:"timeout"`
-	ConnectionTimeOut int    `mapstructure:"connection_timeout"`
-	TrustProxyHeaders bool   `mapstructure:"trust_proxy_headers"`
+	Servers           string   `mapstructure:"servers"`
+	Domain            string   `mapstructure:"domain"`
+	ProxyPort         int      `mapstructure:"proxy_port"`
+	WhoisServer       string   `mapstructure:"whois"`
+	Listen            []string `mapstructure:"listen"`
+	DNSInterface      string   `mapstructure:"dns_interface"`
+	NetSpecificMode   string   `mapstructure:"net_specific_mode"`
+	TitleBrand        string   `mapstructure:"title_brand"`
+	NavBarBrand       string   `mapstructure:"navbar_brand"`
+	NavBarBrandURL    string   `mapstructure:"navbar_brand_url"`
+	NavBarAllServer   string   `mapstructure:"navbar_all_servers"`
+	NavBarAllURL      string   `mapstructure:"navbar_all_url"`
+	BgpmapInfo        string   `mapstructure:"bgpmap_info"`
+	TelegramBotName   string   `mapstructure:"telegram_bot_name"`
+	ProtocolFilter    string   `mapstructure:"protocol_filter"`
+	NameFilter        string   `mapstructure:"name_filter"`
+	TimeOut           int      `mapstructure:"timeout"`
+	ConnectionTimeOut int      `mapstructure:"connection_timeout"`
+	TrustProxyHeaders bool     `mapstructure:"trust_proxy_headers"`
 }
 
 // Parse settings with viper, and convert to legacy setting format
@@ -52,7 +52,7 @@ func parseSettings() {
 	pflag.String("whois", "whois.verisign-grs.com", "whois server for queries")
 	viper.BindPFlag("whois", pflag.Lookup("whois"))
 
-	pflag.String("listen", "5000", "address or unix socket bird-lg is listening on")
+	pflag.StringSlice("listen", []string{"5000"}, "address or unix socket bird-lg is listening on")
 	viper.BindPFlag("listen", pflag.Lookup("listen"))
 
 	pflag.String("dns-interface", "asn.cymru.com", "dns zone to query ASN information")
