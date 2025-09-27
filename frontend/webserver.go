@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync/atomic"
 
 	"github.com/gorilla/handlers"
 )
@@ -39,8 +40,10 @@ var primitiveMap = map[string]string{
 	"traceroute":                       "%s",
 }
 
+var webServerPrepared uint32 = 0
+
 // serve up a generic error
-func serverError(w http.ResponseWriter, r *http.Request) {
+func serverError(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte("500 Internal Server Error"))
 }
@@ -192,11 +195,11 @@ func webHandlerBGPMap(endpoint string, command string) func(w http.ResponseWrite
 	}
 }
 
-// set up routing paths and start webserver
-func webServerStart(l net.Listener) {
+// set up routing paths
+func webServerPrepare() {
 	// redirect main page to all server summary
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/summary/"+url.PathEscape(strings.Join(setting.servers, "+")), 302)
+		http.Redirect(w, r, "/summary/"+url.PathEscape(strings.Join(setting.servers, "+")), http.StatusFound)
 	})
 
 	// serve static pages using embedded assets from template.go
@@ -235,8 +238,15 @@ func webServerStart(l net.Listener) {
 	http.HandleFunc("/whois/", webHandlerWhois)
 	http.HandleFunc("/api/", apiHandler)
 	http.HandleFunc("/telegram/", webHandlerTelegramBot)
+}
 
-	// Start HTTP server
+// start webserver
+func webServerStart(l net.Listener) {
+	if atomic.LoadUint32(&webServerPrepared) == 0 {
+		webServerPrepare()
+		atomic.StoreUint32(&webServerPrepared, 1)
+	}
+
 	var handler http.Handler
 	handler = http.DefaultServeMux
 	if setting.trustProxyHeaders {
