@@ -242,9 +242,8 @@ func webServerPrepare() {
 
 // start webserver
 func webServerStart(l net.Listener) {
-	if atomic.LoadUint32(&webServerPrepared) == 0 {
+	if atomic.SwapUint32(&webServerPrepared, 1) == 0 {
 		webServerPrepare()
-		atomic.StoreUint32(&webServerPrepared, 1)
 	}
 
 	var handler http.Handler
