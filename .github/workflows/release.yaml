@@ -30,6 +30,8 @@ jobs:
         goarch: ${{ matrix.goarch }}
         project_path: "./frontend"
         binary_name: "bird-lg-go"
+        pre_command: |
+          export CGO_ENABLED=0
 
     - name: Release proxy
       uses: wangyoucao577/go-release-action@v1.40
@@ -39,6 +41,8 @@ jobs:
         goarch: ${{ matrix.goarch }}
         project_path: "./proxy"
         binary_name: "bird-lgproxy-go"
+        pre_command: |
+          export CGO_ENABLED=0
 
   docker-release:
     runs-on: ubuntu-latest
