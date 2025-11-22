@@ -97,7 +97,7 @@ func webHandlerTelegramBot(w http.ResponseWriter, r *http.Request) {
 	} else if telegramIsCommand(request.Message.Text, "path") {
 		commandResult = telegramBatchRequestFormat(servers, "bird", "show route for "+target+" all primary", func(result string) string {
 			for _, s := range strings.Split(result, "\n") {
-				if strings.Contains(s, "BGP.as_path: ") {
+				if strings.Contains(s, "BGP.as_path: ") || strings.Contains(s, "bgp_path: ") {
 					return strings.TrimSpace(strings.Split(s, ":")[1])
 				}
 			}
