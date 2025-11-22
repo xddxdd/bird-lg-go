@@ -70,6 +70,10 @@ func TestBirdRouteToGraph(t *testing.T) {
 	if result.GetEdge("4242423914", "target") == nil {
 		t.Error("Result doesn't contain edge from 4242423914 to target")
 	}
+	// This route is written in bird3 notation
+	if result.GetEdge("4242423391", "4242420604") == nil {
+		t.Error("Result doesn't contain edge from 4242423391 to 4242420604 (bird3)")
+	}
 }
 
 func TestBirdRouteToGraphviz(t *testing.T) {
