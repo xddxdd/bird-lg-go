@@ -140,12 +140,16 @@ Table master4:
 	BGP.community: (64511,3) (64511,24) (64511,34)
 	BGP.large_community: (4242421080, 101, 42) (4242421080, 103, 123) (4242421080, 104, 2)
                      unicast [cola_3391 18:41:16.608 from fe80::3391] (100) [AS4242423914i]
-	via 172.22.96.65 on dn42-cola
-	Type: BGP univ
-	BGP.origin: IGP
-	BGP.as_path: 4242423391 4242420604 4242423914
-	BGP.next_hop: 172.22.96.65
-	BGP.med: 50
-	BGP.local_pref: 100
-	BGP.community: (64511,4) (64511,34) (64511,24)
-	BGP.large_community: (4242420604, 2, 50) (4242420604, 501, 4242423914) (4242420604, 502, 44) (4242420604, 504, 4) (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+	via 172.22.96.65 on dn42-bird3
+	preference: 100
+	igp_metric: 0
+	from: 172.22.96.65
+	source: BGP
+	bgp_origin: IGP
+	bgp_path: 4242423391 4242420604 4242423914
+	bgp_next_hop: 172.22.96.65
+	bgp_med: 50
+	bgp_local_pref: 100
+	bgp_community: (64511,4) (64511,34) (64511,24)
+	bgp_large_community: (4242420604, 2, 50) (4242420604, 501, 4242423914) (4242420604, 502, 44) (4242420604, 504, 4) (4242421080, 104, 1) (4242421080, 101, 44) (4242421080, 103, 126)
+	Internal route handling values: 0L 13G 0S id 3743
