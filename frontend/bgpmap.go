@@ -15,7 +15,7 @@ var protocolNameRe = regexp.MustCompile(`\[(.*?) .*\]`)
 var routeSplitRe = regexp.MustCompile("(unicast|blackhole|unreachable|prohibited)")
 
 var routeViaRe = regexp.MustCompile(`(?m)^\t(via .*?)$`)
-var routeASPathRe = regexp.MustCompile(`(?m)^\tBGP\.as_path: (.*?)$`)
+var routeASPathRe = regexp.MustCompile(`(?mi)^\tBGP(?:\.as)?_path: (.*?)$`)
 
 func makeEdgeAttrs(preferred bool) RouteAttrs {
 	result := RouteAttrs{
