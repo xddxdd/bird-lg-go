@@ -23,6 +23,12 @@ type viperSettingType struct {
 
 // Parse settings with viper, and convert to legacy setting format
 func parseSettings() {
+	// Allow both dashes and underscores in flag names
+	// e.g., both --traceroute-bin and --traceroute_bin will work
+	pflag.CommandLine.SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
+		return pflag.NormalizedName(strings.ReplaceAll(name, "_", "-"))
+	})
+
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/etc/bird-lg")
 	viper.SetConfigName("bird-lgproxy")
@@ -45,20 +51,20 @@ func parseSettings() {
 	pflag.String("allowed", "", "IPs or networks allowed to access this proxy, separated by commas. Don't set to allow all IPs.")
 	viper.BindPFlag("allowed_ips", pflag.Lookup("allowed"))
 
-	pflag.String("traceroute_bin", "", "traceroute binary file, set either in parameter or environment variable BIRDLG_TRACEROUTE_BIN")
-	viper.BindPFlag("traceroute_bin", pflag.Lookup("traceroute_bin"))
+	pflag.String("traceroute-bin", "", "traceroute binary file, set either in parameter or environment variable BIRDLG_TRACEROUTE_BIN")
+	viper.BindPFlag("traceroute_bin", pflag.Lookup("traceroute-bin"))
 
-	pflag.String("traceroute_flags", "", "traceroute flags, supports multiple flags separated with space.")
-	viper.BindPFlag("traceroute_flags", pflag.Lookup("traceroute_flags"))
+	pflag.String("traceroute-flags", "", "traceroute flags, supports multiple flags separated with space.")
+	viper.BindPFlag("traceroute_flags", pflag.Lookup("traceroute-flags"))
 
-	pflag.Bool("traceroute_raw", false, "whether to display traceroute outputs raw; set via parameter or environment variable BIRDLG_TRACEROUTE_RAW")
-	viper.BindPFlag("traceroute_raw", pflag.Lookup("traceroute_raw"))
+	pflag.Bool("traceroute-raw", false, "whether to display traceroute outputs raw; set via parameter or environment variable BIRDLG_TRACEROUTE_RAW")
+	viper.BindPFlag("traceroute_raw", pflag.Lookup("traceroute-raw"))
 
-	pflag.Int("traceroute_max_concurrent", 10, "max concurrent traceroute requests allowed")
-	viper.BindPFlag("traceroute_max_concurrent", pflag.Lookup("traceroute_max_concurrent"))
+	pflag.Int("traceroute-max-concurrent", 10, "max concurrent traceroute requests allowed")
+	viper.BindPFlag("traceroute_max_concurrent", pflag.Lookup("traceroute-max-concurrent"))
 
-	pflag.Bool("bird_restrict_cmds", true, "restrict bird commands to 'show protocols' and 'show route' only")
-	viper.BindPFlag("bird_restrict_cmds", pflag.Lookup("bird_restrict_cmds"))
+	pflag.Bool("bird-restrict-cmds", true, "restrict bird commands to 'show protocols' and 'show route' only")
+	viper.BindPFlag("bird_restrict_cmds", pflag.Lookup("bird-restrict-cmds"))
 
 	pflag.Parse()
 

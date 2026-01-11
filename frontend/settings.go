@@ -32,6 +32,12 @@ type viperSettingType struct {
 
 // Parse settings with viper, and convert to legacy setting format
 func parseSettings() {
+	// Allow both dashes and underscores in flag names
+	// e.g., both --traceroute-bin and --traceroute_bin will work
+	pflag.CommandLine.SetNormalizeFunc(func(f *pflag.FlagSet, name string) pflag.NormalizedName {
+		return pflag.NormalizedName(strings.ReplaceAll(name, "_", "-"))
+	})
+
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("/etc/bird-lg")
 	viper.SetConfigName("bird-lg")
@@ -59,7 +65,7 @@ func parseSettings() {
 	viper.BindPFlag("dns_interface", pflag.Lookup("dns-interface"))
 
 	pflag.String("net-specific-mode", "", "network specific operation mode, [(none)|dn42]")
-	viper.BindPFlag("net_specific-mode", pflag.Lookup("net-specific-mode"))
+	viper.BindPFlag("net_specific_mode", pflag.Lookup("net-specific-mode"))
 
 	pflag.String("title-brand", "Bird-lg Go", "prefix of page titles in browser tabs")
 	viper.BindPFlag("title_brand", pflag.Lookup("title-brand"))
