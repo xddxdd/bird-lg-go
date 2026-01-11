@@ -184,37 +184,45 @@ func TestTracerouteHandlerConcurrencyLimit(t *testing.T) {
 	setting.tr_flags = []string{"-c", "sleep 1; echo Done"}
 	setting.tr_raw = true
 
-	// Launch more concurrent requests than the limit
-	numRequests := 5
-	responses := make(chan int, numRequests)
+	// Run two rounds to verify semaphores are properly released
+	for round := 1; round <= 2; round++ {
+		t.Logf("Round %d: Testing concurrency limit", round)
 
-	for i := 0; i < numRequests; i++ {
-		go func() {
-			r := httptest.NewRequest(http.MethodGet, "/traceroute?q="+url.QueryEscape("1.1.1.1"), nil)
-			w := httptest.NewRecorder()
-			tracerouteHandler(w, r)
-			responses <- w.Code
-		}()
-	}
+		// Launch more concurrent requests than the limit
+		numRequests := 5
+		responses := make(chan int, numRequests)
 
-	// Collect all responses
-	statusCodes := make(map[int]int)
-	for i := 0; i < numRequests; i++ {
-		code := <-responses
-		statusCodes[code]++
-	}
+		for i := 0; i < numRequests; i++ {
+			go func() {
+				r := httptest.NewRequest(http.MethodGet, "/traceroute?q="+url.QueryEscape("1.1.1.1"), nil)
+				w := httptest.NewRecorder()
+				tracerouteHandler(w, r)
+				responses <- w.Code
+			}()
+		}
 
-	// Verify that some requests succeeded (200) and some were rejected (503)
-	if statusCodes[http.StatusOK] == 0 {
-		t.Error("Expected at least one request to succeed with 200")
-	}
-	if statusCodes[http.StatusServiceUnavailable] == 0 {
-		t.Error("Expected at least one request to be rejected with 503")
-	}
+		// Collect all responses
+		statusCodes := make(map[int]int)
+		for i := 0; i < numRequests; i++ {
+			code := <-responses
+			statusCodes[code]++
+		}
 
-	// Verify we didn't get any unexpected status codes
-	totalRequests := statusCodes[http.StatusOK] + statusCodes[http.StatusServiceUnavailable]
-	if totalRequests != numRequests {
-		t.Errorf("Expected %d total requests, got %d", numRequests, totalRequests)
+		// Verify that some requests succeeded (200) and some were rejected (503)
+		if statusCodes[http.StatusOK] == 0 {
+			t.Errorf("Round %d: Expected at least one request to succeed with 200", round)
+		}
+		if statusCodes[http.StatusServiceUnavailable] == 0 {
+			t.Errorf("Round %d: Expected at least one request to be rejected with 503", round)
+		}
+
+		// Verify we didn't get any unexpected status codes
+		totalRequests := statusCodes[http.StatusOK] + statusCodes[http.StatusServiceUnavailable]
+		if totalRequests != numRequests {
+			t.Errorf("Round %d: Expected %d total requests, got %d", round, numRequests, totalRequests)
+		}
+
+		t.Logf("Round %d: Got %d successful (200) and %d rejected (503) requests",
+			round, statusCodes[http.StatusOK], statusCodes[http.StatusServiceUnavailable])
 	}
 }
