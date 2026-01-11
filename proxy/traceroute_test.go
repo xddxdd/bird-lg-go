@@ -97,6 +97,7 @@ func TestTracerouteAutodetectFlagsOnly(t *testing.T) {
 }
 
 func TestTracerouteHandlerWithoutQuery(t *testing.T) {
+	initTracerouteSemaphore(setting.tr_max_concurrent)
 	r := httptest.NewRequest(http.MethodGet, "/traceroute", nil)
 	w := httptest.NewRecorder()
 	tracerouteHandler(w, r)
@@ -107,6 +108,7 @@ func TestTracerouteHandlerWithoutQuery(t *testing.T) {
 }
 
 func TestTracerouteHandlerShlexError(t *testing.T) {
+	initTracerouteSemaphore(setting.tr_max_concurrent)
 	r := httptest.NewRequest(http.MethodGet, "/traceroute?q="+url.QueryEscape("\"1.1.1.1"), nil)
 	w := httptest.NewRecorder()
 	tracerouteHandler(w, r)
@@ -117,6 +119,7 @@ func TestTracerouteHandlerShlexError(t *testing.T) {
 }
 
 func TestTracerouteHandlerNoTracerouteFound(t *testing.T) {
+	initTracerouteSemaphore(setting.tr_max_concurrent)
 	setting.tr_bin = ""
 	setting.tr_flags = nil
 
@@ -130,6 +133,7 @@ func TestTracerouteHandlerNoTracerouteFound(t *testing.T) {
 }
 
 func TestTracerouteHandlerExecuteError(t *testing.T) {
+	initTracerouteSemaphore(setting.tr_max_concurrent)
 	setting.tr_bin = "sh"
 	setting.tr_flags = []string{"-c", "false"}
 	setting.tr_raw = true
@@ -144,6 +148,7 @@ func TestTracerouteHandlerExecuteError(t *testing.T) {
 }
 
 func TestTracerouteHandlerRaw(t *testing.T) {
+	initTracerouteSemaphore(setting.tr_max_concurrent)
 	setting.tr_bin = "sh"
 	setting.tr_flags = []string{"-c", "echo Mock"}
 	setting.tr_raw = true
@@ -156,6 +161,7 @@ func TestTracerouteHandlerRaw(t *testing.T) {
 }
 
 func TestTracerouteHandlerPostprocess(t *testing.T) {
+	initTracerouteSemaphore(setting.tr_max_concurrent)
 	setting.tr_bin = "sh"
 	setting.tr_flags = []string{"-c", "echo \"first line\n 2 *\nthird line\""}
 	setting.tr_raw = false
@@ -165,4 +171,50 @@ func TestTracerouteHandlerPostprocess(t *testing.T) {
 	tracerouteHandler(w, r)
 	assert.Equal(t, w.Code, http.StatusOK)
 	assert.Equal(t, w.Body.String(), "first line\nthird line\n\n1 hops not responding.")
+}
+
+func TestTracerouteHandlerConcurrencyLimit(t *testing.T) {
+	// Set a low limit for testing
+	maxConcurrent := 2
+	initTracerouteSemaphore(maxConcurrent)
+	setting.tr_max_concurrent = maxConcurrent
+
+	// Use a slow command to keep requests running
+	setting.tr_bin = "sh"
+	setting.tr_flags = []string{"-c", "sleep 1; echo Done"}
+	setting.tr_raw = true
+
+	// Launch more concurrent requests than the limit
+	numRequests := 5
+	responses := make(chan int, numRequests)
+
+	for i := 0; i < numRequests; i++ {
+		go func() {
+			r := httptest.NewRequest(http.MethodGet, "/traceroute?q="+url.QueryEscape("1.1.1.1"), nil)
+			w := httptest.NewRecorder()
+			tracerouteHandler(w, r)
+			responses <- w.Code
+		}()
+	}
+
+	// Collect all responses
+	statusCodes := make(map[int]int)
+	for i := 0; i < numRequests; i++ {
+		code := <-responses
+		statusCodes[code]++
+	}
+
+	// Verify that some requests succeeded (200) and some were rejected (503)
+	if statusCodes[http.StatusOK] == 0 {
+		t.Error("Expected at least one request to succeed with 200")
+	}
+	if statusCodes[http.StatusServiceUnavailable] == 0 {
+		t.Error("Expected at least one request to be rejected with 503")
+	}
+
+	// Verify we didn't get any unexpected status codes
+	totalRequests := statusCodes[http.StatusOK] + statusCodes[http.StatusServiceUnavailable]
+	if totalRequests != numRequests {
+		t.Errorf("Expected %d total requests, got %d", numRequests, totalRequests)
+	}
 }

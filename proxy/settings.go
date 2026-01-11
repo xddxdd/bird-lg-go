@@ -11,12 +11,13 @@ import (
 )
 
 type viperSettingType struct {
-	BirdSocket      string   `mapstructure:"bird_socket"`
-	Listen          []string `mapstructure:"listen"`
-	AllowedNets     string   `mapstructure:"allowed_ips"`
-	TracerouteBin   string   `mapstructure:"traceroute_bin"`
-	TracerouteFlags string   `mapstructure:"traceroute_flags"`
-	TracerouteRaw   bool     `mapstructure:"traceroute_raw"`
+	BirdSocket              string   `mapstructure:"bird_socket"`
+	Listen                  []string `mapstructure:"listen"`
+	AllowedNets             string   `mapstructure:"allowed_ips"`
+	TracerouteBin           string   `mapstructure:"traceroute_bin"`
+	TracerouteFlags         string   `mapstructure:"traceroute_flags"`
+	TracerouteRaw           bool     `mapstructure:"traceroute_raw"`
+	TracerouteMaxConcurrent int      `mapstructure:"traceroute_max_concurrent"`
 }
 
 // Parse settings with viper, and convert to legacy setting format
@@ -51,6 +52,9 @@ func parseSettings() {
 
 	pflag.Bool("traceroute_raw", false, "whether to display traceroute outputs raw; set via parameter or environment variable BIRDLG_TRACEROUTE_RAW")
 	viper.BindPFlag("traceroute_raw", pflag.Lookup("traceroute_raw"))
+
+	pflag.Int("traceroute_max_concurrent", 10, "max concurrent traceroute requests allowed")
+	viper.BindPFlag("traceroute_max_concurrent", pflag.Lookup("traceroute_max_concurrent"))
 
 	pflag.Parse()
 
@@ -101,6 +105,7 @@ func parseSettings() {
 	}
 
 	setting.tr_raw = viperSettings.TracerouteRaw
+	setting.tr_max_concurrent = viperSettings.TracerouteMaxConcurrent
 
 	fmt.Printf("%#v\n", setting)
 }

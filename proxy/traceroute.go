@@ -11,6 +11,14 @@ import (
 	"github.com/google/shlex"
 )
 
+var tracerouteSemaphore chan struct{}
+
+func initTracerouteSemaphore(maxConcurrent int) {
+	if maxConcurrent > 0 {
+		tracerouteSemaphore = make(chan struct{}, maxConcurrent)
+	}
+}
+
 func tracerouteArgsToString(cmd string, args []string, target []string) string {
 	var cmdCombined = append([]string{cmd}, args...)
 	cmdCombined = append(cmdCombined, target...)
@@ -83,6 +91,20 @@ func tracerouteAutodetect() {
 }
 
 func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
+	// Check concurrency limit
+	if setting.tr_max_concurrent > 0 {
+		select {
+		case tracerouteSemaphore <- struct{}{}:
+			// Successfully acquired semaphore slot
+			defer func() { <-tracerouteSemaphore }()
+		default:
+			// Semaphore is full, reject request
+			httpW.WriteHeader(http.StatusServiceUnavailable)
+			httpW.Write([]byte("Too many concurrent traceroute requests. Please try again later.\n"))
+			return
+		}
+	}
+
 	query := string(httpR.URL.Query().Get("q"))
 	query = strings.TrimSpace(query)
 

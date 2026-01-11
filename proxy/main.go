@@ -61,12 +61,13 @@ func accessHandler(next http.Handler) http.Handler {
 }
 
 type settingType struct {
-	birdSocket  string
-	listen      []string
-	allowedNets []*net.IPNet
-	tr_bin      string
-	tr_flags    []string
-	tr_raw      bool
+	birdSocket        string
+	listen            []string
+	allowedNets       []*net.IPNet
+	tr_bin            string
+	tr_flags          []string
+	tr_raw            bool
+	tr_max_concurrent int
 }
 
 var setting settingType
@@ -74,6 +75,7 @@ var setting settingType
 // Wrapper of tracer
 func main() {
 	parseSettings()
+	initTracerouteSemaphore(setting.tr_max_concurrent)
 	tracerouteAutodetect()
 
 	mux := http.NewServeMux()
