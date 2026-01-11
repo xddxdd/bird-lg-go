@@ -57,12 +57,37 @@ func birdWriteln(bird io.Writer, s string) {
 	bird.Write([]byte(s + "\n"))
 }
 
+// List of allowed bird commands when restriction is enabled
+var allowedBirdCommands = []string{
+	"show protocols",
+	"show route",
+}
+
+// Check if a bird command is allowed based on the allowed commands list
+// Accepts exact match or command followed by space and parameters
+func isBirdCommandAllowed(query string) bool {
+	for _, cmd := range allowedBirdCommands {
+		if query == cmd || strings.HasPrefix(query, cmd+" ") {
+			return true
+		}
+	}
+	return false
+}
+
 // Handles BIRDv4 queries
 func birdHandler(httpW http.ResponseWriter, httpR *http.Request) {
 	query := string(httpR.URL.Query().Get("q"))
 	if query == "" {
 		invalidHandler(httpW, httpR)
 	} else {
+		// Check if command restriction is enabled
+		if setting.birdRestrictCmds {
+			if !isBirdCommandAllowed(query) {
+				httpW.WriteHeader(http.StatusForbidden)
+				httpW.Write([]byte("Forbidden: only 'show protocols' and 'show route' commands are allowed\n"))
+				return
+			}
+		}
 		// Initialize BIRDv4 socket
 		bird, err := net.Dial("unix", setting.birdSocket)
 		if err != nil {

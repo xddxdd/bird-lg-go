@@ -62,6 +62,7 @@ func accessHandler(next http.Handler) http.Handler {
 
 type settingType struct {
 	birdSocket        string
+	birdRestrictCmds  bool
 	listen            []string
 	allowedNets       []*net.IPNet
 	tr_bin            string

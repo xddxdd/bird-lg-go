@@ -12,6 +12,7 @@ import (
 
 type viperSettingType struct {
 	BirdSocket              string   `mapstructure:"bird_socket"`
+	BirdRestrictCmds        bool     `mapstructure:"bird_restrict_cmds"`
 	Listen                  []string `mapstructure:"listen"`
 	AllowedNets             string   `mapstructure:"allowed_ips"`
 	TracerouteBin           string   `mapstructure:"traceroute_bin"`
@@ -56,6 +57,9 @@ func parseSettings() {
 	pflag.Int("traceroute_max_concurrent", 10, "max concurrent traceroute requests allowed")
 	viper.BindPFlag("traceroute_max_concurrent", pflag.Lookup("traceroute_max_concurrent"))
 
+	pflag.Bool("bird_restrict_cmds", true, "restrict bird commands to 'show protocols' and 'show route' only")
+	viper.BindPFlag("bird_restrict_cmds", pflag.Lookup("bird_restrict_cmds"))
+
 	pflag.Parse()
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -68,6 +72,7 @@ func parseSettings() {
 	}
 
 	setting.birdSocket = viperSettings.BirdSocket
+	setting.birdRestrictCmds = viperSettings.BirdRestrictCmds
 	setting.listen = viperSettings.Listen
 
 	if viperSettings.AllowedNets != "" {

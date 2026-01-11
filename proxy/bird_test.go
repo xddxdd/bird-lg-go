@@ -211,3 +211,148 @@ func TestBirdHandlerEOF(t *testing.T) {
 	assert.Equal(t, w.Code, http.StatusOK)
 	assert.Equal(t, w.Body.String(), "Mock Response\nEOF")
 }
+
+func TestIsBirdCommandAllowed(t *testing.T) {
+	tests := []struct {
+		name     string
+		query    string
+		expected bool
+	}{
+		{"show protocols with params", "show protocols all", true},
+		{"show protocols exact match", "show protocols", true},
+		{"show protocols with single space", "show protocols ", true},
+		{"show route with params", "show route for 1.2.3.4", true},
+		{"show route exact match", "show route", true},
+		{"show route with single space", "show route ", true},
+		{"show status - forbidden", "show status", false},
+		{"configure - forbidden", "configure", false},
+		{"reload - forbidden", "reload", false},
+		{"empty string", "", false},
+		{"just show", "show", false},
+		{"show protocol - missing s", "show protocol all", false},
+		{"show protocolsaaa - no space", "show protocolsaaa", false},
+		{"case sensitive", "Show Protocols all", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isBirdCommandAllowed(tt.query)
+			assert.Equal(t, result, tt.expected)
+		})
+	}
+}
+
+func TestBirdHandlerWithRestrictedCommandAllowed(t *testing.T) {
+	server := BirdServer{
+		t:             t,
+		expectedQuery: "show protocols all",
+		response:      "Mock Response",
+		injectError:   "",
+	}
+
+	server.Listen()
+	go server.Run()
+	defer server.Close()
+
+	setting.birdSocket = server.socket
+	setting.birdRestrictCmds = true
+
+	r := httptest.NewRequest(http.MethodGet, "/bird?q="+url.QueryEscape("show protocols all"), nil)
+	w := httptest.NewRecorder()
+	birdHandler(w, r)
+
+	assert.Equal(t, w.Code, http.StatusOK)
+	assert.Equal(t, w.Body.String(), "Mock Response\n")
+}
+
+func TestBirdHandlerWithRestrictedCommandForbidden(t *testing.T) {
+	setting.birdSocket = "/any/path" // Won't be used since we return 403 before connecting
+	setting.birdRestrictCmds = true
+
+	r := httptest.NewRequest(http.MethodGet, "/bird?q="+url.QueryEscape("show status"), nil)
+	w := httptest.NewRecorder()
+	birdHandler(w, r)
+
+	assert.Equal(t, w.Code, http.StatusForbidden)
+	assert.Equal(t, strings.Contains(w.Body.String(), "Forbidden"), true)
+}
+
+func TestBirdHandlerWithRestrictedCommandShowRoute(t *testing.T) {
+	server := BirdServer{
+		t:             t,
+		expectedQuery: "show route for 1.2.3.4",
+		response:      "Mock Route Response",
+		injectError:   "",
+	}
+
+	server.Listen()
+	go server.Run()
+	defer server.Close()
+
+	setting.birdSocket = server.socket
+	setting.birdRestrictCmds = true
+
+	r := httptest.NewRequest(http.MethodGet, "/bird?q="+url.QueryEscape("show route for 1.2.3.4"), nil)
+	w := httptest.NewRecorder()
+	birdHandler(w, r)
+
+	assert.Equal(t, w.Code, http.StatusOK)
+	assert.Equal(t, w.Body.String(), "Mock Route Response\n")
+}
+
+func TestBirdHandlerWithRestrictedCommandConfigureForbidden(t *testing.T) {
+	setting.birdSocket = "/any/path" // Won't be used since we return 403 before connecting
+	setting.birdRestrictCmds = true
+
+	r := httptest.NewRequest(http.MethodGet, "/bird?q="+url.QueryEscape("configure"), nil)
+	w := httptest.NewRecorder()
+	birdHandler(w, r)
+
+	assert.Equal(t, w.Code, http.StatusForbidden)
+}
+
+func TestBirdHandlerWithRestrictionDisabled(t *testing.T) {
+	server := BirdServer{
+		t:             t,
+		expectedQuery: "show status",
+		response:      "Mock Status Response",
+		injectError:   "",
+	}
+
+	server.Listen()
+	go server.Run()
+	defer server.Close()
+
+	setting.birdSocket = server.socket
+	setting.birdRestrictCmds = false
+
+	r := httptest.NewRequest(http.MethodGet, "/bird?q="+url.QueryEscape("show status"), nil)
+	w := httptest.NewRecorder()
+	birdHandler(w, r)
+
+	assert.Equal(t, w.Code, http.StatusOK)
+	assert.Equal(t, w.Body.String(), "Mock Status Response\n")
+}
+
+func TestBirdHandlerWithRestrictionDisabledEdgeCase(t *testing.T) {
+	server := BirdServer{
+		t:             t,
+		expectedQuery: "show protocolsaaa",
+		response:      "Mock Response",
+		injectError:   "",
+	}
+
+	server.Listen()
+	go server.Run()
+	defer server.Close()
+
+	setting.birdSocket = server.socket
+	setting.birdRestrictCmds = false
+
+	r := httptest.NewRequest(http.MethodGet, "/bird?q="+url.QueryEscape("show protocolsaaa"), nil)
+	w := httptest.NewRecorder()
+	birdHandler(w, r)
+
+	assert.Equal(t, w.Code, http.StatusOK)
+	assert.Equal(t, w.Body.String(), "Mock Response\n")
+}
