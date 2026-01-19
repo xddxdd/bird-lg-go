@@ -149,7 +149,7 @@ func TestBatchRequestHTTPError(t *testing.T) {
 }
 
 func TestBatchRequestInvalidServer(t *testing.T) {
-	setting.servers = []string{}
+	setting.servers = []string{"alpha"}
 	setting.domain = ""
 	setting.proxyPort = 8000
 	response := batchRequest([]string{"invalid"}, "mock", "cmd")
@@ -158,6 +158,48 @@ func TestBatchRequestInvalidServer(t *testing.T) {
 		t.Error("Did not get response of all mock servers")
 	}
 	if !strings.Contains(response[0], "invalid server") {
+		t.Error("Did not produce invalid server error")
+	}
+}
+
+func TestBatchRequestTooManyInvalidServer(t *testing.T) {
+	setting.servers = []string{"alpha"}
+	setting.domain = ""
+	setting.proxyPort = 8000
+	response := batchRequest([]string{"invalid1", "invalid2", "invalid3", "invalid4", "invalid5"}, "mock", "cmd")
+
+	if len(response) != 1 {
+		t.Error("Should only return one response for too many servers specified")
+	}
+	if !strings.Contains(response[0], "too many") {
+		t.Error("Did not produce too many servers error")
+	}
+}
+
+func TestBatchRequestMixedValidInvalid(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	httpResponse := httpmock.NewStringResponder(200, "Mock Result")
+	httpmock.RegisterResponder("GET", "http://alpha:8000/mock?q=cmd", httpResponse)
+	httpmock.RegisterResponder("GET", "http://beta:8000/mock?q=cmd", httpResponse)
+	httpmock.RegisterResponder("GET", "http://gamma:8000/mock?q=cmd", httpResponse)
+
+	setting.servers = []string{"alpha", "beta", "gamma"}
+	setting.domain = ""
+	setting.proxyPort = 8000
+	response := batchRequest([]string{"invalid1", "alpha", "invalid2"}, "mock", "cmd")
+
+	if len(response) != 3 {
+		t.Error("Did not get response of all three mock servers")
+	}
+	if !strings.Contains(response[0], "invalid server") {
+		t.Error("Did not produce invalid server error")
+	}
+	if response[1] != "Mock Result" {
+		t.Error("HTTP response mismatch")
+	}
+	if !strings.Contains(response[2], "invalid server") {
 		t.Error("Did not produce invalid server error")
 	}
 }

@@ -42,9 +42,14 @@ func createConnectionTimeoutRoundTripper(timeout int) http.RoundTripper {
 
 // Send commands to lgproxy instances in parallel, and retrieve their responses
 func batchRequest(servers []string, endpoint string, command string) []string {
+	if len(servers) > len(setting.servers) {
+		return []string{"invalid request: too many servers specified"}
+	}
+
 	// Channel and array for storing responses
 	var ch chan channelData = make(chan channelData)
 	var responseArray []string = make([]string, len(servers))
+	var createdGoroutines int = 0
 
 	for i, server := range servers {
 		// Check if the server is in the valid server list passed at startup
@@ -57,10 +62,8 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 		}
 
 		if !isValidServer {
-			// If the server is not valid, create a dummy goroutine to return a failure
-			go func(i int) {
-				ch <- channelData{i, "request failed: invalid server\n"}
-			}(i)
+			// If the server is not valid, return a failure
+			responseArray[i] = "request failed: invalid server\n"
 		} else {
 			// Compose URL and send the request
 			hostname := server
@@ -91,11 +94,12 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 					ch <- channelData{i, string(buf[:n])}
 				}
 			}(url, i)
+			createdGoroutines++
 		}
 	}
 
 	// Sort the responses by their ids, to return data in order
-	for range servers {
+	for i := 0; i < createdGoroutines; i++ {
 		var output channelData = <-ch
 		responseArray[output.id] = output.data
 		if len(responseArray[output.id]) == 0 {
