@@ -53,7 +53,7 @@ func whois(s string) string {
 
 		whoisServer := addDefaultWhoisPort(setting.whoisServer)
 
-		conn, err := net.DialTimeout("tcp", whoisServer, 5*time.Second)
+		conn, err := (&net.Dialer{Timeout: 5 * time.Second, Control: vrfControl(setting.vrf)}).Dial("tcp", whoisServer)
 		if err != nil {
 			return err.Error()
 		}

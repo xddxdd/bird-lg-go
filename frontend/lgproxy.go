@@ -20,6 +20,7 @@ type channelData struct {
 func createConnectionTimeoutRoundTripper(timeout int) http.RoundTripper {
 	context := net.Dialer{
 		Timeout: time.Duration(timeout) * time.Second,
+		Control: vrfControl(setting.vrf),
 	}
 
 	// Prefer httpmock's transport if activated, so unit tests can work

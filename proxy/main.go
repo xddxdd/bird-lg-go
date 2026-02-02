@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -69,6 +70,7 @@ type settingType struct {
 	tr_flags          []string
 	tr_raw            bool
 	tr_max_concurrent int
+	vrf               string
 }
 
 var setting settingType
@@ -103,7 +105,8 @@ func main() {
 				if !strings.Contains(addr, ":") {
 					addr = ":" + addr
 				}
-				l, err = net.Listen("tcp", addr)
+				lc := net.ListenConfig{Control: vrfControl(setting.vrf)}
+				l, err = lc.Listen(context.Background(), "tcp", addr)
 			}
 
 			if err != nil {

@@ -19,6 +19,7 @@ type viperSettingType struct {
 	TracerouteFlags         string   `mapstructure:"traceroute_flags"`
 	TracerouteRaw           bool     `mapstructure:"traceroute_raw"`
 	TracerouteMaxConcurrent int      `mapstructure:"traceroute_max_concurrent"`
+	Vrf                     string   `mapstructure:"vrf"`
 }
 
 // Parse settings with viper, and convert to legacy setting format
@@ -65,6 +66,9 @@ func parseSettings() {
 
 	pflag.Bool("bird-restrict-cmds", true, "restrict bird commands to 'show protocols' and 'show route' only")
 	viper.BindPFlag("bird_restrict_cmds", pflag.Lookup("bird-restrict-cmds"))
+
+	pflag.String("vrf", "", "VRF device to bind TCP sockets to (Linux only)")
+	viper.BindPFlag("vrf", pflag.Lookup("vrf"))
 
 	pflag.Parse()
 
@@ -117,6 +121,7 @@ func parseSettings() {
 
 	setting.tr_raw = viperSettings.TracerouteRaw
 	setting.tr_max_concurrent = viperSettings.TracerouteMaxConcurrent
+	setting.vrf = viperSettings.Vrf
 
 	fmt.Printf("%#v\n", setting)
 }
