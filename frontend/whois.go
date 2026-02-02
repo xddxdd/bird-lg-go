@@ -10,6 +10,21 @@ import (
 	"github.com/google/shlex"
 )
 
+// addDefaultWhoisPort adds the default whois port (43) if not specified.
+// Handles IPv4, IPv6 (bare and bracketed), and domain names.
+func addDefaultWhoisPort(server string) string {
+	if _, _, err := net.SplitHostPort(server); err != nil {
+		// No port specified, add default whois port
+		// Strip brackets from IPv6 addresses like [::1] before JoinHostPort adds them back
+		host := server
+		if strings.HasPrefix(host, "[") && strings.HasSuffix(host, "]") {
+			host = host[1 : len(host)-1]
+		}
+		return net.JoinHostPort(host, "43")
+	}
+	return server
+}
+
 // Send a whois request
 func whois(s string) string {
 	if setting.whoisServer == "" {
@@ -36,10 +51,7 @@ func whois(s string) string {
 	} else {
 		buf := make([]byte, 65536)
 
-		whoisServer := setting.whoisServer
-		if !strings.Contains(whoisServer, ":") {
-			whoisServer = whoisServer + ":43"
-		}
+		whoisServer := addDefaultWhoisPort(setting.whoisServer)
 
 		conn, err := (&net.Dialer{Timeout: 5 * time.Second, Control: vrfControl(setting.vrf)}).Dial("tcp", whoisServer)
 		if err != nil {
