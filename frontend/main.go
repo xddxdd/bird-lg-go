@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net"
 	"os"
 	"strings"
@@ -27,6 +28,7 @@ type settingType struct {
 	timeOut           int
 	connectionTimeOut int
 	trustProxyHeaders bool
+	vrf               string
 }
 
 var setting settingType
@@ -48,7 +50,8 @@ func main() {
 				if !strings.Contains(listenAddr, ":") {
 					listenAddr = ":" + listenAddr
 				}
-				l, err = net.Listen("tcp", listenAddr)
+				lc := net.ListenConfig{Control: vrfControl(setting.vrf)}
+				l, err = lc.Listen(context.Background(), "tcp", listenAddr)
 			}
 
 			if err != nil {

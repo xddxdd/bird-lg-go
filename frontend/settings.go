@@ -28,6 +28,7 @@ type viperSettingType struct {
 	TimeOut           int      `mapstructure:"timeout"`
 	ConnectionTimeOut int      `mapstructure:"connection_timeout"`
 	TrustProxyHeaders bool     `mapstructure:"trust_proxy_headers"`
+	Vrf               string   `mapstructure:"vrf"`
 }
 
 // Parse settings with viper, and convert to legacy setting format
@@ -104,6 +105,9 @@ func parseSettings() {
 	pflag.Bool("trust-proxy-headers", false, "Trust X-Forwared-For, X-Real-IP, X-Forwarded-Proto, X-Forwarded-Scheme and X-Forwarded-Host sent by the client")
 	viper.BindPFlag("trust_proxy_headers", pflag.Lookup("trust-proxy-headers"))
 
+	pflag.String("vrf", "", "VRF device to bind TCP sockets to (Linux only)")
+	viper.BindPFlag("vrf", pflag.Lookup("vrf"))
+
 	pflag.Parse()
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -155,6 +159,7 @@ func parseSettings() {
 	setting.timeOut = viperSettings.TimeOut
 	setting.connectionTimeOut = viperSettings.ConnectionTimeOut
 	setting.trustProxyHeaders = viperSettings.TrustProxyHeaders
+	setting.vrf = viperSettings.Vrf
 
 	fmt.Printf("%#v\n", setting)
 }
