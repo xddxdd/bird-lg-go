@@ -1,6 +1,6 @@
 module github.com/xddxdd/bird-lg-go/frontend
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -9,7 +9,7 @@ require (
 	github.com/magiconair/properties v1.8.10
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
-	golang.org/x/sys v0.29.0
+	golang.org/x/sys v0.40.0
 )
 
 require (
