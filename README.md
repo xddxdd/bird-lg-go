@@ -64,18 +64,21 @@ Configuration is handled by [viper](https://github.com/spf13/viper), any config 
 | domain | --domain | BIRDLG_DOMAIN | server name domain suffixes |
 | listen | --listen | BIRDLG_LISTEN | address bird-lg is listening on (default "5000") |
 | proxy_port | --proxy-port | BIRDLG_PROXY_PORT | port bird-lgproxy is running on (default 8000) |
-| whois | --whois | BIRDLG_WHOIS | whois server for queries (default "whois.verisign-grs.com"). Start with "/" to spacify local whois binary("/usr/local/whois"). |
+| whois | --whois | BIRDLG_WHOIS | whois server for queries (default "whois.verisign-grs.com"). Start with "/" to specify a local whois binary (e.g. "/usr/local/bin/whois"). |
 | dns_interface | --dns-interface | BIRDLG_DNS_INTERFACE | dns zone to query ASN information (default "asn.cymru.com") |
 | bgpmap_info | --bgpmap-info | BIRDLG_BGPMAP_INFO | the infos displayed in bgpmap, separated by comma, start with `:` means allow multiline (default "asn,as-name,ASName,descr") |
 | title_brand | --title-brand | BIRDLG_TITLE_BRAND | prefix of page titles in browser tabs (default "Bird-lg Go") |
-| navbar_brand | --navbar-brand | BIRDLG_NAVBAR_BRAND | brand to show in the navigation bar (default "Bird-lg Go") |
+| navbar_brand | --navbar-brand | BIRDLG_NAVBAR_BRAND | brand to show in the navigation bar (default same as title_brand) |
 | navbar_brand_url | --navbar-brand-url | BIRDLG_NAVBAR_BRAND_URL | the url of the brand to show in the navigation bar (default "/") |
-| navbar_all_servers | --navbar-all-servers | BIRDLG_NAVBAR_ALL_SERVERS | the text of "All servers" button in the navigation bar (default "ALL Servers") |
+| navbar_all_servers | --navbar-all-servers | BIRDLG_NAVBAR_ALL_SERVERS | the text of "All servers" button in the navigation bar (default "All Servers") |
 | navbar_all_url | --navbar-all-url | BIRDLG_NAVBAR_ALL_URL | the URL of "All servers" button (default "all") |
 | net_specific_mode | --net-specific-mode | BIRDLG_NET_SPECIFIC_MODE | apply network-specific changes for some networks, use "dn42" for BIRD in dn42 network |
 | protocol_filter | --protocol-filter | BIRDLG_PROTOCOL_FILTER | protocol types to show in summary tables (comma separated list); defaults to all if not set |
-| name_filter | --name-filter | BIRDLG_NAME_FILTER | protocol names to hide in summary tables (RE2 syntax); defaults to none if not set |
-| timeout | --time-out | BIRDLG_TIMEOUT | time before request timed out, in seconds; defaults to 120 if not set |
+| name_filter | --name-filter | BIRDLG_NAME_FILTER | protocol name regex to hide in summary tables (RE2 syntax); defaults to none if not set |
+| timeout | --time-out | BIRDLG_TIMEOUT | time before backend HTTP request times out, in seconds (default 120) |
+| connection_timeout | --connection-time-out | BIRDLG_CONNECTION_TIMEOUT | time before backend TCP connection times out, in seconds (default 5) |
+| trust_proxy_headers | --trust-proxy-headers | BIRDLG_TRUST_PROXY_HEADERS | trust X-Forwarded-For, X-Real-IP, X-Forwarded-Proto and X-Forwarded-Host headers sent by a reverse proxy (default false) |
+| vrf | --vrf | BIRDLG_VRF | VRF device to bind TCP sockets to (Linux only) |
 
 ### Examples
 
@@ -125,12 +128,15 @@ Configuration is handled by [viper](https://github.com/spf13/viper), any config 
 
 | Config Key | Parameter | Environment Variable | Description |
 | ---------- | --------- | -------------------- | ----------- |
-| allowed_ips | --allowed | ALLOWED_IPS | IPs or networks allowed to access this proxy, separated by commas. Don't set to allow all IPs. (default "") |
-| bird_socket | --bird | BIRD_SOCKET | socket file for bird, set either in parameter or environment variable BIRD_SOCKET (default "/var/run/bird/bird.ctl") |
-| listen | --listen | BIRDLG_PROXY_PORT | listen address, set either in parameter or environment variable  BIRDLG_PROXY_PORT(default "8000") |
-| traceroute_bin | --traceroute_bin | BIRDLG_TRACEROUTE_BIN | traceroute binary file, set either in parameter or environment variable  BIRDLG_TRACEROUTE_BIN |
-| traceroute_flags | --traceroute_flags | BIRDLG_TRACEROUTE_FLAGS | traceroute flags, supports multiple flags separated with space. |
-| traceroute_raw | --traceroute_raw | BIRDLG_TRACEROUTE_RAW | whether to display traceroute outputs raw (default false) |
+| bird_socket | --bird | BIRD_SOCKET | socket file for bird (default "/var/run/bird/bird.ctl") |
+| bird_restrict_cmds | --bird-restrict-cmds | BIRDLG_BIRD_RESTRICT_CMDS | restrict bird commands to `show protocols` and `show route` only (default true) |
+| listen | --listen | BIRDLG_LISTEN / BIRDLG_PROXY_PORT | listen address (default "8000") |
+| allowed_ips | --allowed | ALLOWED_IPS | IPs or networks allowed to access this proxy, separated by commas; allow all if not set |
+| traceroute_bin | --traceroute-bin | BIRDLG_TRACEROUTE_BIN | traceroute binary file |
+| traceroute_flags | --traceroute-flags | BIRDLG_TRACEROUTE_FLAGS | traceroute flags, supports multiple flags separated with space |
+| traceroute_raw | --traceroute-raw | BIRDLG_TRACEROUTE_RAW | whether to display traceroute outputs raw (default false) |
+| traceroute_max_concurrent | --traceroute-max-concurrent | BIRDLG_TRACEROUTE_MAX_CONCURRENT | max concurrent traceroute requests allowed (default 10) |
+| vrf | --vrf | BIRDLG_VRF | VRF device to bind TCP sockets to (Linux only) |
 
 ### Traceroute Binary Autodetection
 
