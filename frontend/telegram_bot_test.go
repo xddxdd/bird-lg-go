@@ -365,3 +365,26 @@ func TestWebHandlerTelegramBotTruncateLongResponse(t *testing.T) {
 	response := mockTelegramCall(t, "/whois AS6939", false)
 	assert.Equal(t, response, "```\n"+strings.Repeat("A", 4096)+"\n```")
 }
+
+func TestWebHandlerTelegramBotRequestBodyTooLarge(t *testing.T) {
+	largePayload := strings.Repeat("x", 1024*1024)
+	request := tgWebhookRequest{
+		Message: tgMessage{
+			MessageID: 123,
+			Chat: tgChat{
+				ID: 456,
+			},
+			Text: "/trace " + largePayload,
+		},
+	}
+	requestJson, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/telegram/", bytes.NewReader(requestJson))
+	w := httptest.NewRecorder()
+	webHandlerTelegramBot(w, r)
+
+	assert.Equal(t, w.Code, http.StatusRequestEntityTooLarge)
+}

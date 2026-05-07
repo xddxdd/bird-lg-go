@@ -184,6 +184,27 @@ func TestApiHandlerBadJSON(t *testing.T) {
 	assert.Equal(t, len(response.Result), 0)
 }
 
+func TestApiHandlerRequestBodyTooLarge(t *testing.T) {
+	setting.servers = []string{"alpha"}
+
+	largePayload := strings.Repeat("x", 1024*1024)
+	request := apiRequest{
+		Servers: setting.servers,
+		Type:    "server_list",
+		Args:    largePayload,
+	}
+	requestJson, err := json.Marshal(request)
+	if err != nil {
+		t.Error(err)
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/api", bytes.NewReader(requestJson))
+	w := httptest.NewRecorder()
+	apiHandler(w, r)
+
+	assert.Equal(t, w.Code, http.StatusRequestEntityTooLarge)
+}
+
 func TestApiHandlerInvalidType(t *testing.T) {
 	setting.servers = []string{"alpha", "beta", "gamma"}
 
