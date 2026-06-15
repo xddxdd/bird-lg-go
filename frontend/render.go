@@ -65,7 +65,7 @@ func renderPageTemplate(w http.ResponseWriter, r *http.Request, title string, co
 		WhoisTarget:          whoisTarget,
 
 		URLOption:  strings.ToLower(split[0]),
-		URLServer:  strings.ToLower(split[1]),
+		URLServer:  split[1],
 		URLCommand: split[2],
 		Title:      setting.titleBrand + title,
 		Brand:      setting.navBarBrand,
