@@ -101,6 +101,24 @@ func TestTracerouteHandlerWithoutQuery(t *testing.T) {
 	}
 }
 
+func TestTracerouteHandlerRejectsDashTarget(t *testing.T) {
+	initTracerouteSemaphore(setting.tr_max_concurrent)
+	setting.tr_bin = "sh"
+	setting.tr_flags = []string{"-c", "echo Should not run"}
+	setting.tr_raw = true
+
+	r := httptest.NewRequest(http.MethodGet, "/traceroute?q="+url.QueryEscape("--help"), nil)
+	w := httptest.NewRecorder()
+	tracerouteHandler(w, r)
+	assert.Equal(t, w.Code, http.StatusBadRequest)
+	if !strings.Contains(w.Body.String(), "Invalid target") {
+		t.Error("Did not get invalid target error message")
+	}
+	if strings.Contains(w.Body.String(), "Should not run") {
+		t.Error("Traceroute was executed on a dash-prefixed target")
+	}
+}
+
 func TestTracerouteHandlerNoTracerouteFound(t *testing.T) {
 	initTracerouteSemaphore(setting.tr_max_concurrent)
 	setting.tr_bin = ""

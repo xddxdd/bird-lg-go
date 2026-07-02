@@ -108,6 +108,9 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 
 	if query == "" {
 		invalidHandler(httpW, httpR)
+	} else if strings.HasPrefix(query, "-") {
+		httpW.WriteHeader(http.StatusBadRequest)
+		httpW.Write([]byte("Invalid target.\n"))
 	} else {
 		var result []byte
 		skippedCounter := 0
