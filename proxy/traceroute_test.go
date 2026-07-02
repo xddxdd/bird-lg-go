@@ -16,9 +16,7 @@ func TestTracerouteArgsToString(t *testing.T) {
 		"-a",
 		"-b",
 		"-c",
-	}, []string{
-		"google.com",
-	})
+	}, "google.com")
 
 	assert.Equal(t, result, "traceroute -a -b -c google.com")
 }
@@ -26,9 +24,7 @@ func TestTracerouteArgsToString(t *testing.T) {
 func TestTracerouteTryExecuteSuccess(t *testing.T) {
 	_, err := tracerouteTryExecute("sh", []string{
 		"-c",
-	}, []string{
-		"true",
-	})
+	}, "true")
 
 	if err != nil {
 		t.Error(err)
@@ -38,9 +34,7 @@ func TestTracerouteTryExecuteSuccess(t *testing.T) {
 func TestTracerouteTryExecuteFail(t *testing.T) {
 	_, err := tracerouteTryExecute("sh", []string{
 		"-c",
-	}, []string{
-		"false",
-	})
+	}, "false")
 
 	if err == nil {
 		t.Error("Should trigger error, not triggered")
@@ -104,17 +98,6 @@ func TestTracerouteHandlerWithoutQuery(t *testing.T) {
 	assert.Equal(t, w.Code, http.StatusInternalServerError)
 	if !strings.Contains(w.Body.String(), "Invalid Request") {
 		t.Error("Did not get invalid request")
-	}
-}
-
-func TestTracerouteHandlerShlexError(t *testing.T) {
-	initTracerouteSemaphore(setting.tr_max_concurrent)
-	r := httptest.NewRequest(http.MethodGet, "/traceroute?q="+url.QueryEscape("\"1.1.1.1"), nil)
-	w := httptest.NewRecorder()
-	tracerouteHandler(w, r)
-	assert.Equal(t, w.Code, http.StatusInternalServerError)
-	if !strings.Contains(w.Body.String(), "parse") {
-		t.Error("Did not get parsing error message")
 	}
 }
 

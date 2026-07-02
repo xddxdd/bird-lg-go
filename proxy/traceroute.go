@@ -7,8 +7,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/google/shlex"
 )
 
 var tracerouteSemaphore chan struct{}
@@ -19,14 +17,14 @@ func initTracerouteSemaphore(maxConcurrent int) {
 	}
 }
 
-func tracerouteArgsToString(cmd string, args []string, target []string) string {
+func tracerouteArgsToString(cmd string, args []string, target string) string {
 	var cmdCombined = append([]string{cmd}, args...)
-	cmdCombined = append(cmdCombined, target...)
+	cmdCombined = append(cmdCombined, target)
 	return strings.Join(cmdCombined, " ")
 }
 
-func tracerouteTryExecute(cmd string, args []string, target []string) ([]byte, error) {
-	instance := exec.Command(cmd, append(args, target...)...)
+func tracerouteTryExecute(cmd string, args []string, target string) ([]byte, error) {
+	instance := exec.Command(cmd, append(args, target)...)
 	output, err := instance.CombinedOutput()
 	if err == nil {
 		return output, nil
@@ -36,7 +34,7 @@ func tracerouteTryExecute(cmd string, args []string, target []string) ([]byte, e
 }
 
 func tracerouteDetect(cmd string, args []string) bool {
-	target := []string{"127.0.0.1"}
+	target := "127.0.0.1"
 	success := false
 	if result, err := tracerouteTryExecute(cmd, args, target); err == nil {
 		setting.tr_bin = cmd
@@ -111,13 +109,6 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 	if query == "" {
 		invalidHandler(httpW, httpR)
 	} else {
-		args, err := shlex.Split(query)
-		if err != nil {
-			httpW.WriteHeader(http.StatusInternalServerError)
-			httpW.Write([]byte(fmt.Sprintf("failed to parse args: %s\n", err.Error())))
-			return
-		}
-
 		var result []byte
 		skippedCounter := 0
 
@@ -127,7 +118,7 @@ func tracerouteHandler(httpW http.ResponseWriter, httpR *http.Request) {
 			return
 		}
 
-		result, err = tracerouteTryExecute(setting.tr_bin, setting.tr_flags, args)
+		result, err := tracerouteTryExecute(setting.tr_bin, setting.tr_flags, query)
 		if err != nil {
 			httpW.WriteHeader(http.StatusInternalServerError)
 			httpW.Write([]byte(fmt.Sprintf("Error executing traceroute: %s\n\n", err.Error())))
