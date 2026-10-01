@@ -203,3 +203,34 @@ func TestBatchRequestMixedValidInvalid(t *testing.T) {
 		t.Error("Did not produce invalid server error")
 	}
 }
+
+func TestBatchRequestMaxResponseSize(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	longResult := strings.Repeat("A", 200000)
+	httpmock.RegisterResponder("GET", "http://1.1.1.1:8000/mock?q=cmd", httpmock.NewStringResponder(200, longResult))
+
+	setting.servers = []string{"1.1.1.1"}
+	setting.domain = ""
+	setting.proxyPort = 8000
+	defer func() { setting.maxResponseSize = 0 }()
+
+	tests := []struct {
+		limit    int64
+		expected int
+	}{
+		{65536, 65536},
+		{100000, 100000},
+		{1000000, 200000},
+		{0, 200000},
+	}
+
+	for _, test := range tests {
+		setting.maxResponseSize = test.limit
+		response := batchRequest(setting.servers, "mock", "cmd")
+		if len(response[0]) != test.expected {
+			t.Errorf("limit %d: expected response length %d, got %d", test.limit, test.expected, len(response[0]))
+		}
+	}
+}

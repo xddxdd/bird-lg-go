@@ -27,6 +27,7 @@ type settingType struct {
 	nameFilter        string
 	timeOut           int
 	connectionTimeOut int
+	maxResponseSize   int64
 	trustProxyHeaders bool
 	vrf               string
 }

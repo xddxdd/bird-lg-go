@@ -27,6 +27,7 @@ type viperSettingType struct {
 	NameFilter        string   `mapstructure:"name_filter"`
 	TimeOut           int      `mapstructure:"timeout"`
 	ConnectionTimeOut int      `mapstructure:"connection_timeout"`
+	MaxResponseSize   int64    `mapstructure:"max_response_size"`
 	TrustProxyHeaders bool     `mapstructure:"trust_proxy_headers"`
 	Vrf               string   `mapstructure:"vrf"`
 }
@@ -102,6 +103,9 @@ func parseSettings() {
 	pflag.Int("connection-time-out", 5, "time before backend TCP connection times out, in seconds; defaults to 5 if not set")
 	viper.BindPFlag("connection_timeout", pflag.Lookup("connection-time-out"))
 
+	pflag.Int64("max-response-size", 65536, "maximum size of a backend response, in bytes, longer output is truncated; 0 means unlimited; defaults to 65536 if not set")
+	viper.BindPFlag("max_response_size", pflag.Lookup("max-response-size"))
+
 	pflag.Bool("trust-proxy-headers", false, "Trust X-Forwared-For, X-Real-IP, X-Forwarded-Proto, X-Forwarded-Scheme and X-Forwarded-Host sent by the client")
 	viper.BindPFlag("trust_proxy_headers", pflag.Lookup("trust-proxy-headers"))
 
@@ -158,6 +162,7 @@ func parseSettings() {
 	setting.nameFilter = viperSettings.NameFilter
 	setting.timeOut = viperSettings.TimeOut
 	setting.connectionTimeOut = viperSettings.ConnectionTimeOut
+	setting.maxResponseSize = viperSettings.MaxResponseSize
 	setting.trustProxyHeaders = viperSettings.TrustProxyHeaders
 	setting.vrf = viperSettings.Vrf
 
