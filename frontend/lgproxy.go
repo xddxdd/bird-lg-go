@@ -87,12 +87,18 @@ func batchRequest(servers []string, endpoint string, command string) []string {
 					return
 				}
 
-				buf := make([]byte, 65536)
-				n, err := io.ReadFull(response.Body, buf)
-				if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+				defer response.Body.Close()
+
+				// Limit the response size if configured, 0 or negative means unlimited
+				var body io.Reader = response.Body
+				if setting.maxResponseSize > 0 {
+					body = io.LimitReader(response.Body, setting.maxResponseSize)
+				}
+				buf, err := io.ReadAll(body)
+				if err != nil {
 					ch <- channelData{i, "request failed: " + err.Error()}
 				} else {
-					ch <- channelData{i, string(buf[:n])}
+					ch <- channelData{i, string(buf)}
 				}
 			}(url, i)
 			createdGoroutines++

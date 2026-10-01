@@ -77,6 +77,7 @@ Configuration is handled by [viper](https://github.com/spf13/viper), any config 
 | name_filter | --name-filter | BIRDLG_NAME_FILTER | protocol name regex to hide in summary tables (RE2 syntax); defaults to none if not set |
 | timeout | --time-out | BIRDLG_TIMEOUT | time before backend HTTP request times out, in seconds (default 120) |
 | connection_timeout | --connection-time-out | BIRDLG_CONNECTION_TIMEOUT | time before backend TCP connection times out, in seconds (default 5) |
+| max_response_size | --max-response-size | BIRDLG_MAX_RESPONSE_SIZE | maximum size of a backend response, in bytes, longer output is truncated; 0 means unlimited (default 65536) |
 | trust_proxy_headers | --trust-proxy-headers | BIRDLG_TRUST_PROXY_HEADERS | trust X-Forwarded-For, X-Real-IP, X-Forwarded-Proto and X-Forwarded-Host headers sent by a reverse proxy (default false) |
 | vrf | --vrf | BIRDLG_VRF | VRF device to bind TCP sockets to (Linux only) |
 
